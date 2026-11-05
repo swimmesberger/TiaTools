@@ -11,6 +11,7 @@ namespace TiaFormat.Program;
 public sealed class TiaProgram {
     private const string Core = "Siemens.Automation.ObjectFrame.ICoreAttributes";
     private const string General = "Siemens.Simatic.Lang.Model.Blocks.IGeneralBlockSourceData";
+    private const string PlcHeader = "Siemens.Simatic.Lang.Model.Blocks.IPlcHeaderData";
     private const string CompileUnit = "Siemens.Simatic.Lang.Model.Blocks.ICompileUnitData";
     private const string InterfacePart = "Siemens.Simatic.Lang.Model.Structures.IInterfacePartData";
     private const string IdentPart = "Siemens.Simatic.Lang.Model.Idents.IIdentPartData";
@@ -21,7 +22,8 @@ public sealed class TiaProgram {
     private readonly TiaAttributeHandle _name, _comment, _subtype, _protected, _blockType, _number, _language;
     private readonly TiaAttributeHandle _unitData, _unitRef, _unitLanguage, _partPayload, _partKind, _identPayload, _text, _image;
     private readonly TiaAttributeHandle _tagAddress, _tagType, _tagValue;
-    private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _tagContent;
+    private readonly TiaAttributeHandle _author, _family, _headerName, _version, _optimized;
+    private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _isGeneratedFrom, _tagContent;
     private readonly Lazy<Dictionary<int, string>> _typeCodes;
 
     public TiaProgram(TiaDatabase database) {
@@ -34,6 +36,11 @@ public sealed class TiaProgram {
         _blockType = s.Attribute(General, "BlockType");
         _number = s.Attribute(General, "Number");
         _language = s.Attribute(General, "BlockLanguage");
+        _optimized = s.Attribute(General, "OnlySymbolicAccess");
+        _author = s.Attribute(PlcHeader, "HeaderAuthor");
+        _family = s.Attribute(PlcHeader, "HeaderFamily");
+        _headerName = s.Attribute(PlcHeader, "HeaderName");
+        _version = s.Attribute(PlcHeader, "HeaderVersion");
         _unitData = s.Attribute(CompileUnit, "Data");
         _unitRef = s.Attribute(CompileUnit, "RefID");
         _unitLanguage = s.Attribute(CompileUnit, "ProgrammingLanguage");
@@ -57,6 +64,7 @@ public sealed class TiaProgram {
         _environment = s.Relation("Environment");
         _loadables = s.Relation("LoadableBinaries");
         _generatedFrom = s.Relation("GeneratedFromMaster");
+        _isGeneratedFrom = s.Relation("IsGeneratedFrom");
         _tagContent = s.Relation("Content");
         _typeCodes = new Lazy<Dictionary<int, string>>(HarvestTypeCodes);
         Blocks = ReadBlocks();
@@ -95,9 +103,98 @@ public sealed class TiaProgram {
     public string? BlockComment(TiaBlock block) =>
         _db.TryGetTarget(block.Frame, _blockComment, out var text) ? _db.ReadCoreText(text, _text) : null;
 
+    /// <summary>The block's header fields, as a source file's AUTHOR, FAMILY, NAME and VERSION show them.</summary>
+    public TiaBlockHeader Header(TiaBlock block) => new(
+        _db.ReadString(block.Frame, _author),
+        _db.ReadString(block.Frame, _family),
+        _db.ReadString(block.Frame, _headerName),
+        _db.ReadString(block.Frame, _version),
+        _db.ReadBoolean(block.Frame, _optimized));
+
     /// <summary>The name of the UDT or FB a data block was generated from, or null.</summary>
     public string? GeneratedFrom(TiaBlock block) =>
-        _db.TryGetTarget(block.Frame, _generatedFrom, out var master) ? _db.ReadString(master, _name) : null;
+        _db.TryGetTarget(block.Frame, _generatedFrom, out var master) || _db.TryGetTarget(block.Frame, _isGeneratedFrom, out master)
+            ? _db.ReadString(master, _name)
+            : null;
+
+    /// <summary>
+    /// The start values set in a data block itself, in member order, named as a source file names them:
+    /// <c>Config.Limits[1,2].Max</c>. A value whose path no member explains comes last, with its stored path.
+    /// </summary>
+    public IReadOnlyList<TiaSetValue> ReadSetValues(TiaBlock block, IReadOnlyList<TiaMember> members) {
+        if (!_db.TryGetTarget(block.Frame, _currentInterface, out var root)) {
+            return [];
+        }
+        var values = new Dictionary<string, string>();
+        using (var payload = _db.ReadBlob(root, _partPayload)) {
+            CollectValues(payload.Span, values);
+        }
+        foreach (var key in PositionalParts(root)) {
+            if (_db.TryGetFrame(key, out var part) && _db.ReadString(part, _partKind) == "Values") {
+                using var payload = _db.ReadBlob(part, _partPayload);
+                CollectValues(payload.Span, values);
+            }
+        }
+        var names = new Dictionary<string, (int Order, string Name)>();
+        Index(members, names);
+        var known = new List<(List<int> Order, TiaSetValue Value)>();
+        var unknown = new List<TiaSetValue>();
+        foreach (var (path, value) in values) {
+            if (TryName(path, names, out var name, out var order)) {
+                known.Add((order, new TiaSetValue(name, value, true)));
+            } else {
+                unknown.Add(new TiaSetValue(path, value, false));
+            }
+        }
+        known.Sort((a, b) => CompareOrder(a.Order, b.Order));
+        return [.. known.Select(entry => entry.Value), .. unknown];
+    }
+
+    private static void Index(IReadOnlyList<TiaMember> members, Dictionary<string, (int Order, string Name)> names) {
+        foreach (var member in members) {
+            names[member.Path] = (names.Count, member.Name);
+            Index(member.Children, names);
+        }
+    }
+
+    /// <summary>A stored path is ids with optional indexes, <c>53[0]:51[1,2]</c>; it becomes <c>Name[0].Other[1,2]</c>.</summary>
+    private static bool TryName(string path, Dictionary<string, (int Order, string Name)> names, out string name, out List<int> order) {
+        name = "";
+        order = [];
+        var prefix = "";
+        var result = new StringBuilder();
+        foreach (var segment in path.Split(':')) {
+            var bracket = segment.IndexOf('[');
+            var id = bracket < 0 ? segment : segment[..bracket];
+            prefix = prefix.Length == 0 ? id : prefix + ":" + id;
+            if (!names.TryGetValue(prefix, out var member)) {
+                return false;
+            }
+            order.Add(member.Order);
+            if (result.Length != 0) {
+                result.Append('.');
+            }
+            result.Append(member.Name);
+            if (bracket >= 0) {
+                result.Append(segment.AsSpan(bracket));
+                foreach (var index in segment[(bracket + 1)..].TrimEnd(']').Split(',')) {
+                    order.Add(int.TryParse(index, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out var number) ? number : 0);
+                }
+            }
+        }
+        name = result.ToString();
+        return true;
+    }
+
+    private static int CompareOrder(List<int> a, List<int> b) {
+        for (var i = 0; i < a.Count && i < b.Count; i++) {
+            var compared = a[i].CompareTo(b[i]);
+            if (compared != 0) {
+                return compared;
+            }
+        }
+        return a.Count.CompareTo(b.Count);
+    }
 
     /// <summary>The compile units in network order, with their form: SCLSource, FlgNet, EncryptedData, empty or other.</summary>
     public List<TiaNetwork> Networks(TiaBlock block) {
@@ -354,6 +451,7 @@ public sealed class TiaProgram {
         var rid = reader.GetString("RID"u8);
         var type = reader.GetString("Type"u8);
         var subPart = reader.GetInt32("SubPartIndex"u8);
+        var retain = reader.GetString("Remanence"u8) == "Retain";
 
         if (rid is null && name is "Input" or "Output" or "InOut" or "Static" or "Temp" or "Return" or "Constant") {
             var inner = ParseChildren(ref reader, name, prefix, context, out _);
@@ -370,7 +468,7 @@ public sealed class TiaProgram {
         if (kids.Count == 0 && type is null && subPart is { } structure) {
             kids = ParsePart(structure, section, path + ":", context, requireStructure: true);
         }
-        into.Add(new MemberNode(name, TypeOf(type, rid, subPart), path, section, context.Comments?.GetValueOrDefault(path), context.Values.GetValueOrDefault(path), rid, kids));
+        into.Add(new MemberNode(name, TypeOf(type, rid, subPart), path, section, context.Comments?.GetValueOrDefault(path), context.Values.GetValueOrDefault(path), rid, kids) { IsRetain = retain });
     }
 
     private List<MemberNode> ParsePart(int index, string section, string prefix, InterfaceContext context, bool requireStructure) {
@@ -526,7 +624,7 @@ public sealed class TiaProgram {
     private static List<TiaMember> Freeze(List<MemberNode> nodes) {
         var result = new List<TiaMember>(nodes.Count);
         foreach (var n in nodes) {
-            result.Add(new TiaMember(n.Name, n.Type, n.Path, n.Section, n.Comment, n.StartValue, n.Children.Count == 0 ? [] : Freeze(n.Children)));
+            result.Add(new TiaMember(n.Name, n.Type, n.Path, n.Section, n.Comment, n.StartValue, n.Children.Count == 0 ? [] : Freeze(n.Children), n.IsRetain));
         }
         return result;
     }
@@ -549,5 +647,6 @@ public sealed class TiaProgram {
         public string? Rid { get; } = rid;
         public List<MemberNode> Children { get; } = children;
         public int? OptimizedBitOffset { get; set; }
+        public bool IsRetain { get; init; }
     }
 }

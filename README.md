@@ -41,6 +41,7 @@ The tool is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on 
 |---|---|---|
 | `tiadump list <archive>` | One line per block: PLC, environment, kind, number, `KHP` if protected, `STUB` if held elsewhere, language, name and folder. The block count goes to stderr | `--grep <regex>` on the name, `--stubs` to include references to blocks held elsewhere |
 | `tiadump show <archive> <name>` | Prints every block of exactly that name as source. Exits with 1 if there is none | `--plc <name>` for one PLC only |
+| `tiadump inspect <archive> <name or id>` | Prints what is stored for a block or object: attributes and relations, for finding where a fact lives. Encrypted values stay closed | `--plc <name>` for one PLC, `--full` to print long values whole |
 | `tiadump dump <archive> <folder>` | Writes all blocks and tag tables as files, and creates the folder if needed. Takes about a second for a 60 MB archive. Exits with 1 if a block failed; the rest are still written | `--grep <regex>` on the name (no tag tables then), `--raw` to add each network as stored, `--verify` to check every frame's hash |
 
 ## Using it to answer a question
@@ -77,10 +78,10 @@ Project/<PLC>/<folder path>/<block>.<kind>
 | File | Holds |
 |---|---|
 | `index.tsv` | Every block, also the ones with no file. Columns: `object`, `environment`, `plc`, `kind`, `number`, `language`, `know-how` (`yes` or `no`), `file`, `name`. `file` is empty when nothing is stored for the block |
-| `.scl` | SCL source with comments and layout as written. A protected block has at most its interface, and its body says it is closed |
+| `.scl` | SCL source with comments and layout as written. After the leading comment lines it matches what TIA's *Generate source from blocks* writes. A protected block has at most its interface, and its body says it is closed |
 | `.f_fbd` | Interface, then FBD networks as part calls with their wires and operands. **This layout is ours**, not text TIA would show |
-| `.udt` | A user data type |
-| `.db` | A data block: members, and start values where they are known |
+| `.udt` | A user data type. Start values are not shown: where a UDT stores them is not known yet |
+| `.db` | A data block. One of a UDT or FB names its type and lists the values set in it, as TIA does; the type's members follow as comments, with start values where they are known. A shared one declares its members |
 | `.tags` | A tag table |
 
 Each block file starts with comment lines giving kind, number, language, know-how flag, PLC and folder.
@@ -89,9 +90,9 @@ If the dump reports SCL tags without a rule, the reader met a token it does not 
 
 ## How far to trust the output
 
-- **Not compared with TIA.** Nothing has been checked against an export from TIA Portal. The text is what the archive stores, as far as [the format](docs/FORMAT.md) is understood. When an answer really matters, check it in TIA.
+- **Spot-checked against TIA.** Seven blocks (FC, FB, OB, UDT, instance DB, two DBs of a UDT) match TIA's own source, and every part, wire and inversion of two FBD blocks matches TIA's networks. That is a sample, not the whole archive. The text is what the archive stores, as far as [the format](docs/FORMAT.md) is understood. When an answer really matters, check it in TIA.
 - **It is the code as written.** It says nothing about what a running PLC does, or about changes made on site.
-- **Tested on** two V20 archives and one V15.1 global library. **Untested,** because no sample has any unprotected: LAD, plain FBD, STL and GRAPH. Versions before V14 use other file headers and have not been tried.
+- **Tested on** two V20 archives, one project upgraded to V21 and one V15.1 global library. **Untested,** because no sample has any unprotected: LAD, plain FBD, STL and GRAPH. Versions before V14 use other file headers and have not been tried.
 - **Start values are partial.** A data block stores only some of them as text. The rest come from its compiled image, and the reader takes those only for optimized data blocks generated from a UDT. So a member with no start value in a `.db` may still have one on the PLC, above all in an instance data block.
 
 ## Rules

@@ -2,7 +2,10 @@ using System.Globalization;
 
 namespace TiaFormat.Program;
 
-/// <summary>Writes a whole block as one source text in the style of a TIA source file. For reading, not for importing.</summary>
+/// <summary>
+/// Writes a whole block as one source text. SCL blocks, UDTs and data blocks match what TIA generates from them, after
+/// our leading comment lines and before our trailing ones; FBD follows the same frame. For reading, not for importing.
+/// </summary>
 public static class TiaSourceWriter {
     /// <summary>What stands where protected source would be. The source is never opened.</summary>
     public static ReadOnlySpan<byte> ProtectedMarker => "// know-how protected: source closed, not read"u8;
@@ -25,12 +28,6 @@ public static class TiaSourceWriter {
         output.Write("\n// folder: "u8);
         output.Write(folder);
         output.Write((byte)'\n');
-        var master = program.GeneratedFrom(block);
-        if (master is not null) {
-            output.Write("// generated from: "u8);
-            output.Write(master);
-            output.Write((byte)'\n');
-        }
 
         var members = program.ReadInterface(block);
         var opener = block.Kind switch {
@@ -55,6 +52,7 @@ public static class TiaSourceWriter {
             WriteOneLine(output, block.Title);
             output.Write((byte)'\n');
         }
+        WriteHeader(output, opener, program.Header(block));
         WriteComment(output, program.BlockComment(block));
         foreach (var member in members) {
             if (member.Section == "Return" && !string.IsNullOrEmpty(member.Comment)) {
@@ -67,17 +65,17 @@ public static class TiaSourceWriter {
         if (opener == "TYPE") {
             output.Write("   STRUCT\n"u8);
             WriteMembers(output, members, 2);
-            output.Write("   END_STRUCT;\nEND_TYPE\n"u8);
+            output.Write("   END_STRUCT;\n\nEND_TYPE\n\n"u8);
             return 0;
         }
         if (opener == "DATA_BLOCK") {
-            WriteSections(output, members, "VAR");
-            output.Write("BEGIN\nEND_DATA_BLOCK\n"u8);
+            WriteDataBlock(output, program, block, members);
             return 0;
         }
 
-        WriteSections(output, members, null);
-        output.Write("BEGIN\n"u8);
+        // An OB's inputs are the system's: TIA leaves them out of the source.
+        WriteSections(output, opener == "ORGANIZATION_BLOCK" ? [.. members.Where(member => member.Section != "Input")] : members, null);
+        output.Write("\nBEGIN\n"u8);
         var unknown = 0;
         if (block.IsKnowHowProtected) {
             output.Write(ProtectedMarker);
@@ -98,14 +96,27 @@ public static class TiaSourceWriter {
                     }
                     output.Write((byte)'\n');
                 }
-                program.WriteNetworkSource(block, i, output, out var missing);
+                int missing;
+                if (network.Form == "SCLSource") {
+                    using var source = new PooledByteWriter();
+                    program.WriteNetworkSource(block, i, source, out missing);
+                    if (source.Length != 0) {
+                        WriteIndented(output, source.WrittenSpan);
+                        output.Write((byte)'\n');
+                    }
+                } else {
+                    program.WriteNetworkSource(block, i, output, out missing);
+                    output.Write((byte)'\n');
+                }
                 unknown += missing;
-                output.Write((byte)'\n');
             }
         }
         output.Write("END_"u8);
         output.Write(opener);
-        output.Write((byte)'\n');
+        output.Write("\n\n"u8);
+        if (opener == "ORGANIZATION_BLOCK") {
+            WriteAsComment(output, "// The inputs the system provides:\n"u8, [.. members.Where(member => member.Section == "Input")]);
+        }
         return unknown;
     }
 
@@ -140,11 +151,64 @@ public static class TiaSourceWriter {
             };
             output.Write("   "u8);
             output.Write(keyword);
-            output.Write((byte)'\n');
+            output.Write(" \n"u8);
             for (var m = start; m < i; m++) {
                 WriteMember(output, members[m], 2);
             }
-            output.Write("   END_VAR\n"u8);
+            output.Write("   END_VAR\n\n"u8);
+        }
+    }
+
+    /// <summary>
+    /// A data block of a type names the type and lists only the values set in it, a shared one declares its members.
+    /// A reader wants a type's members and the known values too, so they follow as comments.
+    /// </summary>
+    private static void WriteDataBlock(PooledByteWriter output, TiaProgram program, TiaBlock block, IReadOnlyList<TiaMember> members) {
+        if (!AnyRetain(members)) {
+            output.Write("NON_RETAIN\n"u8);
+        }
+        var type = program.GeneratedFrom(block);
+        if (type is null) {
+            WriteSections(output, members, "VAR");
+            output.Write("\nBEGIN\n\nEND_DATA_BLOCK\n\n"u8);
+            return;
+        }
+        output.Write((byte)'"');
+        output.Write(type);
+        output.Write("\"\n\nBEGIN\n"u8);
+        foreach (var value in program.ReadSetValues(block, members)) {
+            output.Write(value.IsResolved ? "   "u8 : "   // not resolved: "u8);
+            output.Write(value.Name);
+            output.Write(" := "u8);
+            output.Write(value.Value);
+            output.Write(";\n"u8);
+        }
+        output.Write("\nEND_DATA_BLOCK\n\n"u8);
+        WriteAsComment(output, "// The members of its type, with the start values known:\n"u8, members);
+    }
+
+    private static bool AnyRetain(IReadOnlyList<TiaMember> members) {
+        foreach (var member in members) {
+            if (member.IsRetain || AnyRetain(member.Children)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void WriteAsComment(PooledByteWriter output, ReadOnlySpan<byte> heading, IReadOnlyList<TiaMember> members) {
+        if (members.Count == 0) {
+            return;
+        }
+        output.Write(heading);
+        using var text = new PooledByteWriter();
+        WriteMembers(text, members, 1);
+        var rest = text.WrittenSpan;
+        while (!rest.IsEmpty) {
+            var end = rest.IndexOf((byte)'\n');
+            output.Write("//"u8);
+            output.Write(rest[..(end + 1)]);
+            rest = rest[(end + 1)..];
         }
     }
 
@@ -178,12 +242,45 @@ public static class TiaSourceWriter {
         }
     }
 
-    private static void WriteComment(PooledByteWriter output, string? comment) {
+    private static void WriteHeader(PooledByteWriter output, string opener, TiaBlockHeader header) {
+        if (opener is "FUNCTION_BLOCK" or "FUNCTION" or "ORGANIZATION_BLOCK" or "DATA_BLOCK") {
+            output.Write(header.OptimizedAccess ? "{ S7_Optimized_Access := 'TRUE' }\n"u8 : "{ S7_Optimized_Access := 'FALSE' }\n"u8);
+        }
+        WriteField(output, "AUTHOR : "u8, header.Author);
+        WriteField(output, "FAMILY : "u8, header.Family);
+        WriteField(output, "NAME : "u8, header.Name);
+        WriteField(output, "VERSION : "u8, string.IsNullOrEmpty(header.Version) ? "0.1" : header.Version);
+    }
+
+    private static void WriteField(PooledByteWriter output, ReadOnlySpan<byte> label, string? value) {
+        if (string.IsNullOrEmpty(value)) {
+            return;
+        }
+        output.Write(label);
+        output.Write(value);
+        output.Write((byte)'\n');
+    }
+
+    /// <summary>TIA indents the body of a source file by one tab, its empty lines too.</summary>
+    private static void WriteIndented(PooledByteWriter output, ReadOnlySpan<byte> source) {
+        while (true) {
+            output.Write((byte)'\t');
+            var end = source.IndexOf((byte)'\n');
+            if (end < 0) {
+                output.Write(source);
+                return;
+            }
+            output.Write(source[..(end + 1)]);
+            source = source[(end + 1)..];
+        }
+    }
+
+    internal static void WriteComment(PooledByteWriter output, string? comment) {
         if (string.IsNullOrEmpty(comment)) {
             return;
         }
         foreach (var range in comment.AsSpan().EnumerateLines()) {
-            output.Write("// "u8);
+            output.Write("//"u8);
             output.Write(range.ToString());
             output.Write((byte)'\n');
         }

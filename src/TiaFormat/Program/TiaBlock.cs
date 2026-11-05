@@ -15,8 +15,14 @@ public sealed record TiaBlock(
     public bool IsStub => (Frame.States & TiaFrameStates.Reference) != 0;
 }
 
+/// <summary>A block's header: the fields of its properties page, and whether it has optimized access.</summary>
+public readonly record struct TiaBlockHeader(string? Author, string? Family, string? Name, string? Version, bool OptimizedAccess);
+
+/// <summary>A start value set in a data block itself. Name is the stored path when no member explains it.</summary>
+public readonly record struct TiaSetValue(string Name, string Value, bool IsResolved);
+
 /// <summary>One interface member. Children are a struct's members.</summary>
-public sealed record TiaMember(string Name, string Type, string Path, string Section, string? Comment, string? StartValue, IReadOnlyList<TiaMember> Children);
+public sealed record TiaMember(string Name, string Type, string Path, string Section, string? Comment, string? StartValue, IReadOnlyList<TiaMember> Children, bool IsRetain = false);
 
 /// <summary>One compile unit: a network, or an SCL body.</summary>
 public readonly record struct TiaNetwork(int Number, string Language, string? Title, string Form);

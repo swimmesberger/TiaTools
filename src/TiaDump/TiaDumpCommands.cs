@@ -49,11 +49,42 @@ internal sealed class TiaDumpCommands {
             found = true;
             output.Clear();
             TiaSourceWriter.Write(program, block, output);
-            output.Write((byte)'\n');
             stdout.Write(output.WrittenSpan);
         }
         if (!found) {
             Console.Error.WriteLine($"No block named {name}.");
+            return 1;
+        }
+        return 0;
+    }
+
+    /// <summary>Prints what is stored for an object: its attributes and relations, for finding where a fact lives.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="name">A block's name, or an object id.</param>
+    /// <param name="plc">Only the block of this PLC.</param>
+    /// <param name="full">Print long values whole instead of their start.</param>
+    [Command("inspect")]
+    public int Inspect([Argument] string archive, [Argument] string name, string? plc = null, bool full = false) {
+        var database = TiaDatabase.Open(archive);
+        var program = new TiaProgram(database);
+        var found = false;
+        if (ulong.TryParse(name, NumberStyles.None, CultureInfo.InvariantCulture, out var id)) {
+            foreach (ref readonly var frame in database.Frames) {
+                if (frame.ObjectId == id) {
+                    TiaInspector.Write(database, frame, Console.Out, full);
+                    found = true;
+                }
+            }
+        } else {
+            foreach (var block in program.Blocks) {
+                if (block.Name == name && !block.IsStub && (plc is null || program.PlcName(block.Frame) == plc)) {
+                    TiaInspector.Write(database, block.Frame, Console.Out, full);
+                    found = true;
+                }
+            }
+        }
+        if (!found) {
+            Console.Error.WriteLine($"Nothing named {name}.");
             return 1;
         }
         return 0;

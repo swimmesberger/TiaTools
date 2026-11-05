@@ -2,7 +2,7 @@
 
 Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers). `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on three files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB) and one V15.1 global library (`.al15_1`, 4 MB). Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -47,7 +47,7 @@ All integers are little-endian. **[S]**
 | 2 | u16 | Protocol, 0 in the samples | **[U]** |
 | 4 | u32 | Id, 1 in the samples | **[U]** |
 | 8 | 16 | Guid; `.plf` and `.idx` share it | **[S]** |
-| 24 | 4×u32 | Product version: `2000.0.9501.1` is V20, `1501.0.2801.1` is V15.1 | **[S]** |
+| 24 | 4×u32 | Product version: `2100.0.121.1` is V21, `2000.0.9501.1` is V20, `1501.0.2801.1` is V15.1 | **[S]** |
 | 40 | u32 | | **[?]** 0 |
 | 44 | 4×u32 | Format version: `1400.1.0.0`, V15.1 `1400.0.0.0` | **[S]** |
 | 60 | 5 | Further version byte and node, 0 in the samples | **[U]** |
@@ -285,7 +285,8 @@ Attributes of a block **[S]**:
 | Interface | Attribute | |
 |---|---|---|
 | `...ObjectFrame.ICoreAttributes` | `Name`, `Comment` (title), `Subtype`, `IsKnowHowProtected`, `Protection` | `Subtype` for UDT and DB is the kind |
-| `...Blocks.IGeneralBlockSourceData` | `BlockType` (FB, FC, ...), `Number`, `BlockLanguage` (SCL, F_FBD, DB, ...) | |
+| `...Blocks.IGeneralBlockSourceData` | `BlockType` (FB, FC, ...), `Number`, `BlockLanguage` (SCL, F_FBD, DB, ...), `OnlySymbolicAccess`, which a source file shows as `S7_Optimized_Access` | `FALSE` agrees with TIA on one block **[S]**; `TRUE` **[U]** |
+| `...Blocks.IPlcHeaderData` | `HeaderAuthor`, `HeaderFamily`, `HeaderName`, `HeaderVersion`: a source file's `AUTHOR`, `FAMILY`, `NAME`, `VERSION` | Agrees with TIA on one block **[S]**. Most UDTs do not have this set |
 
 Relations from a block **[S]**:
 
@@ -337,6 +338,8 @@ Others: `0x0201xxxx` array of elementary or system type `xxxx`; `0x020002xx` sys
 
 **Start values**: `<V p="53" v="16#0B"/>` in a `Values` part, or a `<Values>` in the root: `p` is the id path. `Display`, `Scope`, `IdentRefID` hold a symbolic value. **[S]**
 
+**A data block of a type** (`IGeneralDataBlockSourceData.Type` is `DBOfType` or `IDBofFB`) has its type through `GeneratedFromMaster` (a UDT) or `IsGeneratedFrom` (an FB). TIA's source names the type on a line of its own after `NON_RETAIN`, and lists only the values set in the block between `BEGIN` and `END_DATA_BLOCK`: `<V p="53:2[1]">` becomes `S.y[1] := ...;`, the text as stored, in member order. Checked on an instance DB and two DBs of a UDT: the same bytes. **[S]** `NON_RETAIN` when no member has `Remanence="Retain"`: true of these three, the rest **[I]**. Array order, shared DBs and retained DBs: **[U]**.
+
 A **DB generated from a UDT** has a root of kind `Values`: `UsedParts[0]` is the UDT's root, whose members and parts apply. **[S]** Its `<V>`s list only some start values. **All of them** are in the compiled image, `LoadablePlusDataBlockData.ILoadablePlusDataBlockData.VolatileBuffer`, reached by `Parent4LoadableBinaryData.LoadableBinaries`: an 8 byte head, then values little-endian at the sum of the optimized bit offsets along the path, `<Offsets><o o="bits"/>` in member order. Checked for `Int` and `Bool` in optimized DBs generated from a UDT: all 15 explicit values that could be compared agree. **[S]** It does not hold for an instance DB, whose offsets count within its sections, and the reader does not use it there, for a protected block, or when the image is shorter than the UDT's `optSize`. Other types and standard-access DBs: **[U]**.
 
 **Comments**: `InterfaceCommentsPartData.ICommentsExpandoAttributeSet`, a simple expando (section 7.7) of core texts, keyed by the id path. **[S]**
@@ -372,6 +375,10 @@ The tag-to-text mapping is **[I]**: read off the tags and how the result parses.
 **`<Symbols>`**: one entry per symbol by `SymID`. `RefId` points into the identifier table (section 14). Kinds: `LocalTag`, `LocalStructuredTag`, `GlobalTag`, `GlobalStructuredTag`, `GlobalUDTTag`, `LocalConst`, `GlobalConst`, `LiteralConst`, `BlockParameter`, `LibraryParameter`, `BlockInterface`, `Instance`, `Instruction`, `FCBlock`, `FBBlock`, `DBBlock`, `UDT`, `Type`, `Label`, `InternalUnknown`. `ParentSymID` builds the access path. **[S]**
 
 Other values of `Data`: empty (no source stored), `<FlgNet` (section 13), `<EncryptedData` (section 15).
+
+**As TIA writes it.** TIA's *Generate source from blocks* puts this around the text: the block line, `TITLE`, `{ S7_Optimized_Access := '...' }`, the header fields that are set (`VERSION` is `0.1` if none is stored), then the block comment with `//` directly before each line. Each section is `   VAR_IN_OUT ` (with a trailing space) up to `   END_VAR` and a blank line, one more blank line follows the last section, then `BEGIN`. Every line of the body, empty ones too, starts with one tab, and a body with no text has no line at all. A file ends with `END_...` and a blank line. An optimized OB's inputs are left out. Checked on an FB with statics and an OB: the same bytes; on an FC of 543 lines: the same text, trailing whitespace aside. **[S]** A non-optimized OB: **[U]**.
+
+A UDT is `TYPE`, `   STRUCT`, its members, `   END_STRUCT;`, a blank line, `END_TYPE`, with no `S7_Optimized_Access`. Checked on one UDT. **[S]** Where a UDT stores its start values: **[?]**. Its interface parts hold none, yet a data block's image of that type has them.
 
 ## 13. FBD and LAD networks
 
@@ -468,7 +475,7 @@ The `ODN` differences are one kind: a nested access where the token holds the la
 
 **Whole-archive search against this reader.** `TCON_IP_v4` in A: 153 in decoded values, 118 of them identifier parts, 14 TIA task card settings, 10 interface payloads, and **0 in source text**; it is the declared type of 4 members in 3 blocks. So a text hit says little about code. `ActiveEstablished` in A: 23, of which 12 in source (2 blocks), 7 identifiers, 4 interfaces. B: 60 and 11, 3 in source (1 block). `TCON_IP_v4_SEC` and `ActivateSecureConn` occur nowhere in either, decoded values and source alike.
 
-**How far the format is version-bound**: the same reader reads V15.1 and V20 unchanged; frame layout, blobs and relations did not move. On V15.1 kind 4 blobs do not occur and per-relation lists occur once, so those two rest on V20. Versions before 1400 use other headers (section 3), and none was tried.
+**How far the format is version-bound**: the same reader reads V15.1, V20 and V21 unchanged. A, upgraded from V20 to V21, gives byte-identical source for all 963 block files and 14 tag files; only the system instruction list and object ids changed; frame layout, blobs and relations did not move. On V15.1 kind 4 blobs do not occur and per-relation lists occur once, so those two rest on V20. Versions before 1400 use other headers (section 3), and none was tried.
 
 ## This repository's reader
 
@@ -480,4 +487,4 @@ dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 
 `list` and `show` print blocks, `dump --raw` adds each network as stored. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are in the style of a TIA source file, for reading and not for import. DB start values come from the compiled image where the XML has none (section 11).
 
-On the V20 samples the dump takes under a second. Its text was compared with an independent Python implementation of this page: every network body and interface member agreed, 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.
+On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.
