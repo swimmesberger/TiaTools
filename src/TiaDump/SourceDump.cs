@@ -96,38 +96,12 @@ internal sealed class SourceDump(TiaProgram program, string root, bool raw, Rege
                 continue;
             }
             output.Clear();
-            output.Write("// tag table "u8);
-            output.Write(table.Name);
-            output.Write((byte)'\n');
-            foreach (var tag in table.Tags) {
-                WriteTag(output, tag);
-            }
+            TiaSourceWriter.WriteTagTable(table, output);
             var folder = ProgramFolder(table.Frame);
             WriteFile(_paths.Reserve(Path.Combine(folder, Safe(table.Name) + ".tags"), table.Frame.ObjectId), output.WrittenSpan);
             count++;
         }
         return count;
-    }
-
-    private static void WriteTag(PooledByteWriter output, TiaTag tag) {
-        output.Write((byte)'"');
-        output.Write(tag.Name);
-        output.Write("\" : "u8);
-        output.Write(tag.Type);
-        if (!string.IsNullOrEmpty(tag.Address)) {
-            output.Write(" AT "u8);
-            output.Write(tag.Address);
-        }
-        if (!string.IsNullOrEmpty(tag.Value)) {
-            output.Write(" := "u8);
-            output.Write(tag.Value);
-        }
-        output.Write((byte)';');
-        if (!string.IsNullOrEmpty(tag.Comment)) {
-            output.Write("   // "u8);
-            output.Write(tag.Comment.ReplaceLineEndings(" "));
-        }
-        output.Write((byte)'\n');
     }
 
     private string BlockPath(TiaBlock block) {

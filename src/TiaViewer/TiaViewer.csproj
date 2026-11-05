@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <AssemblyName>TiaViewer</AssemblyName>
+        <Description>Shows the program in a TIA Portal archive: a tree of its blocks, their source, who uses what, and search. Without TIA Portal.</Description>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <PublishAot>true</PublishAot>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" />
+        <PackageReference Include="Avalonia.Desktop" />
+        <PackageReference Include="Avalonia.Themes.Fluent" />
+        <PackageReference Include="Avalonia.AvaloniaEdit" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\TiaFormat\TiaFormat.csproj" />
+    </ItemGroup>
+</Project>

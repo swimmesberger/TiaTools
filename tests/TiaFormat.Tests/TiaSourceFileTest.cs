@@ -20,7 +20,7 @@ public sealed class TiaSourceFileTest {
     private const uint GeneratedFromUdt = 0x00222006;
     private const uint GeneratedFromFb = 0x00222007;
 
-    private const string Schema = """
+    internal const string Schema = """
         </Namespace><Namespace name="Siemens.Automation.ObjectFrame">
         <AttributeSet name="ICoreAttributes" id="0x1" persistent="true">
           <Attribute name="Name" id="0" type="xs:string"/><Attribute name="Subtype" id="1" type="xs:string"/><Attribute name="IsKnowHowProtected" id="2" type="xs:boolean"/>
@@ -96,19 +96,19 @@ public sealed class TiaSourceFileTest {
         return text[text.IndexOf("FUNCTION", StringComparison.Ordinal)..];
     }
 
-    private static byte[] Part(string xml, string kind) =>
+    internal static byte[] Part(string xml, string kind) =>
         TiaFileBuilder.Segment(8, (4, TiaFileBuilder.Blob(Encoding.UTF8.GetBytes(xml), compress: false)), (8, TiaFileBuilder.String(kind)));
 
-    private static byte[] Core(string name, string subtype) =>
+    internal static byte[] Core(string name, string subtype) =>
         TiaFileBuilder.Segment(9, (4, TiaFileBuilder.String(name)), (8, TiaFileBuilder.String(subtype)));
 
-    private static byte[] General(string blockType, string language) {
+    internal static byte[] General(string blockType, string language) {
         var general = TiaFileBuilder.Segment(9, (4, TiaFileBuilder.String(blockType)), (8, TiaFileBuilder.String(language)));
         general[12] = 1;
         return general;
     }
 
-    private static byte[] NoHeader() =>
+    internal static byte[] NoHeader() =>
         TiaFileBuilder.Segment(16, (4, TiaFileBuilder.String("")), (8, TiaFileBuilder.String("")), (12, TiaFileBuilder.String("")), (16, TiaFileBuilder.String("")));
 
     private static string Written(TiaFileBuilder file, uint type) {

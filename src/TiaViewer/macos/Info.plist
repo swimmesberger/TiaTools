@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>TIA Viewer</string>
+    <key>CFBundleDisplayName</key>
+    <string>TIA Viewer</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.swimmesberger.tiaviewer</string>
+    <key>CFBundleExecutable</key>
+    <string>TiaViewer</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <!-- macOS has no wildcard for an extension, so each TIA version is listed: a new one needs an entry. -->
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>TIA Portal archive</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Default</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>zap14</string><string>zap15</string><string>zap15_1</string><string>zap16</string><string>zap17</string><string>zap18</string>
+                <string>zap19</string><string>zap20</string><string>zap21</string><string>zap22</string><string>zap23</string><string>zap24</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>TIA Portal project</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Default</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>ap14</string><string>ap15</string><string>ap15_1</string><string>ap16</string><string>ap17</string><string>ap18</string>
+                <string>ap19</string><string>ap20</string><string>ap21</string><string>ap22</string><string>ap23</string><string>ap24</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>TIA Portal global library</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Default</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>al14</string><string>al15</string><string>al15_1</string><string>al16</string><string>al17</string><string>al18</string>
+                <string>al19</string><string>al20</string><string>al21</string><string>al22</string><string>al23</string><string>al24</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

@@ -37,6 +37,7 @@ The tool is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on 
 
 - a `.zap*` project archive, for example `Project.zap20`
 - an unpacked project or library folder, which is also how to read a global library (`.al*`): pass its folder
+- the file a project or library opens by, for example `Project.ap21`
 - a `PEData.plf` file
 
 | Command | What it does | Options |
@@ -46,6 +47,37 @@ The tool is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on 
 | `tiadump inspect <archive> <name or id>` | Prints what is stored for a block or object: attributes and relations, for finding where a fact lives. Encrypted values stay closed | `--plc <name>` for one PLC, `--full` to print long values whole |
 | `tiadump dump <archive> <folder>` | Writes all blocks and tag tables as files, and creates the folder if needed. Takes about a second for a 60 MB archive. Exits with 1 if a block failed; the rest are still written | `--grep <regex>` on the name (no tag tables then), `--raw` to add each network as stored, `--verify` to check every frame's hash |
 | `tiadump compare <dump> <export>` | Compares a dump with what TIA generated, block by block: counts per block kind, then each block's first differing line. Exits with 1 if any text differs. See [Comparing with TIA Portal](#comparing-with-tia-portal) | |
+
+## The viewer
+
+`src/TiaViewer` shows an archive in a window, for reading a program with no TIA Portal: a tree of its blocks and tag tables, their source with colours, who calls or uses what, and search. It is a prototype.
+
+```bash
+dotnet run --project src/TiaViewer -c Release -- Project.zap20
+```
+
+- **Follow a name:** Ctrl or Cmd + click it in the source. Back and forward are on Alt+Left and Alt+Right.
+- **Who uses this:** the tabs below the source. Walking through a list keeps the list.
+- **Search:** the box at the top for all source, Ctrl or Cmd + F within a block, the box on the left for block names.
+- **Open:** the button, drag and drop, or an argument.
+
+References come from source, so a closed block's calls are not among them. The viewer says how many blocks that affects, and a short list may be incomplete. It sees direct calls, calls through instance data blocks and multi-instances, and other uses by name; it does not yet tell a read from a write. Protected source stays closed.
+
+Colours and links come from the tokens stored in the archive, not from a grammar. Declarations and FBD text, which have no stored tokens, go through a small scanner.
+
+To publish a single native program, on the platform it is for, since Native AOT does not cross-compile. On Windows this needs Visual Studio's C++ tools, with `vswhere.exe` on the `PATH`:
+
+```bash
+dotnet publish src/TiaViewer -c Release -r win-x64
+```
+
+On a Mac, this builds `artifacts/TIA Viewer.app`, signed ad hoc, and registers it for `.zap*`, `.ap*` and `.al*` files, so that a double-click opens them:
+
+```bash
+src/TiaViewer/macos/bundle.sh
+```
+
+**How far it is tested.** On Windows, on sample A, through Native AOT: opening takes under a second, and following a call, the lists, search and a 20,000 line data block all work. **The macOS parts have not been run:** the bundle, the double-click and the Cmd key. Windows has no file association yet, so use *Open with*. To hand the app to others it needs signing, and notarization on a Mac.
 
 ## Using it to answer a question
 
@@ -109,8 +141,9 @@ If the dump reports SCL tags without a rule, the reader met a token it does not 
 
 | Path | Holds |
 |---|---|
-| `src/TiaFormat` | The library, base class library only: `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL and FBD text, tag tables) |
+| `src/TiaFormat` | The library, base class library only: `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL and FBD text, tag tables, and `TiaProject`: tree, tokens, references, search) |
 | `src/TiaDump` | The command line tool |
+| `src/TiaViewer` | The viewer, in Avalonia |
 | `tests/TiaFormat.Tests` | Unit tests |
 | `tools/TiaOpennessExport` | Exports a project through TIA Portal for comparing. Not in the solution, because it needs TIA |
 | [docs/FORMAT.md](docs/FORMAT.md) | The format, enough to write a reader in any language. Each claim says how far real archives confirm it |

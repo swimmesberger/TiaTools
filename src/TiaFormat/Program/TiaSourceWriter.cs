@@ -11,7 +11,7 @@ public static class TiaSourceWriter {
     public static ReadOnlySpan<byte> ProtectedMarker => "// know-how protected: source closed, not read"u8;
 
     /// <summary>Writes the block; returns the count of SCL tags without a rule.</summary>
-    public static int Write(TiaProgram program, TiaBlock block, PooledByteWriter output) {
+    public static int Write(TiaProgram program, TiaBlock block, PooledByteWriter output, TiaExactTokens? exact = null) {
         var frame = block.Frame;
         var plc = program.PlcName(frame);
         var folder = program.FolderPath(frame);
@@ -105,9 +105,14 @@ public static class TiaSourceWriter {
                 int missing;
                 if (network.Form == "SCLSource") {
                     using var source = new PooledByteWriter();
-                    program.WriteNetworkSource(block, i, source, out missing);
+                    var tokens = exact is null ? null : new List<TiaToken>();
+                    program.WriteNetworkSource(block, i, source, out missing, tokens);
                     if (source.Length != 0) {
+                        var at = output.Length;
                         WriteIndented(output, source.WrittenSpan);
+                        if (tokens is not null) {
+                            exact!.AddIndented(at, source.WrittenSpan, tokens, output.Length);
+                        }
                         output.Write((byte)'\n');
                     }
                 } else {
@@ -124,6 +129,33 @@ public static class TiaSourceWriter {
             WriteAsComment(output, "// The inputs the system provides:\n"u8, [.. members.Where(member => member.Section == "Input")]);
         }
         return unknown;
+    }
+
+    /// <summary>Writes a tag table: <c>"name" : type AT address := value;   // comment</c>.</summary>
+    public static void WriteTagTable(TiaTagTable table, PooledByteWriter output) {
+        output.Write("// tag table "u8);
+        output.Write(table.Name);
+        output.Write((byte)'\n');
+        foreach (var tag in table.Tags) {
+            output.Write((byte)'"');
+            output.Write(tag.Name);
+            output.Write("\" : "u8);
+            output.Write(tag.Type);
+            if (!string.IsNullOrEmpty(tag.Address)) {
+                output.Write(" AT "u8);
+                output.Write(tag.Address);
+            }
+            if (!string.IsNullOrEmpty(tag.Value)) {
+                output.Write(" := "u8);
+                output.Write(tag.Value);
+            }
+            output.Write((byte)';');
+            if (!string.IsNullOrEmpty(tag.Comment)) {
+                output.Write("   // "u8);
+                output.Write(tag.Comment.ReplaceLineEndings(" "));
+            }
+            output.Write((byte)'\n');
+        }
     }
 
     private static string ReturnType(IReadOnlyList<TiaMember> members) {

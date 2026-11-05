@@ -11,7 +11,7 @@ namespace TiaFormat.Program;
 public static class SclRenderer {
     private enum TokenKind : byte { Fixed, Container, Blank, NewLine, LineComment, BlockCommentStart, Skip }
 
-    private readonly record struct Token(TokenKind Kind, byte[] Text);
+    private readonly record struct Token(TokenKind Kind, byte[] Text, bool IsWord = false);
 
     private static readonly FrozenDictionary<string, Token> Tokens = BuildTokens();
     private static readonly FrozenDictionary<string, Token>.AlternateLookup<ReadOnlySpan<char>> TokenLookup = Tokens.GetAlternateLookup<ReadOnlySpan<char>>();
@@ -38,18 +38,21 @@ public static class SclRenderer {
             ("KwOF", "OF"), ("KwENDC", "END_CASE"), ("KwEndRegion", "END_REGION"),
             ("KwUNTIL", "UNTIL"), ("KwENDR", "END_REPEAT"), ("BCE", "*)"),
         }) {
-            map[name] = new Token(TokenKind.Fixed, Encoding.UTF8.GetBytes(text));
+            map[name] = new Token(TokenKind.Fixed, Encoding.UTF8.GetBytes(text), char.IsAsciiLetter(text[0]));
         }
         return map.ToFrozenDictionary(StringComparer.Ordinal);
     }
 
     /// <summary>
     /// Writes the source text. A tag this renderer has no rule for is written as «tag», so a gap shows in the output
-    /// instead of silently dropping source, and it is counted in the return value.
+    /// instead of silently dropping source, and it is counted in the return value. With <paramref name="tokens"/> it also
+    /// says what each piece of text is, with positions in bytes of <paramref name="output"/>.
     /// </summary>
-    public static int Render(ReadOnlySpan<byte> xml, PooledByteWriter output) {
+    public static int Render(ReadOnlySpan<byte> xml, PooledByteWriter output, List<TiaToken>? tokens = null) {
         var symbols = ReadSymbolNames(xml);
         var unknown = 0;
+        var awaitingCallee = false;
+        var afterDot = false;
         var reader = new Utf8XmlReader(xml);
         Span<char> tag = stackalloc char[64];
         while (reader.Read()) {
@@ -66,28 +69,44 @@ public static class SclRenderer {
                     case TokenKind.NewLine:
                         output.Write((byte)'\n');
                         continue;
-                    case TokenKind.LineComment:
+                    case TokenKind.LineComment: {
+                        var at = output.Length;
                         output.Write("//"u8);
                         WriteAttribute(reader, "TE"u8, output);
+                        tokens?.Add(new TiaToken(at, output.Length - at, TiaTokenKind.Comment));
                         continue;
-                    case TokenKind.BlockCommentStart:
+                    }
+                    case TokenKind.BlockCommentStart: {
+                        tokens?.Add(new TiaToken(output.Length, 2, TiaTokenKind.Comment));
                         output.Write("(*"u8);
                         continue;
+                    }
                     case TokenKind.Fixed:
+                        afterDot = name.SequenceEqual("Dot"u8);
+                        if (tokens is not null && (token.IsWord || name.SequenceEqual("BCE"u8))) {
+                            tokens.Add(new TiaToken(output.Length, token.Text.Length, token.IsWord ? TiaTokenKind.Keyword : TiaTokenKind.Comment));
+                        }
                         output.Write(token.Text);
                         continue;
                     case TokenKind.Container:
+                        awaitingCallee |= tokens is not null && name.SequenceEqual("InstCa"u8);
                         continue;
                     case TokenKind.Skip:
                         reader.SkipElement();
                         continue;
                 }
             }
+            var start = output.Length;
             if (WriteAttribute(reader, "TE"u8, output) || WriteAttribute(reader, "ODN"u8, output) || WriteAttribute(reader, "FormalName"u8, output)) {
+                if (tokens is not null && output.Length != start) {
+                    tokens.Add(Classify(name, output.WrittenSpan[start..], start, afterDot, ref awaitingCallee));
+                    afterDot = false;
+                }
                 continue;
             }
             if (reader.GetInt32("SyId"u8) is { } symbol && symbols is not null && symbols.TryGetValue(symbol, out var range)) {
                 XmlText.Append(output, xml.Slice(range.Start, range.Length));
+                tokens?.Add(new TiaToken(start, output.Length - start, TiaTokenKind.Instruction, null, IsCall: true));
                 continue;
             }
             if (name.SequenceEqual("Statement"u8) || name.SequenceEqual("Label"u8) || name.SequenceEqual("Sub"u8) || name.SequenceEqual("BCL"u8)) {
@@ -99,6 +118,35 @@ public static class SclRenderer {
             unknown++;
         }
         return unknown;
+    }
+
+    /// <summary>What a token with its own text is, from its element: the source says it, nothing is guessed from the text alone.</summary>
+    private static TiaToken Classify(ReadOnlySpan<byte> element, ReadOnlySpan<byte> text, int start, bool afterDot, ref bool awaitingCallee) {
+        if (element.SequenceEqual("Statement"u8) || element.SequenceEqual("Label"u8)) {
+            return new TiaToken(start, text.Length, TiaTokenKind.Keyword);
+        }
+        if (element.SequenceEqual("Const"u8)) {
+            return new TiaToken(start, text.Length, TiaTokenKind.Literal);
+        }
+        if (element.SequenceEqual("BCL"u8)) {
+            return new TiaToken(start, text.Length, TiaTokenKind.Comment);
+        }
+        if (element.SequenceEqual("SymPa"u8)) {
+            return new TiaToken(start, text.Length, TiaTokenKind.Parameter);
+        }
+        // A part after a dot may be quoted too, "Other"."Int", and names no block.
+        var quoted = text[0] == (byte)'"' && !afterDot;
+        var local = text[0] == (byte)'#';
+        var target = quoted ? Encoding.UTF8.GetString(text).Trim('"') : null;
+        if (element.SequenceEqual("Sub"u8)) {
+            awaitingCallee = false;
+            var called = quoted ? TiaTokenKind.Call : local ? TiaTokenKind.Local : afterDot ? TiaTokenKind.Member : TiaTokenKind.Instruction;
+            return new TiaToken(start, text.Length, called, target, IsCall: !afterDot);
+        }
+        var isCallee = awaitingCallee && element.SequenceEqual("SymVa"u8);
+        awaitingCallee &= !isCallee;
+        var kind = quoted ? TiaTokenKind.Global : local ? TiaTokenKind.Local : TiaTokenKind.Member;
+        return new TiaToken(start, text.Length, kind, target, isCallee);
     }
 
     private static bool WriteAttribute(in Utf8XmlReader reader, ReadOnlySpan<byte> attribute, PooledByteWriter output) {

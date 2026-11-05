@@ -240,7 +240,7 @@ public sealed class TiaProgram {
     /// Writes one compile unit's source. Protected source is never opened: it writes a marker and returns false.
     /// Returns the count of SCL tags without a rule through <paramref name="unknownTags"/>.
     /// </summary>
-    public void WriteNetworkSource(TiaBlock block, int index, PooledByteWriter output, out int unknownTags) {
+    public void WriteNetworkSource(TiaBlock block, int index, PooledByteWriter output, out int unknownTags, List<TiaToken>? tokens = null) {
         unknownTags = 0;
         var units = CompileUnits(block);
         using var data = _db.ReadBlob(units[index], _unitData);
@@ -253,7 +253,7 @@ public sealed class TiaProgram {
                 output.Write(TiaSourceWriter.ProtectedMarker);
                 break;
             case "SCLSource":
-                unknownTags = SclRenderer.Render(data.Span, output);
+                unknownTags = SclRenderer.Render(data.Span, output, tokens);
                 break;
             case "FlgNet":
                 FlgNetRenderer.Render(data.Span, ReadIdents(block), output);

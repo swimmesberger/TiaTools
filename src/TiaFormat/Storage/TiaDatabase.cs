@@ -539,7 +539,14 @@ public sealed class TiaDatabase {
     private static byte[] ReadPlf(string path) {
         if (Directory.Exists(path)) {
             var inFolder = Path.Combine(path, "System", "PEData.plf");
-            return File.ReadAllBytes(File.Exists(inFolder) ? inFolder : Path.Combine(path, "PEData.plf"));
+            return ReadShared(File.Exists(inFolder) ? inFolder : Path.Combine(path, "PEData.plf"));
+        }
+        // The file a project or library opens by, Project.ap21 or Library.al15_1, is a small XML file beside its database.
+        var extension = Path.GetExtension(path);
+        if ((extension.StartsWith(".ap", StringComparison.OrdinalIgnoreCase) || extension.StartsWith(".al", StringComparison.OrdinalIgnoreCase))
+            && Path.GetDirectoryName(Path.GetFullPath(path)) is { } folder
+            && File.Exists(Path.Combine(folder, "System", "PEData.plf"))) {
+            return ReadShared(Path.Combine(folder, "System", "PEData.plf"));
         }
         if (Path.GetExtension(path).StartsWith(".zap", StringComparison.OrdinalIgnoreCase)) {
             using var zip = ZipFile.OpenRead(path);
@@ -550,7 +557,15 @@ public sealed class TiaDatabase {
             stream.ReadExactly(bytes);
             return bytes;
         }
-        return File.ReadAllBytes(path);
+        return ReadShared(path);
+    }
+
+    /// <summary>TIA may have the project open: read what is there and leave it be.</summary>
+    private static byte[] ReadShared(string path) {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        var bytes = new byte[stream.Length];
+        stream.ReadExactly(bytes);
+        return bytes;
     }
 
     /// <summary>Walks a frame's relation lists without allocating. See the format page for the three list forms.</summary>
