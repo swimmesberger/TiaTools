@@ -4,6 +4,8 @@ Reads Siemens TIA Portal archives without TIA Portal and turns the PLC program i
 
 **Coding agents:** this page is all you need to use the tool. Start at [Using it to answer a question](#using-it-to-answer-a-question), and keep to [the rules](#rules).
 
+**Working on the reader itself?** The comparison with TIA Portal is in progress: [HANDOVER.md](HANDOVER.md).
+
 ## When to use it
 
 Use it when you need to know what a Siemens PLC program does and you only have its archive:
