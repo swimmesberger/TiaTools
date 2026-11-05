@@ -1,10 +1,10 @@
 # TiaTools
 
-Reads Siemens TIA Portal archives without TIA Portal and turns the PLC program into source files you can read and search. Read-only. It needs only .NET 10; so far it has been run on macOS.
+Reads Siemens TIA Portal archives without TIA Portal and turns the PLC program into source files you can read and search. Read-only. It needs only .NET 10, and runs on macOS and Windows.
 
 **Coding agents:** this page is all you need to use the tool. Start at [Using it to answer a question](#using-it-to-answer-a-question), and keep to [the rules](#rules).
 
-**Working on the reader itself?** The comparison with TIA Portal is in progress: [HANDOVER.md](HANDOVER.md).
+**Working on the reader itself?** What is left of the comparison with TIA Portal: [HANDOVER.md](HANDOVER.md).
 
 ## When to use it
 
@@ -45,6 +45,7 @@ The tool is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on 
 | `tiadump show <archive> <name>` | Prints every block of exactly that name as source. Exits with 1 if there is none | `--plc <name>` for one PLC only |
 | `tiadump inspect <archive> <name or id>` | Prints what is stored for a block or object: attributes and relations, for finding where a fact lives. Encrypted values stay closed | `--plc <name>` for one PLC, `--full` to print long values whole |
 | `tiadump dump <archive> <folder>` | Writes all blocks and tag tables as files, and creates the folder if needed. Takes about a second for a 60 MB archive. Exits with 1 if a block failed; the rest are still written | `--grep <regex>` on the name (no tag tables then), `--raw` to add each network as stored, `--verify` to check every frame's hash |
+| `tiadump compare <dump> <export>` | Compares a dump with what TIA generated, block by block: counts per block kind, then each block's first differing line. Exits with 1 if any text differs. See [Comparing with TIA Portal](#comparing-with-tia-portal) | |
 
 ## Using it to answer a question
 
@@ -82,8 +83,8 @@ Project/<PLC>/<folder path>/<block>.<kind>
 | `index.tsv` | Every block, also the ones with no file. Columns: `object`, `environment`, `plc`, `kind`, `number`, `language`, `know-how` (`yes` or `no`), `file`, `name`. `file` is empty when nothing is stored for the block |
 | `.scl` | SCL source with comments and layout as written. After the leading comment lines it matches what TIA's *Generate source from blocks* writes. A protected block has at most its interface, and its body says it is closed |
 | `.f_fbd` | Interface, then FBD networks as part calls with their wires and operands. **This layout is ours**, not text TIA would show |
-| `.udt` | A user data type. Start values are not shown: where a UDT stores them is not known yet |
-| `.db` | A data block. One of a UDT or FB names its type and lists the values set in it, as TIA does; the type's members follow as comments, with start values where they are known. A shared one declares its members |
+| `.udt` | A user data type, with the start values its members are declared with |
+| `.db` | A data block. One of a UDT or FB names its type and lists the values set in it, as TIA does; the type's members follow as comments, with start values where they are known. A shared one declares its members and lists its values |
 | `.tags` | A tag table |
 
 Each block file starts with comment lines giving kind, number, language, know-how flag, PLC and folder.
@@ -92,10 +93,11 @@ If the dump reports SCL tags without a rule, the reader met a token it does not 
 
 ## How far to trust the output
 
-- **Spot-checked against TIA.** Seven blocks (FC, FB, OB, UDT, instance DB, two DBs of a UDT) match TIA's own source, and every part, wire and inversion of two FBD blocks matches TIA's networks. That is a sample, not the whole archive. The text is what the archive stores, as far as [the format](docs/FORMAT.md) is understood. When an answer really matters, check it in TIA.
+- **Compared with TIA, block by block, on one project.** 786 of the 790 SCL blocks, data blocks and UDTs TIA would generate source for are byte-identical to it, after our leading comment lines and before our trailing ones. Section 17 of [the format](docs/FORMAT.md) lists the other four. Some of the rules come from that one project, so another project can differ, above all in member attributes. When an answer really matters, check it in TIA.
+- **FBD text is ours.** Every part, wire and inversion of two FBD blocks was checked by eye against TIA's networks. That is a sample, not the whole archive.
 - **It is the code as written.** It says nothing about what a running PLC does, or about changes made on site.
 - **Tested on** two V20 archives, one project upgraded to V21 and one V15.1 global library. **Untested,** because no sample has any unprotected: LAD, plain FBD, STL and GRAPH. Versions before V14 use other file headers and have not been tried.
-- **Start values are partial.** A data block stores only some of them as text. The rest come from its compiled image, and the reader takes those only for optimized data blocks generated from a UDT. So a member with no start value in a `.db` may still have one on the PLC, above all in an instance data block.
+- **Start values in a `.db`'s trailing comment are partial.** The source text before it matches TIA's and lists what TIA lists. The comment adds values from the compiled image, and the reader takes those only for optimized data blocks generated from a UDT, and only for `Bool` and integer types. So a member with no start value there may still have one on the PLC, above all in an instance data block.
 
 ## Rules
 
@@ -110,6 +112,7 @@ If the dump reports SCL tags without a rule, the reader met a token it does not 
 | `src/TiaFormat` | The library, base class library only: `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL and FBD text, tag tables) |
 | `src/TiaDump` | The command line tool |
 | `tests/TiaFormat.Tests` | Unit tests |
+| `tools/TiaOpennessExport` | Exports a project through TIA Portal for comparing. Not in the solution, because it needs TIA |
 | [docs/FORMAT.md](docs/FORMAT.md) | The format, enough to write a reader in any language. Each claim says how far real archives confirm it |
 
 To use the library from your own code:
@@ -135,3 +138,33 @@ dotnet test --project tests/TiaFormat.Tests
 ```
 
 Warnings fail the build. A bug fix comes with a regression test, and a change to what the reader understands updates `docs/FORMAT.md` in the same commit. Commits use Conventional Commits.
+
+## Comparing with TIA Portal
+
+This needs Windows, TIA Portal V21, and a user in the group `Siemens TIA Openness`, signed in again after joining it. TIA may ask to confirm the first access.
+
+The exporter retrieves a copy of the archive into an empty folder, writes generated source and SimaticML per block, and closes the copy unsaved. It never compiles or saves, and it skips protected blocks. Keep the folder's path short: TIA refuses a long one and says only "Unable to retrieve the project". Keep both output folders outside this repository.
+
+```bash
+dotnet build tools/TiaOpennessExport -c Release
+```
+
+```bash
+tools/TiaOpennessExport/bin/Release/net48/TiaOpennessExport.exe archive Project.zap21 C:/Users/me/tc <export folder>
+```
+
+```bash
+tiadump dump Project.zap21 <dump folder>
+```
+
+```bash
+tiadump compare <dump folder> <export folder>
+```
+
+TIA exports SimaticML only for a compiled block. An archive that was never compiled after an upgrade still gives all its source, and `manifest.tsv` says which exports it refused. To get more XML, compile the retrieved copy:
+
+```bash
+tools/TiaOpennessExport/bin/Release/net48/TiaOpennessExport.exe compiled-copy C:/Users/me/tc/Project/Project.ap21 <export folder>
+```
+
+This compiles each block that is not fail-safe, exports, and closes unsaved. Only point it at a retrieved copy. Fail-safe blocks need the safety program's password, so to include them, open the copy in TIA yourself, log in to the safety program, compile, and leave it open. Then run `TiaOpennessExport attach <export folder>`, which exports from the open TIA. Close the copy unsaved afterwards.

@@ -90,6 +90,12 @@ internal sealed class TiaDumpCommands {
         return 0;
     }
 
+    /// <summary>Compares a dump with what TIA generated, block by block, and exits with 1 if any text differs.</summary>
+    /// <param name="dump">A folder written by the dump command.</param>
+    /// <param name="export">A folder written by tools/TiaOpennessExport.</param>
+    [Command("compare")]
+    public int Compare([Argument] string dump, [Argument] string export) => ExportComparison.Run(dump, export);
+
     /// <summary>Dumps every block and tag table of an archive as source files, in its folder tree.</summary>
     /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
     /// <param name="output">The folder to write to; created if missing.</param>

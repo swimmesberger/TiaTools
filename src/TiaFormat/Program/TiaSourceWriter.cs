@@ -52,7 +52,13 @@ public static class TiaSourceWriter {
             WriteOneLine(output, block.Title);
             output.Write((byte)'\n');
         }
-        WriteHeader(output, opener, program.Header(block));
+        var header = program.Header(block);
+        var settings = opener == "DATA_BLOCK" ? program.DataBlockSettings(block) : new TiaDataBlockSettings(false, true, true);
+        WriteAttributes(output, opener, header, settings);
+        WriteHeader(output, header);
+        if (settings.IsNonRetain) {
+            output.Write("NON_RETAIN\n"u8);
+        }
         WriteComment(output, program.BlockComment(block));
         foreach (var member in members) {
             if (member.Section == "Return" && !string.IsNullOrEmpty(member.Comment)) {
@@ -69,12 +75,12 @@ public static class TiaSourceWriter {
             return 0;
         }
         if (opener == "DATA_BLOCK") {
-            WriteDataBlock(output, program, block, members);
+            WriteDataBlock(output, program, block, members, header.OptimizedAccess);
             return 0;
         }
 
         // An OB's inputs are the system's: TIA leaves them out of the source.
-        WriteSections(output, opener == "ORGANIZATION_BLOCK" ? [.. members.Where(member => member.Section != "Input")] : members, null);
+        WriteSections(output, opener == "ORGANIZATION_BLOCK" ? [.. members.Where(member => member.Section != "Input")] : members);
         output.Write("\nBEGIN\n"u8);
         var unknown = 0;
         if (block.IsKnowHowProtected) {
@@ -129,33 +135,34 @@ public static class TiaSourceWriter {
         return "Void";
     }
 
-    private static void WriteSections(PooledByteWriter output, IReadOnlyList<TiaMember> members, string? flat) {
+    private static void WriteSections(PooledByteWriter output, IReadOnlyList<TiaMember> members) {
         var i = 0;
         while (i < members.Count) {
             var section = members[i].Section;
+            var retain = members[i].IsRetain;
+            var specific = members[i].IsDbSpecific;
             var start = i;
-            while (i < members.Count && members[i].Section == section) {
+            while (i < members.Count && members[i].Section == section && members[i].IsRetain == retain && members[i].IsDbSpecific == specific) {
                 i++;
             }
             if (section == "Return") {
                 continue;
             }
-            var keyword = flat is not null && section.Length == 0 ? flat : section switch {
-                "Input" => "VAR_INPUT",
-                "Output" => "VAR_OUTPUT",
-                "InOut" => "VAR_IN_OUT",
-                "Static" => "VAR",
-                "Temp" => "VAR_TEMP",
-                "Constant" => "VAR CONSTANT",
-                _ => "VAR",
-            };
             output.Write("   "u8);
-            output.Write(keyword);
-            output.Write(" \n"u8);
+            output.Write(specific ? "VAR DB_SPECIFIC" : retain && section is "Static" or "" ? "VAR RETAIN" : section switch {
+                "Input" => "VAR_INPUT ",
+                "Output" => "VAR_OUTPUT ",
+                "InOut" => "VAR_IN_OUT ",
+                "Temp" => "VAR_TEMP ",
+                "Constant" => "VAR CONSTANT ",
+                _ => "VAR ",
+            });
+            output.Write((byte)'\n');
             for (var m = start; m < i; m++) {
                 WriteMember(output, members[m], 2);
             }
-            output.Write("   END_VAR\n\n"u8);
+            // The retained and the other members of one section follow each other with no line between them.
+            output.Write(i < members.Count && members[i].Section == section ? "   END_VAR\n"u8 : "   END_VAR\n\n"u8);
         }
     }
 
@@ -163,20 +170,22 @@ public static class TiaSourceWriter {
     /// A data block of a type names the type and lists only the values set in it, a shared one declares its members.
     /// A reader wants a type's members and the known values too, so they follow as comments.
     /// </summary>
-    private static void WriteDataBlock(PooledByteWriter output, TiaProgram program, TiaBlock block, IReadOnlyList<TiaMember> members) {
-        if (!AnyRetain(members)) {
-            output.Write("NON_RETAIN\n"u8);
-        }
+    private static void WriteDataBlock(PooledByteWriter output, TiaProgram program, TiaBlock block, IReadOnlyList<TiaMember> members, bool optimized) {
         var type = program.GeneratedFrom(block);
-        if (type is null) {
-            WriteSections(output, members, "VAR");
-            output.Write("\nBEGIN\n\nEND_DATA_BLOCK\n\n"u8);
-            return;
+        if (type is not null) {
+            output.Write((byte)'"');
+            output.Write(type);
+            output.Write("\"\n\n"u8);
+        } else if (optimized) {
+            WriteSections(output, members);
+            output.Write((byte)'\n');
+        } else {
+            output.Write("   STRUCT \n"u8);
+            WriteMembers(output, members, 2);
+            output.Write("   END_STRUCT;\n\n\n"u8);
         }
-        output.Write((byte)'"');
-        output.Write(type);
-        output.Write("\"\n\nBEGIN\n"u8);
-        foreach (var value in program.ReadSetValues(block, members)) {
+        output.Write("BEGIN\n"u8);
+        foreach (var value in program.ReadSetValues(block)) {
             output.Write(value.IsResolved ? "   "u8 : "   // not resolved: "u8);
             output.Write(value.Name);
             output.Write(" := "u8);
@@ -184,16 +193,9 @@ public static class TiaSourceWriter {
             output.Write(";\n"u8);
         }
         output.Write("\nEND_DATA_BLOCK\n\n"u8);
-        WriteAsComment(output, "// The members of its type, with the start values known:\n"u8, members);
-    }
-
-    private static bool AnyRetain(IReadOnlyList<TiaMember> members) {
-        foreach (var member in members) {
-            if (member.IsRetain || AnyRetain(member.Children)) {
-                return true;
-            }
+        if (type is not null) {
+            WriteAsComment(output, "// The members of its type, with the start values known:\n"u8, members);
         }
-        return false;
     }
 
     private static void WriteAsComment(PooledByteWriter output, ReadOnlySpan<byte> heading, IReadOnlyList<TiaMember> members) {
@@ -202,7 +204,7 @@ public static class TiaSourceWriter {
         }
         output.Write(heading);
         using var text = new PooledByteWriter();
-        WriteMembers(text, members, 1);
+        WriteMembers(text, members, 1, startValues: true);
         var rest = text.WrittenSpan;
         while (!rest.IsEmpty) {
             var end = rest.IndexOf((byte)'\n');
@@ -212,20 +214,30 @@ public static class TiaSourceWriter {
         }
     }
 
-    private static void WriteMembers(PooledByteWriter output, IReadOnlyList<TiaMember> members, int depth) {
+    private static void WriteMembers(PooledByteWriter output, IReadOnlyList<TiaMember> members, int depth, bool startValues = false) {
         foreach (var member in members) {
-            WriteMember(output, member, depth);
+            WriteMember(output, member, depth, startValues);
         }
     }
 
-    private static void WriteMember(PooledByteWriter output, TiaMember member, int depth) {
+    /// <summary>A declaration states the value its member is declared with. Our comments give the value it starts with.</summary>
+    private static void WriteMember(PooledByteWriter output, TiaMember member, int depth, bool startValues = false) {
         output.WriteSpaces(depth * 3);
-        output.Write(member.Name);
+        output.Write(TiaIdentifiers.Quoted(member.Name));
+        if (member.Attributes is not null) {
+            output.Write((byte)' ');
+            output.Write(member.Attributes);
+        }
+        if (member.AtMember is not null) {
+            output.Write(" AT "u8);
+            output.Write(TiaIdentifiers.Quoted(member.AtMember));
+        }
         output.Write(" : "u8);
         output.Write(member.Type);
-        if (member.StartValue is not null) {
+        var value = startValues ? member.StartValue : member.Declared;
+        if (value is not null) {
             output.Write(" := "u8);
-            WriteOneLine(output, member.StartValue);
+            WriteOneLine(output, value);
         }
         if (member.Children.Count == 0) {
             output.Write((byte)';');
@@ -236,16 +248,27 @@ public static class TiaSourceWriter {
         }
         output.Write((byte)'\n');
         if (member.Children.Count != 0) {
-            WriteMembers(output, member.Children, depth + 1);
+            WriteMembers(output, member.Children, depth + 1, startValues);
             output.WriteSpaces(depth * 3);
             output.Write("END_STRUCT;\n"u8);
         }
     }
 
-    private static void WriteHeader(PooledByteWriter output, string opener, TiaBlockHeader header) {
-        if (opener is "FUNCTION_BLOCK" or "FUNCTION" or "ORGANIZATION_BLOCK" or "DATA_BLOCK") {
-            output.Write(header.OptimizedAccess ? "{ S7_Optimized_Access := 'TRUE' }\n"u8 : "{ S7_Optimized_Access := 'FALSE' }\n"u8);
+    private static void WriteAttributes(PooledByteWriter output, string opener, TiaBlockHeader header, TiaDataBlockSettings settings) {
+        if (opener is not ("FUNCTION_BLOCK" or "FUNCTION" or "ORGANIZATION_BLOCK" or "DATA_BLOCK")) {
+            return;
         }
+        output.Write("{ "u8);
+        if (!settings.AccessibleFromOpcUa) {
+            output.Write("DB_Accessible_From_OPC_UA := 'FALSE' ;\n "u8);
+        }
+        if (!settings.AccessibleFromWebserver) {
+            output.Write("DB_Accessible_From_Webserver := 'FALSE' ;\n "u8);
+        }
+        output.Write(header.OptimizedAccess ? "S7_Optimized_Access := 'TRUE' }\n"u8 : "S7_Optimized_Access := 'FALSE' }\n"u8);
+    }
+
+    private static void WriteHeader(PooledByteWriter output, TiaBlockHeader header) {
         WriteField(output, "AUTHOR : "u8, header.Author);
         WriteField(output, "FAMILY : "u8, header.Family);
         WriteField(output, "NAME : "u8, header.Name);

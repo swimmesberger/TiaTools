@@ -13,7 +13,7 @@ Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 8
 | **[I]** | Inferred from the samples, with no check that could have refuted it. |
 | **[?]** | Unknown. |
 
-**No claim here has been compared with TIA Portal itself.** The SCL and FBD text in particular is confirmed only as far as section 17 says.
+**The generated text of SCL blocks, data blocks and UDTs has been compared with TIA Portal,** through Openness and for every unprotected block of one project: section 17 has the result. FBD networks have only been compared by eye, on two blocks. Everything stored but not rendered has not been compared at all.
 
 ## 1. The containers
 
@@ -98,7 +98,7 @@ Body: u32 `n`, `n` bytes payload, `0xFF`. So `frame size = 44 + 4 + n + 1`. **[S
 | `0x7000D` | StorageVersion | Timestamps. **[S]** |
 | `0x7000E` | LocalizationTable | |
 | `0x7000F` | PackageConstellation | **[U]** |
-| `0x70011` | Expando | 12 bytes, u32 count, then `key:u32, varint length, name, type:u32`. Expando key table. **[S]** |
+| `0x70011` | Expando | 12 bytes, u32 count, then `key:u32, varint length, name, type:u32`. Expando key table. Unlike a string (section 7.2), the length counts the name alone. **[S]** |
 | `0x70013` | Segment | Up to 32 pages of a large blob (section 7.3). **[S]** |
 | `0x70014` | CommitPoint | Ticks at 20; `$$COMMIT$` at 34. **[S]** |
 | `0x70015` | ClosePoint | Ticks at 20; `##CLOSE##` at 34. **[S]** |
@@ -221,7 +221,15 @@ An `AttributeSet` with `expando` holds attributes not in the schema.
 | 18 | `c`×u32 keys |
 | 18+4`c` | `c`×u32 values: inline if the type is fixed and at most 4 bytes; otherwise an offset from 18+8`c` (`0xFFFFFFFF` is missing) |
 
-An out-of-line structure or array sits at that offset without a further ref.
+An out-of-line structure or array sits at that offset without a further ref. A blob or XML value sits there as in section 7.3. **[S]**
+
+Some of what a source file shows is only here. Names are keys in the object type's table:
+
+| Object | Key | Holds |
+|---|---|---|
+| `InterfaceVersionRootData` | `Values` | XML: the start values its members are declared with (section 11) **[S]** |
+| `DataBlockData` | `NonRetain` | Bool: a source file's `NON_RETAIN` **[S]** |
+| `DataBlockData` | `DBAccessibleFromOPCUA`, `DBAccessibleFromWebserver` | Bool: false adds that block attribute. Absent means true. **[S]** |
 
 **`expando="simple"`**: names are in the value itself. **[S]** This is where interface comments are.
 
@@ -328,19 +336,57 @@ A section part or struct part holds `<Member ...>` around its members; a DB's or
 | `RID` | Type code, below **[S]** |
 | `Type` | Type text for what `RID` cannot say: `"SomeUdt"`, `Array[1..10] of X`, `String[4]`, also with constants in the bounds. Quotes are `&quot;`. **[S]** |
 | `SubPartIndex` | With `RID` and no `Type`: a struct, the part holds its members. With `Type`: where the type's own interface is. **[S]** |
-| `StdO`, `LID`, `MFlags`, `v`, `n`, `ph`, `Hidden`, `Remanence`, `SlotNo`, `Depth`, `ParentId` | Offsets and flags. `StdO` looks like a bit offset in standard access **[I]**; the rest **[?]**. |
+| `MFlags` | The member's attributes, see below. **[S]** for the values seen, no meaning per bit |
+| `Remanence` | `Retain`: in a retained section. `Classic`: on a static member, in `VAR DB_SPECIFIC`; on an overlay it says nothing. **[S]** |
+| `AtMemberID` | It overlays that sibling: `name AT other : type`. **[S]** |
+| `StdO`, `LID`, `v`, `n`, `ph`, `Hidden`, `SlotNo`, `Depth`, `ParentId` | Offsets and flags. `StdO` looks like a bit offset in standard access **[I]**; the rest **[?]**. |
 
 **Type codes** (`RID`). The file states them itself: an ident's `<TD T="Bool:33554433:Bool"/>` is `name:decimal code:display`. Read the table from there, it is exact for that file. **[S]** Elementary, `0x020000xx`:
 
-`01` Bool, `02` Byte, `03` Char, `04` Word, `05` Int, `06` DWord, `07` DInt, `08` Real, `09` Date, `0A` Time_Of_Day, `0B` Time, `0C` S5Time, `0E` Date_And_Time, `13` String, `16` Any, `1D` Timer, `1F` IEC_Timer, `30` LReal, `31` ULInt, `32` LInt, `33` LWord, `34` USInt, `35` UInt, `36` UDInt, `37` SInt, `3C` ARef, `3E` WString, `3F` Variant, `40` LTime, `41` LTOD, `42` LDT, `43` DTL, `88` TYPE_ID, `90` HW_ANY, `91` HW_IOSYSTEM, `97` HW_SUBMODULE, `9B` HW_INTERFACE, `AA` CONN_OUC, `D0` DB_ANY. `02000000` never appears in such a table; it is on `Ret_Val` of an FC without a return value, so Void **[I]**. `A0` is unknown **[?]**.
+`01` Bool, `02` Byte, `03` Char, `04` Word, `05` Int, `06` DWord, `07` DInt, `08` Real, `09` Date, `0A` Time_Of_Day, `0B` Time, `0C` S5Time, `0E` Date_And_Time, `13` String, `16` Any, `1D` Timer, `1F` IEC_Timer, `30` LReal, `31` ULInt, `32` LInt, `33` LWord, `34` USInt, `35` UInt, `36` UDInt, `37` SInt, `3C` ARef, `3E` WString, `3F` Variant, `40` LTime, `41` LTOD, `42` LDT, `43` DTL, `88` TYPE_ID, `90` HW_ANY, `91` HW_IOSYSTEM, `97` HW_SUBMODULE, `9B` HW_INTERFACE, `AA` CONN_OUC, `D0` DB_ANY. `02000000` never appears in such a table; it is on `Ret_Val` of an FC without a return value, so Void **[I]**. `A0` is in none either: only an OB's `Csg_OBNr` input uses it, and `D0` its `DBNr`. TIA's export of such an OB calls them OB_ANY and DB_ANY. **[S]**
 
 Others: `0x0201xxxx` array of elementary or system type `xxxx`; `0x020002xx` system data types (`20B` TCON_IP_v4, with `Type`); `0x91` UDT, `0x92` DB, `0x93` FB, `0x94` FC, `0x95` OB. `0x9N01xxxx` in the `0x91` to `0x94` ranges is a struct inside that block. **[S]**
 
-**Start values**: `<V p="53" v="16#0B"/>` in a `Values` part, or a `<Values>` in the root: `p` is the id path. `Display`, `Scope`, `IdentRefID` hold a symbolic value. **[S]**
+**Start values** live in two places, as `<V p="53" v="16#0B"/>`, where `p` is the id path, with `[i,j]` after an array's id. `Display`, `Scope`, `IdentRefID` hold a symbolic value, and a source file writes `Display`. **[S]**
 
-**A data block of a type** (`IGeneralDataBlockSourceData.Type` is `DBOfType` or `IDBofFB`) has its type through `GeneratedFromMaster` (a UDT) or `IsGeneratedFrom` (an FB). TIA's source names the type on a line of its own after `NON_RETAIN`, and lists only the values set in the block between `BEGIN` and `END_DATA_BLOCK`: `<V p="53:2[1]">` becomes `S.y[1] := ...;`, the text as stored, in member order. Checked on an instance DB and two DBs of a UDT: the same bytes. **[S]** `NON_RETAIN` when no member has `Remanence="Retain"`: true of these three, the rest **[I]**. Array order, shared DBs and retained DBs: **[U]**.
+- **Declared** with the member: the root's expando `Values` (section 7.7). This is where a UDT has them, in none of its interface parts. **[S]**
+- **Set** in the block: a `Values` part, or a `<Values>` in the root. In a block other than a data block they too are what the declaration says. In a data block they are what it starts with, and a source file lists them after `BEGIN`. **[S]**
 
-A **DB generated from a UDT** has a root of kind `Values`: `UsedParts[0]` is the UDT's root, whose members and parts apply. **[S]** Its `<V>`s list only some start values. **All of them** are in the compiled image, `LoadablePlusDataBlockData.ILoadablePlusDataBlockData.VolatileBuffer`, reached by `Parent4LoadableBinaryData.LoadableBinaries`: an 8 byte head, then values little-endian at the sum of the optimized bit offsets along the path, `<Offsets><o o="bits"/>` in member order. Checked for `Int` and `Bool` in optimized DBs generated from a UDT: all 15 explicit values that could be compared agree. **[S]** It does not hold for an instance DB, whose offsets count within its sections, and the reader does not use it there, for a protected block, or when the image is shorter than the UDT's `optSize`. Other types and standard-access DBs: **[U]**.
+A source file writes a declared value after the type: **[S]**
+
+| Member | Written |
+|---|---|
+| Elementary | The value |
+| Struct, array of structs | Nothing: its members have their own lines. In an array of structs the first element's value stands on the member's line. Another element's values are not shown |
+| UDT or FB | `(a, b, c)`, one place per member, `()` where nothing is set. Nothing at all if no place has a value |
+| Array | `[a, b, c]` in reading order. A plain array stops at its last value, fills gaps with its type's zero, and writes equal neighbours as `3(a)`. An array of a UDT writes all its elements, and each in full |
+| Array with nothing set, inside a UDT | `[()]` |
+| UDT inside a UDT | `()` if nothing is set in it for any element, else its places. A system type always shows its places |
+| Struct inside a UDT | `()`, even with values stored |
+
+Array bounds that are constants resolve through `<Constants><Constant Display Value/></Constants>` at the top of the root that uses them. **[S]**
+
+**Member attributes.** A source file writes them in braces after the name, in this order and only when they differ from the default: `InstructionName`, `LibVersion`, `ExternalAccessible`, `ExternalVisible`, `ExternalWritable`, `S7_SetPoint`. They start right after `{` if an instruction's come first, after `{ ` if not. FCs and OBs show no access attributes, and neither do temporary or constant members anywhere. **[S]**
+
+| `MFlags` | Written |
+|---|---|
+| none | As the parent struct: the access attributes pass down |
+| `14`, `76`, `77`, `526`, `588` | `ExternalAccessible`, `ExternalVisible`, `ExternalWritable` all `'False'` |
+| `79` | `ExternalWritable := 'False'` |
+| `527` | As the parent struct |
+| with `512` set | Also `S7_SetPoint`: `'True'` if bit 0 is set and the member is elementary or an array of it, else `'False'`. Not on a parameter or a plain struct |
+
+An overlay with no `MFlags` of its own takes those of the member it overlays. **[S]** This table is what the values seen do, and comes from one project, so it may not be complete. **[I]** What a struct or a UDT's `S7_SetPoint` depends on is not fully known: on two blocks a member of a fail-safe UDT has `527` and TIA writes nothing. **[?]**
+
+A member whose part (`SubPartIndex`) has `IInterfaceLibraryData` is of a system type: `InstructionName` is its type's name, `LibVersion` the first two numbers of `IInterfaceLibraryData.Version`. **[S]**
+
+**Names** are written plain if they are identifiers, in any alphabet, and quoted if not or if they are reserved, such as `"Byte"` or `"Name"`. The reader's list of reserved words comes from what this project uses plus the words of a source file, so it is **[I]**. Type code `LTOD` is written `LTime_Of_Day`. **[S]**
+
+**A data block of a type** (`IGeneralDataBlockSourceData.Type` is `DBOfType` or `IDBofFB`) has its type through `GeneratedFromMaster` (a UDT) or `IsGeneratedFrom` (an FB). TIA's source names the type on a line of its own, and lists only the values set in the block between `BEGIN` and `END_DATA_BLOCK`: `<V p="53:2[1]">` becomes `S.y[1] := ...;`, the text as stored, in member order and then index order. A path goes on into the member's own type: `"1st".Part.Item[1].x`. A value of a `DTL` is preceded by one line for each part, `x.YEAR := ...;` and so on to `NANOSECOND`, which are not stored; `WEEKDAY` counts from Sunday as 1. **[S]**
+
+A **shared DB** declares its members in `VAR` sections if optimized, with retained ones in a `VAR RETAIN` of their own, and in one `STRUCT` if not, and then lists its set values the same way. **[S]**
+
+A **DB of a type** has a root of kind `Values`: `UsedParts[0]` is the root of the UDT or FB, whose members and parts apply. With nothing set the root has no payload at all. **[S]** Its `<V>`s list only some start values. SimaticML lists the same ones: a member's `StartValue` is there only if it is set in the block, even with `ExportOptions.WithDefaults`, so what TIA shows comes from the block, else the type, else zero. **[S]** **All of them** are in the compiled image, `LoadablePlusDataBlockData.ILoadablePlusDataBlockData.VolatileBuffer`, reached by `Parent4LoadableBinaryData.LoadableBinaries`: an 8 byte head, then values little-endian at the sum of the optimized bit offsets along the path, `<Offsets><o o="bits"/>` in member order. Checked for `Bool` and integer types in optimized DBs generated from a UDT against what TIA's text implies: the block's value, else the UDT's, else zero. All 122 agree. **[S]** It does not hold for an instance DB, whose offsets count within its sections, and the reader does not use it there, for a protected block, or when the image is shorter than the UDT's `optSize`. A retained DB keeps its values in `RetainBuffer` instead, which the reader does not read. Other types and standard-access DBs: **[U]**. A standard DB's `ClassicBuffer` looks like its values big-endian. **[?]**
 
 **Comments**: `InterfaceCommentsPartData.ICommentsExpandoAttributeSet`, a simple expando (section 7.7) of core texts, keyed by the id path. **[S]**
 
@@ -376,9 +422,11 @@ The tag-to-text mapping is **[I]**: read off the tags and how the result parses.
 
 Other values of `Data`: empty (no source stored), `<FlgNet` (section 13), `<EncryptedData` (section 15).
 
-**As TIA writes it.** TIA's *Generate source from blocks* puts this around the text: the block line, `TITLE`, `{ S7_Optimized_Access := '...' }`, the header fields that are set (`VERSION` is `0.1` if none is stored), then the block comment with `//` directly before each line. Each section is `   VAR_IN_OUT ` (with a trailing space) up to `   END_VAR` and a blank line, one more blank line follows the last section, then `BEGIN`. Every line of the body, empty ones too, starts with one tab, and a body with no text has no line at all. A file ends with `END_...` and a blank line. An optimized OB's inputs are left out. Checked on an FB with statics and an OB: the same bytes; on an FC of 543 lines: the same text, trailing whitespace aside. **[S]** A non-optimized OB: **[U]**.
+**As TIA writes it.** TIA's *Generate source from blocks* puts this around the text: the block line, `TITLE`, the block attributes in braces, the header fields that are set (`VERSION` is `0.1` if none is stored), `NON_RETAIN` on a data block that is, then the block comment with `//` directly before each line. Each section is `   VAR_IN_OUT ` (with a trailing space) up to `   END_VAR` and a blank line, one more blank line follows the last section, then `BEGIN`. `VAR RETAIN`, `VAR DB_SPECIFIC` and a UDT's `STRUCT` have no trailing space. The sections of one kind follow each other with no blank line between them. Every line of the body, empty ones too, starts with one tab, and a body with no text has no line at all. A file ends with `END_...` and a blank line. An OB's inputs are left out; the non-optimized OBs of the sample have none stored, so that part rests on optimized ones. **[S]**
 
-A UDT is `TYPE`, `   STRUCT`, its members, `   END_STRUCT;`, a blank line, `END_TYPE`, with no `S7_Optimized_Access`. Checked on one UDT. **[S]** Where a UDT stores its start values: **[?]**. Its interface parts hold none, yet a data block's image of that type has them.
+TIA writes titles and comments in one language, the project's editing language. Where that one is empty the reader takes the first language that has text, so as not to lose it, and differs from TIA on purpose. **[S]**
+
+A UDT is `TYPE`, `   STRUCT`, its members, `   END_STRUCT;`, a blank line, `END_TYPE`, with no `S7_Optimized_Access`. **[S]**
 
 ## 13. FBD and LAD networks
 
@@ -469,7 +517,25 @@ A and B are V20, the library V15.1.
 
 The `ODN` differences are one kind: a nested access where the token holds the last segment only (`#Speed` against `#a.b.Speed`).
 
-**What the SCL text check is worth.** The text comes from Siemens's own tokens, so names and comments are not in doubt, and the rendered blocks read as valid SCL. But the check was reading, not parsing, and not a comparison with an export from TIA. Ground truth is still to come.
+**Compared with TIA Portal V21.** `tiadump compare` against `tools/TiaOpennessExport`, on A's two PLCs. Every block TIA would generate source for, after our leading comment lines and before our trailing ones, in bytes once TIA's CRLF is read as LF:
+
+| Kind | Identical | Different | Closed | FBD, no source from TIA |
+|---|---|---|---|---|
+| FB | 125 | 0 | 92 | 35 |
+| FC | 238 | 0 | 24 | 13 |
+| OB | 14 | 2 | 2 | 0 |
+| Global DB | 40 | 2 | 47 | 0 |
+| Instance DB | 50 | 0 | 34 | 0 |
+| UDT | 319 | 0 | 10 | 0 |
+| **All** | **786** | **4** | **209** | **48** |
+
+The differences: one OB on each PLC whose title and comment have no text in the editing language (section 12), and two global DBs with a fail-safe UDT's `S7_SetPoint` (section 11). The project's V20 archive, upgraded and exported the same way, gives the same table. That is the same program, so it does not test the rules on anything new: most of sections 11 and 12 was worked out from this comparison, and comes from this one project.
+
+Tag tables, from TIA's export of them: all 208 tags and constants in them agree in type, all 66 addresses and all 142 values. The 282 system constants the reader also lists are in no exported table.
+
+The text is the same after compiling. TIA exports SimaticML only for a compiled block, so a retrieved copy was compiled block by block, with every block that is not fail-safe, and closed unsaved. It refuses to compile the whole PLC without permission for the safety program. That gave SimaticML for all 319 UDTs, 85 of 92 open DBs, 194 of 379 open SCL blocks, and the same table as above.
+
+**What this does not cover.** FBD networks: all 48 in the project are `F_FBD`, so they stay uncompiled and TIA exports none of them. Protected blocks, by choice. LAD, plain FBD, STL and GRAPH: none in the project are open.
 
 **Values still not decoded, by design or not understood**: `0x80000016` in 6 HMI objects of B; 24 keys unknown in an HMI `StyleData` simple expando; `XRef.db`; `MetaId`; `0x70003` to `0x70006`. In the V15.1 library 12 `DataBlockData` objects do not fit the schema for some attributes (`Subtype`, `Culture`, `Password`, `Version`, `ITagAddress`), whichever of its three schemas is used: an offset leads out of the frame. A reader must treat such a value as absent. **[?]**
 
@@ -479,12 +545,12 @@ The `ODN` differences are one kind: a nested access where the token holds the la
 
 ## This repository's reader
 
-`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations and simple expandos. It does not decode structures, arrays, maps or dictionary expandos in general, because no block read needs them.
+`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and booleans and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them.
 
 ```bash
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `dump --raw` adds each network as stored. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are in the style of a TIA source file, for reading and not for import. DB start values come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks, `dump --raw` adds each network as stored. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.

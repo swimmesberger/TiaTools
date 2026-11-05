@@ -189,9 +189,67 @@ public sealed class TiaSourceFileTest {
     public void TheMembersOfItsTypeFollowTheBlockAsComments() =>
         DataBlockOfUserType().Should().Contain("END_DATA_BLOCK\n\n// The members of its type, with the start values known:\n//   A : Bool");
 
+    private static string SharedDataBlock(string members, bool optimized = true) {
+        var file = new TiaFileBuilder(Schema);
+        file.WriteObject(Root, 4, [Part(members, "DBSource")]);
+        var general = General("DB", "DB");
+        general[12] = optimized ? (byte)1 : (byte)0;
+        file.WriteObject(DataBlock, 1, [Core("Db", "DB"), general, NoHeader(), TiaFileBuilder.Slots((DbInterface, Root, 4))]);
+        return Written(file, DataBlock);
+    }
+
     [Test]
-    public void AMemberThatIsRetainedMeansTheBlockIsNotNonRetain() =>
-        DataBlockOfUserType(TypeMembers.Replace("""Name="A" """, """Name="A" Remanence="Retain" """, StringComparison.Ordinal)).Should().NotContain("NON_RETAIN");
+    public void AMemberThatIsRetainedGetsASectionOfItsOwnAndTheBlockStaysNonRetain() =>
+        SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000001" Remanence="Retain" /><Member ID="52" Name="B" RID="0x02000001" /></Root>""")
+            .Should().Contain("NON_RETAIN\n   VAR RETAIN\n      A : RID 0x02000001;\n   END_VAR\n   VAR \n      B : RID 0x02000001;\n   END_VAR\n\n\nBEGIN\n");
+
+    [Test]
+    public void ASharedDataBlockListsItsValuesInItsBody() =>
+        SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000001" /><Values><V p="51" v="TRUE" /></Values></Root>""")
+            .Should().Contain("A : RID 0x02000001;\n   END_VAR\n\n\nBEGIN\n   A := TRUE;\n\nEND_DATA_BLOCK\n\n");
+
+    [Test]
+    public void ASharedDataBlockWithStandardAccessHoldsItsMembersInAStruct() =>
+        SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000001" /></Root>""", optimized: false)
+            .Should().Contain("   STRUCT \n      A : RID 0x02000001;\n   END_STRUCT;\n\n\nBEGIN\n");
+
+    [Test]
+    public void AnOverlayNamesTheMemberItLiesOn() =>
+        SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000005" /><Member ID="52" Name="B" RID="0x02000005" AtMemberID="51" Remanence="Classic" /></Root>""")
+            .Should().Contain("B AT A : RID 0x02000005;");
+
+    [Test]
+    public void AnArrayOfStructsListsItsMembers() {
+        var file = new TiaFileBuilder(Schema);
+        file.WriteObject(Root, 5, [Part("""<Member ParentId="51"><Member ID="1" Name="x" RID="0x02000001" /></Member>""", "Structure")]);
+        file.WriteObject(Root, 4, [
+            Part("""<Root><Member ID="51" Name="A" RID="0x91010000" Type="Array[1..2] of Struct" SubPartIndex="0" /></Root>""", "DBSource"),
+            TiaFileBuilder.Slots(),
+            TiaFileBuilder.Slots((Used, Root, 5)),
+        ], info: 1);
+        file.WriteObject(DataBlock, 1, [Core("Db", "DB"), General("DB", "DB"), NoHeader(), TiaFileBuilder.Slots((DbInterface, Root, 4))]);
+
+        Written(file, DataBlock).Should().Contain("      A : Array[1..2] of Struct\n         x : RID 0x02000001;\n      END_STRUCT;\n");
+    }
+
+    [Test]
+    public void AValueNamesEveryPartOfTheMemberInsideAType() {
+        var file = new TiaFileBuilder(Schema);
+        file.WriteObject(Root, 5, [Part("""<Root><Member ID="7" Name="x" RID="0x02000005" /></Root>""", "DataTypeSource")]);
+        file.WriteObject(Root, 4, [
+            Part("""<Root><Member ID="51" Name="1st" RID="0x91000001" Type="&quot;T&quot;" SubPartIndex="0" /><Values><V p="51:7" v="3" /></Values></Root>""", "DBSource"),
+            TiaFileBuilder.Slots(),
+            TiaFileBuilder.Slots((Used, Root, 5)),
+        ], info: 1);
+        file.WriteObject(DataBlock, 1, [Core("Db", "DB"), General("DB", "DB"), NoHeader(), TiaFileBuilder.Slots((DbInterface, Root, 4))]);
+
+        Written(file, DataBlock).Should().Contain("BEGIN\n   \"1st\".x := 3;\n\nEND_DATA_BLOCK");
+    }
+
+    [Test]
+    public void ADateAndTimeLongValueListsItsPartsFirst() =>
+        SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000001" /><Values><V p="51" v="DTL#1990-01-01-00:00:00" /></Values></Root>""")
+            .Should().Contain("   A.YEAR := 1990;\n   A.MONTH := 1;\n   A.DAY := 1;\n   A.WEEKDAY := 2;\n   A.HOUR := 0;\n   A.MINUTE := 0;\n   A.SECOND := 0;\n   A.NANOSECOND := 0;\n   A := DTL#1990-01-01-00:00:00;\n");
 
     [Test]
     public void AnInstanceDataBlockNamesItsFunctionBlock() {
@@ -202,6 +260,21 @@ public sealed class TiaSourceFileTest {
 
         Written(file, DataBlock).Should().Be(
             "DATA_BLOCK \"Fb.IDB\"\n{ S7_Optimized_Access := 'TRUE' }\nVERSION : 0.1\nNON_RETAIN\n\"Fb\"\n\nBEGIN\n\nEND_DATA_BLOCK\n\n");
+    }
+
+    [Test]
+    public void AnInstanceDataBlockWithNothingSetStillListsItsFunctionBlocksMembers() {
+        var file = new TiaFileBuilder(Schema);
+        file.WriteObject(Root, 5, [Part("""<Root><Member Name="Static"><Member ID="51" Name="A" RID="0x02000001" /></Member></Root>""", "BlockSource")]);
+        file.WriteObject(CodeBlock, 8, [Core("Fb", "FB"), General("FB", "SCL"), NoHeader()]);
+        file.WriteObject(Root, 4, [
+            TiaFileBuilder.Segment(8, (8, TiaFileBuilder.String("Values"))),
+            TiaFileBuilder.Slots(),
+            TiaFileBuilder.Slots((Used, Root, 5)),
+        ], info: 1);
+        file.WriteObject(DataBlock, 1, [Core("Fb.IDB", "DB"), General("DB", "DB"), NoHeader(), TiaFileBuilder.Slots((DbInterface, Root, 4), (GeneratedFromFb, CodeBlock, 8))]);
+
+        Written(file, DataBlock).Should().Contain("BEGIN\n\nEND_DATA_BLOCK\n\n// The members of its type, with the start values known:\n//   A : ");
     }
 
     [Test]

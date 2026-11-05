@@ -48,7 +48,7 @@ public static class TiaInspector {
                         return Show(blob.Span, full);
                     }
                 default:
-                    return null;
+                    return full ? $"[{slot.Type.Kind}, not decoded]" : null;
             }
         } catch (Exception e) when (e is TiaFormatException or InvalidDataException or ArgumentOutOfRangeException) {
             return "[unreadable]";
