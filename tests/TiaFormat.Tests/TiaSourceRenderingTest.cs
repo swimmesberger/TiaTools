@@ -1,0 +1,84 @@
+using System.Text;
+using AwesomeAssertions;
+using TiaFormat;
+using TiaFormat.Program;
+
+namespace TiaFormat.Tests;
+
+public sealed class TiaSourceRenderingTest {
+    private static string Scl(string xml, out int unknown) {
+        using var output = new PooledByteWriter();
+        unknown = SclRenderer.Render(Encoding.UTF8.GetBytes(xml), output);
+        return Encoding.UTF8.GetString(output.WrittenSpan);
+    }
+
+    [Test]
+    public void SclComesOutInDocumentOrderWithItsLayoutAndComments() {
+        var text = Scl("""
+            <SCLSource><Symbols><LocalTag SymID="3" RefId="1" /></Symbols><RootStatements><BC><Fold><BCL TE="head" /><BCE /></Fold></BC><NL UId="1" /><LC TE=" note" /><NL UId="2" /><Statement TE="IF" UId="3" SI="IF"><Fold UId="4"><BL /><Expression Result="Bool" UId="5"><SymVa UId="6" SyId="3" ODN="#a" /></Expression><BL /><KwTHEN UId="7" /><NL UId="8" /><BL NumBLs="4" /><Statements><Statement UId="9" SI="STAss"><Expression UId="10"><SymVa UId="11" SyId="7" ODN="&quot;DB&quot;" /><Dot UId="12" /><SymVa UId="13" SyId="8" ODN="x" /></Expression><BL /><OpAs UId="14" /><BL /><Const TE="1" UId="15" /><FiSt UId="16" /></Statement></Statements><NL UId="17" /><KwENDIF UId="18" /><FiSt UId="19" /></Fold></Statement></RootStatements></SCLSource>
+            """, out var unknown);
+
+        text.Should().Be("(*head*)\n// note\nIF #a THEN\n    \"DB\".x := 1;\nEND_IF;");
+        unknown.Should().Be(0);
+    }
+
+    [Test]
+    public void AnInstructionNameComesFromTheSymbolTable() {
+        var text = Scl("""
+            <SCLSource><Symbols><Instruction SymID="134" RefId="118" Name="BLKMOV" /></Symbols><RootStatements><FctCa UId="1"><Sub UId="2" SyId="134" /><BracO UId="3" /><BracC UId="4" /></FctCa></RootStatements></SCLSource>
+            """, out _);
+
+        text.Should().Be("BLKMOV()");
+    }
+
+    [Test]
+    public void ATagWithoutARuleShowsInTheTextAndIsCounted() {
+        var text = Scl("""<SCLSource><RootStatements><KwNew UId="1" /></RootStatements></SCLSource>""", out var unknown);
+
+        text.Should().Be("«KwNew»");
+        unknown.Should().Be(1);
+    }
+
+    [Test]
+    public void ANegatedOutputInvertsWhatItsWireCarries() {
+        var idents = new TiaIdentTable();
+        idents.Add(Encoding.UTF8.GetBytes("""
+            <IdentXmlPart><InterfaceAccess><ID N="" S="Local" RID="1" /><SSD><AOS><AO N="a"><TD /></AO></AOS></SSD></InterfaceAccess></IdentXmlPart>
+            """));
+        idents.Complete();
+        var xml = """
+            <FlgNet Lang="F_FBD"><Parts><ORef UId="9" RefId="1" /><Part UId="21" Gate="A"><Negated PinName="out" /></Part><Part UId="23" Gate="Coil" /></Parts><Wires><Wire UId="28"><PCon UId="21" PinName="out" /><PCon UId="23" PinName="in" /></Wire><Wire UId="29"><PCon UId="21" PinName="out" /><OCon UId="9" /></Wire></Wires></FlgNet>
+            """;
+        using var output = new PooledByteWriter();
+
+        FlgNetRenderer.Render(Encoding.UTF8.GetBytes(xml), idents, output);
+
+        Encoding.UTF8.GetString(output.WrittenSpan).Should().Be("P21: A(NOT out => #a)\nP23: Coil(in := NOT P21.out)");
+    }
+
+    [Test]
+    public void ABoolFromTheDataBlockImageIsItsOwnBit() {
+        byte[] image = [0x02];
+
+        TiaProgram.FormatScalar("0x02000001", image, 0, 0).Should().Be("FALSE");
+        TiaProgram.FormatScalar("0x02000001", image, 0, 1).Should().Be("TRUE");
+    }
+
+    [Test]
+    public void ANetworkPrintsItsPartsWithWiresResolved() {
+        var idents = new TiaIdentTable();
+        idents.Add(Encoding.UTF8.GetBytes("""
+            <IdentXmlPart><InterfaceAccess><ID N="" S="Local" RID="1"><CS /></ID><SSD><AOS><AO N="in"><TD T="Bool:33554433:Bool" /></AO></AOS></SSD></InterfaceAccess><InterfaceAccess><ID N="" S="Local" RID="2" /><SSD><AOS><AO N="s"><TD /></AO><AO N="odd name"><TD /></AO></AOS></SSD></InterfaceAccess></IdentXmlPart>
+            """));
+        idents.Complete();
+        var xml = """
+            <FlgNet xmlns="x" Lang="F_FBD"><Parts><ORef UId="24" RefId="1" /><ORef UId="26" RefId="2" /><ORef UId="27" /><Part UId="21" Gate="A"><Negated PinName="in1" /></Part><Part UId="23" Gate="Coil" /></Parts><Wires><Wire UId="28"><OCon UId="24" /><PCon UId="21" PinName="in1" /></Wire><Wire UId="29"><PCon UId="21" PinName="out" /><PCon UId="23" PinName="in" /></Wire><Wire UId="30"><OCon UId="26" /><PCon UId="23" PinName="operand" /></Wire><Wire UId="31"><PCon UId="23" PinName="Q" /><OCon UId="27" /></Wire></Wires></FlgNet>
+            """;
+        using var output = new PooledByteWriter();
+
+        FlgNetRenderer.Render(Encoding.UTF8.GetBytes(xml), idents, output);
+
+        Encoding.UTF8.GetString(output.WrittenSpan).Should().Be(
+            "P21: A(in1 := NOT #in)\nP23: Coil(in := P21.out, operand := #s.\"odd name\", Q => (not connected))");
+    }
+}

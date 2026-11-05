@@ -1,0 +1,6 @@
+# Every text file is stored and checked out with LF, whatever core.autocrlf says (see .editorconfig)
+* text=auto eol=lf
+.github/workflows/*.lock.yml linguist-generated=true
+# Windows batch files must keep CRLF: cmd.exe mis-parses labels and goto/call in LF-only files
+*.bat text eol=crlf
+*.cmd text eol=crlf

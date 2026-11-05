@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <IsAotCompatible>true</IsAotCompatible>
+        <Description>Read-only reader for TIA Portal project databases (PEData.plf): frames, schema, relations, blocks, SCL and FBD source (BCL only). The format: docs/FORMAT.md.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- A malformed or odd value is easier to pin at the single conversion than through a whole data block. -->
+        <InternalsVisibleTo Include="TiaFormat.Tests" />
+    </ItemGroup>
+</Project>

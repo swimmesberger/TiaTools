@@ -1,0 +1,553 @@
+using System.Buffers.Binary;
+using System.Globalization;
+using System.Text;
+using TiaFormat.Schema;
+using TiaFormat.Storage;
+using TiaFormat.Xml;
+
+namespace TiaFormat.Program;
+
+/// <summary>The PLC layer of a database: blocks, their interfaces and source, tag tables. Safe for parallel reads.</summary>
+public sealed class TiaProgram {
+    private const string Core = "Siemens.Automation.ObjectFrame.ICoreAttributes";
+    private const string General = "Siemens.Simatic.Lang.Model.Blocks.IGeneralBlockSourceData";
+    private const string CompileUnit = "Siemens.Simatic.Lang.Model.Blocks.ICompileUnitData";
+    private const string InterfacePart = "Siemens.Simatic.Lang.Model.Structures.IInterfacePartData";
+    private const string IdentPart = "Siemens.Simatic.Lang.Model.Idents.IIdentPartData";
+    private const string DataBlockLoad = "Siemens.Simatic.Lang.Model.Blocks.ILoadablePlusDataBlockData";
+    private const string UserTypeName = "Siemens.Simatic.Lang.Model.Blocks.UserTypeData";
+
+    private readonly TiaDatabase _db;
+    private readonly TiaAttributeHandle _name, _comment, _subtype, _protected, _blockType, _number, _language;
+    private readonly TiaAttributeHandle _unitData, _unitRef, _unitLanguage, _partPayload, _partKind, _identPayload, _text, _image;
+    private readonly TiaAttributeHandle _tagAddress, _tagType, _tagValue;
+    private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _tagContent;
+    private readonly Lazy<Dictionary<int, string>> _typeCodes;
+
+    public TiaProgram(TiaDatabase database) {
+        _db = database;
+        var s = database.Schema;
+        _name = s.Attribute(Core, "Name");
+        _comment = s.Attribute(Core, "Comment");
+        _subtype = s.Attribute(Core, "Subtype");
+        _protected = s.Attribute(Core, "IsKnowHowProtected");
+        _blockType = s.Attribute(General, "BlockType");
+        _number = s.Attribute(General, "Number");
+        _language = s.Attribute(General, "BlockLanguage");
+        _unitData = s.Attribute(CompileUnit, "Data");
+        _unitRef = s.Attribute(CompileUnit, "RefID");
+        _unitLanguage = s.Attribute(CompileUnit, "ProgrammingLanguage");
+        _partPayload = s.Attribute(InterfacePart, "Payload");
+        _partKind = s.Attribute(InterfacePart, "Kind");
+        _identPayload = s.Attribute(IdentPart, "PayLoad");
+        _text = s.Attribute("Siemens.Automation.ObjectFrame.ICoreTextRepository", "Text");
+        _image = s.Attribute(DataBlockLoad, "VolatileBuffer");
+        _tagAddress = s.Attribute("Siemens.Automation.DomainModel.ITagAddress", "LogicalAddress");
+        _tagType = s.Attribute("Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem", "DisplayTypeName");
+        _tagValue = s.Attribute("Siemens.Automation.DomainServices.CommonTypeSystem.IDefaultStrategyData", "DefaultValue");
+        _sources = s.Relation("Sources");
+        _currentInterface = s.Relation("CurrentInterface");
+        _usedParts = s.Relation("UsedParts");
+        _comments = s.Relation("InterfaceComments");
+        _blockComment = s.Relation("BlockComment");
+        _identContainer = s.Relation("CoreObject2IdentContainer");
+        _identParts = s.Relation("IdentParts");
+        _folder = s.Relation("AggregatingFolder");
+        _target = s.Relation("Target");
+        _environment = s.Relation("Environment");
+        _loadables = s.Relation("LoadableBinaries");
+        _generatedFrom = s.Relation("GeneratedFromMaster");
+        _tagContent = s.Relation("Content");
+        _typeCodes = new Lazy<Dictionary<int, string>>(HarvestTypeCodes);
+        Blocks = ReadBlocks();
+    }
+
+    public TiaDatabase Database => _db;
+
+    /// <summary>Every block object, stubs and protected blocks included.</summary>
+    public IReadOnlyList<TiaBlock> Blocks { get; }
+
+    /// <summary>The name of the PLC a block belongs to, or null.</summary>
+    public string? PlcName(in TiaFrame frame) => _db.TryGetTarget(frame, _target, out var plc) ? _db.ReadString(plc, _name) : null;
+
+    /// <summary>What holds the block: its type's short name and its name, such as a project or a library master copy.</summary>
+    public (string Kind, string? Name, ulong Id) Environment(in TiaFrame frame) {
+        if (!_db.TryGetTarget(frame, _environment, out var environment)) {
+            return ("", null, 0);
+        }
+        var type = _db.Schema.FindObjectType(environment.TypeId)?.FullName ?? "";
+        return (type[(type.LastIndexOf('.') + 1)..], _db.ReadString(environment, _name), environment.ObjectId);
+    }
+
+    /// <summary>The folder path from the top, separated by '/'; empty if the object is in no folder.</summary>
+    public string FolderPath(in TiaFrame frame) {
+        var names = new List<string>();
+        var current = frame;
+        for (var i = 0; i < 64 && _db.TryGetTarget(current, _folder, out var parent); i++) {
+            names.Add(_db.ReadString(parent, _name) ?? "");
+            current = parent;
+        }
+        names.Reverse();
+        return string.Join('/', names);
+    }
+
+    /// <summary>The block comment, or null.</summary>
+    public string? BlockComment(TiaBlock block) =>
+        _db.TryGetTarget(block.Frame, _blockComment, out var text) ? _db.ReadCoreText(text, _text) : null;
+
+    /// <summary>The name of the UDT or FB a data block was generated from, or null.</summary>
+    public string? GeneratedFrom(TiaBlock block) =>
+        _db.TryGetTarget(block.Frame, _generatedFrom, out var master) ? _db.ReadString(master, _name) : null;
+
+    /// <summary>The compile units in network order, with their form: SCLSource, FlgNet, EncryptedData, empty or other.</summary>
+    public List<TiaNetwork> Networks(TiaBlock block) {
+        var units = CompileUnits(block);
+        var result = new List<TiaNetwork>(units.Count);
+        foreach (var unit in units) {
+            using var data = _db.ReadBlob(unit, _unitData);
+            result.Add(new TiaNetwork(
+                (int)(_db.ReadInteger(unit, _unitRef) ?? 0),
+                _db.ReadString(unit, _unitLanguage) ?? "",
+                _db.ReadCoreText(unit, _comment),
+                FormOf(data.Span)));
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Writes one compile unit's source. Protected source is never opened: it writes a marker and returns false.
+    /// Returns the count of SCL tags without a rule through <paramref name="unknownTags"/>.
+    /// </summary>
+    public void WriteNetworkSource(TiaBlock block, int index, PooledByteWriter output, out int unknownTags) {
+        unknownTags = 0;
+        var units = CompileUnits(block);
+        using var data = _db.ReadBlob(units[index], _unitData);
+        var form = FormOf(data.Span);
+        switch (form) {
+            case "":
+                output.Write("[no source stored]"u8);
+                break;
+            case "EncryptedData":
+                output.Write(TiaSourceWriter.ProtectedMarker);
+                break;
+            case "SCLSource":
+                unknownTags = SclRenderer.Render(data.Span, output);
+                break;
+            case "FlgNet":
+                FlgNetRenderer.Render(data.Span, ReadIdents(block), output);
+                break;
+            default:
+                output.Write("[unknown source form, raw follows]\n"u8);
+                output.Write(data.Span);
+                break;
+        }
+    }
+
+    /// <summary>Writes a compile unit exactly as stored, unless it is encrypted.</summary>
+    public void WriteRawNetwork(TiaBlock block, int index, PooledByteWriter output) {
+        using var data = _db.ReadBlob(CompileUnits(block)[index], _unitData);
+        if (FormOf(data.Span) != "EncryptedData") {
+            output.Write(data.Span);
+        }
+    }
+
+    /// <summary>The block's interface: sections flattened, each member carrying its section, structs as children.</summary>
+    public IReadOnlyList<TiaMember> ReadInterface(TiaBlock block) {
+        if (!_db.TryGetTarget(block.Frame, _currentInterface, out var root)) {
+            return [];
+        }
+        var context = new InterfaceContext { Parts = PositionalParts(root) };
+        if (_db.TryGetTarget(block.Frame, _comments, out var comments)) {
+            context.Comments = _db.ReadSimpleExpandoTexts(comments);
+        }
+        foreach (var part in context.Parts) {
+            if (_db.TryGetFrame(part, out var frame) && _db.ReadString(frame, _partKind) == "Values") {
+                using var payload = _db.ReadBlob(frame, _partPayload);
+                CollectValues(payload.Span, context.Values);
+            }
+        }
+        var members = ParseRoot(root, context);
+        if (block.Kind.StartsWith("DB", StringComparison.Ordinal)) {
+            ApplyImage(block, members, context);
+        }
+        return Freeze(members);
+    }
+
+    /// <summary>The block's identifier table, for naming operands.</summary>
+    public TiaIdentTable ReadIdents(TiaBlock block) {
+        var table = new TiaIdentTable();
+        foreach (var relation in _db.EnumerateRelations(block.Frame)) {
+            if (!_identContainer.Matches(relation.RelationId) || !_db.TryGetFrame(relation.Target, out var container)) {
+                continue;
+            }
+            foreach (var part in _db.EnumerateRelations(container)) {
+                if (_identParts.Matches(part.RelationId) && _db.TryGetFrame(part.Target, out var frame)) {
+                    using var payload = _db.ReadBlob(frame, _identPayload);
+                    table.Add(payload.Span);
+                }
+            }
+        }
+        table.Complete();
+        return table;
+    }
+
+    /// <summary>All controller tag tables, with their tags and global constants.</summary>
+    public List<TiaTagTable> ReadTagTables() {
+        var type = _db.Schema.FindObjectType("Siemens.Automation.DomainModel.EAMTZTagTableData");
+        var result = new List<TiaTagTable>();
+        if (type is null) {
+            return result;
+        }
+        foreach (ref readonly var frame in _db.Frames) {
+            if (frame.TypeId != type.Id) {
+                continue;
+            }
+            var tags = new List<TiaTag>();
+            foreach (var relation in _db.EnumerateRelations(frame)) {
+                if (_tagContent.Matches(relation.RelationId) && _db.TryGetFrame(relation.Target, out var tag)) {
+                    tags.Add(new TiaTag(
+                        _db.ReadString(tag, _name) ?? "",
+                        _db.ReadString(tag, _tagType),
+                        _db.ReadString(tag, _tagAddress),
+                        _db.ReadString(tag, _tagValue),
+                        _db.ReadCoreText(tag, _comment)));
+                }
+            }
+            result.Add(new TiaTagTable(frame, _db.ReadString(frame, _name) ?? "", tags));
+        }
+        return result;
+    }
+
+    private List<TiaBlock> ReadBlocks() {
+        var code = _db.Schema.FindObjectType("Siemens.Simatic.Lang.Model.Blocks.CodeBlockData")?.Id;
+        var data = _db.Schema.FindObjectType("Siemens.Simatic.Lang.Model.Blocks.DataBlockData")?.Id;
+        var user = _db.Schema.FindObjectType("Siemens.Simatic.Lang.Model.Blocks.UserTypeData")?.Id;
+        var result = new List<TiaBlock>();
+        foreach (ref readonly var frame in _db.Frames) {
+            if (frame.TypeId != code && frame.TypeId != data && frame.TypeId != user) {
+                continue;
+            }
+            var subtype = _db.ReadString(frame, _subtype);
+            var kind = _db.ReadString(frame, _blockType) ?? subtype ?? (frame.TypeId == user ? "UDT" : "?");
+            result.Add(new TiaBlock(
+                frame,
+                _db.ReadString(frame, _name) ?? "",
+                kind == "None" ? subtype ?? kind : kind,
+                _db.ReadInteger(frame, _number),
+                _db.ReadString(frame, _language),
+                _db.ReadBoolean(frame, _protected),
+                _db.ReadCoreText(frame, _comment)));
+        }
+        return result;
+    }
+
+    private List<TiaFrame> CompileUnits(TiaBlock block) {
+        var unitType = _db.Schema.FindObjectType("Siemens.Simatic.Lang.Model.Blocks.CompileUnitData")?.Id;
+        var units = new List<TiaFrame>();
+        foreach (var relation in _db.EnumerateRelations(block.Frame)) {
+            if (_sources.Matches(relation.RelationId) && relation.Target.TypeId == unitType && _db.TryGetFrame(relation.Target, out var unit)) {
+                units.Add(unit);
+            }
+        }
+        units.Sort((a, b) => (_db.ReadInteger(a, _unitRef) ?? 0).CompareTo(_db.ReadInteger(b, _unitRef) ?? 0));
+        return units;
+    }
+
+    private static string FormOf(ReadOnlySpan<byte> data) {
+        var head = data.StartsWith<byte>([0xEF, 0xBB, 0xBF]) ? data[3..] : data;
+        var start = 0;
+        while (start < head.Length && head[start] is (byte)' ' or (byte)'\r' or (byte)'\n' or (byte)'\t') {
+            start++;
+        }
+        head = head[start..];
+        if (head.IsEmpty) {
+            return "";
+        }
+        if (head[..Math.Min(300, head.Length)].IndexOf("<EncryptedData"u8) >= 0) {
+            return "EncryptedData";
+        }
+        return head.StartsWith("<SCLSource"u8) ? "SCLSource" : head.StartsWith("<FlgNet"u8) ? "FlgNet" : "Other";
+    }
+
+    private List<TiaObjectKey> PositionalParts(in TiaFrame root) {
+        var parts = new List<TiaObjectKey>();
+        foreach (var relation in _db.EnumerateRelations(root)) {
+            if (_usedParts.Matches(relation.RelationId)) {
+                parts.Add(relation.Target);
+            }
+        }
+        return parts;
+    }
+
+    private static void CollectValues(ReadOnlySpan<byte> xml, Dictionary<string, string> values) {
+        var reader = new Utf8XmlReader(xml);
+        while (reader.Read()) {
+            if (!reader.IsEnd && reader.Name.SequenceEqual("V"u8) && reader.GetString("p"u8) is { } path) {
+                var value = reader.GetString("Display"u8) ?? reader.GetString("v"u8);
+                if (value is not null) {
+                    values.TryAdd(path, value);
+                }
+            }
+        }
+    }
+
+    private List<MemberNode> ParseRoot(in TiaFrame root, InterfaceContext context) {
+        using var payload = _db.ReadBlob(root, _partPayload);
+        if (payload.IsEmpty) {
+            return [];
+        }
+        CollectValues(payload.Span, context.Values);
+        var reader = new Utf8XmlReader(payload.Span);
+        if (!reader.Read()) {
+            return [];
+        }
+        if (reader.Name.SequenceEqual("Values"u8) && context.Parts.Count != 0 && _db.TryGetFrame(context.Parts[0], out var udt)) {
+            // A data block generated from a UDT holds only its values; the members are the UDT's.
+            context.Parts = PositionalParts(udt);
+            context.HasOptimizedLayout = true;
+            return ParseRoot(udt, context);
+        }
+        var members = ParseChildren(ref reader, "", "", context, out var offsets);
+        ApplyOffsets(members, offsets);
+        return members;
+    }
+
+    private List<MemberNode> ParseChildren(ref Utf8XmlReader reader, string section, string prefix, InterfaceContext context, out List<int?> offsets) {
+        var members = new List<MemberNode>();
+        offsets = [];
+        if (reader.IsEmpty) {
+            return members;
+        }
+        while (reader.Read()) {
+            if (reader.IsEnd) {
+                return members;
+            }
+            if (reader.Name.SequenceEqual("Offsets"u8)) {
+                if (prefix.Length == 0 && section.Length == 0) {
+                    context.RootOptimizedBits = reader.GetInt32("optSize"u8);
+                }
+                ReadOffsets(ref reader, offsets);
+            } else if (reader.Name.SequenceEqual("Member"u8)) {
+                ParseMember(ref reader, section, prefix, context, members);
+            } else {
+                reader.SkipElement();
+            }
+        }
+        return members;
+    }
+
+    private static void ReadOffsets(ref Utf8XmlReader reader, List<int?> offsets) {
+        if (reader.IsEmpty) {
+            return;
+        }
+        while (reader.Read() && !reader.IsEnd) {
+            if (reader.Name.SequenceEqual("o"u8)) {
+                offsets.Add(reader.GetInt32("o"u8));
+            }
+            reader.SkipElement();
+        }
+    }
+
+    private void ParseMember(ref Utf8XmlReader reader, string section, string prefix, InterfaceContext context, List<MemberNode> into) {
+        var name = reader.GetString("Name"u8) ?? "";
+        var id = reader.GetString("ID"u8) ?? "";
+        var rid = reader.GetString("RID"u8);
+        var type = reader.GetString("Type"u8);
+        var subPart = reader.GetInt32("SubPartIndex"u8);
+
+        if (rid is null && name is "Input" or "Output" or "InOut" or "Static" or "Temp" or "Return" or "Constant") {
+            var inner = ParseChildren(ref reader, name, prefix, context, out _);
+            if (inner.Count == 0 && subPart is { } index) {
+                inner = ParsePart(index, name, prefix, context, requireStructure: false);
+            }
+            into.AddRange(inner);
+            return;
+        }
+
+        var path = prefix + id;
+        var kids = ParseChildren(ref reader, section, path + ":", context, out var offsets);
+        ApplyOffsets(kids, offsets);
+        if (kids.Count == 0 && type is null && subPart is { } structure) {
+            kids = ParsePart(structure, section, path + ":", context, requireStructure: true);
+        }
+        into.Add(new MemberNode(name, TypeOf(type, rid, subPart), path, section, context.Comments?.GetValueOrDefault(path), context.Values.GetValueOrDefault(path), rid, kids));
+    }
+
+    private List<MemberNode> ParsePart(int index, string section, string prefix, InterfaceContext context, bool requireStructure) {
+        if (index >= context.Parts.Count || !_db.TryGetFrame(context.Parts[index], out var part)) {
+            return [];
+        }
+        if (requireStructure && _db.ReadString(part, _partKind) != "Structure") {
+            return [];
+        }
+        using var payload = _db.ReadBlob(part, _partPayload);
+        if (payload.IsEmpty) {
+            return [];
+        }
+        var reader = new Utf8XmlReader(payload.Span);
+        if (!reader.Read()) {
+            return [];
+        }
+        var members = ParseChildren(ref reader, section, prefix, context, out var offsets);
+        ApplyOffsets(members, offsets);
+        return members;
+    }
+
+    private static void ApplyOffsets(List<MemberNode> members, List<int?> offsets) {
+        for (var i = 0; i < members.Count && i < offsets.Count; i++) {
+            members[i].OptimizedBitOffset = offsets[i];
+        }
+    }
+
+    /// <summary>
+    /// Fills start values from the compiled image. The XML lists only some of them; the image of an optimized data
+    /// block generated from a UDT holds all: an 8 byte head, then little-endian values at the sum of the bit offsets
+    /// along the path. Only there: an instance data block's offsets count within its sections, a data block with
+    /// standard access has another layout, and a protected block's image is left alone.
+    /// </summary>
+    private void ApplyImage(TiaBlock block, List<MemberNode> members, InterfaceContext context) {
+        if (block.IsKnowHowProtected
+            || !context.HasOptimizedLayout
+            || context.RootOptimizedBits is not { } optimizedBits
+            || !_db.TryGetTarget(block.Frame, _generatedFrom, out var master)
+            || _db.Schema.FindObjectType(master.TypeId)?.FullName != UserTypeName
+            || !_db.TryGetTarget(block.Frame, _loadables, out var load)) {
+            return;
+        }
+        using var image = _db.ReadBlob(load, _image);
+        if (image.Length < 8 + ((optimizedBits + 7) / 8)) {
+            return;
+        }
+        Walk(members, 0, image.Span);
+
+        static void Walk(List<MemberNode> nodes, int baseBits, ReadOnlySpan<byte> bytes) {
+            foreach (var node in nodes) {
+                if (node.OptimizedBitOffset is not { } bits) {
+                    continue;
+                }
+                var at = baseBits + bits;
+                if (node.Children.Count != 0) {
+                    Walk(node.Children, at, bytes);
+                } else if (node.StartValue is null) {
+                    node.StartValue = FormatScalar(node.Rid, bytes, (at / 8) + 8, at % 8);
+                }
+            }
+        }
+    }
+
+    /// <summary>A scalar from the image, or null for a type it does not know. Only a Bool can start inside a byte.</summary>
+    internal static string? FormatScalar(string? rid, ReadOnlySpan<byte> image, int at, int bit) {
+        (int Size, string Form) shape = rid switch {
+            "0x02000001" => (1, "bool"),
+            "0x02000034" => (1, "u"),
+            "0x02000037" => (1, "s"),
+            "0x02000002" => (1, "x"),
+            "0x02000005" => (2, "s"),
+            "0x02000035" => (2, "u"),
+            "0x02000004" => (2, "x"),
+            "0x02000007" => (4, "s"),
+            "0x02000036" => (4, "u"),
+            "0x02000006" => (4, "x"),
+            "0x02000032" => (8, "s"),
+            "0x02000031" => (8, "u"),
+            _ => default,
+        };
+        if (shape.Size == 0 || at + shape.Size > image.Length || (bit != 0 && shape.Form != "bool")) {
+            return null;
+        }
+        Span<byte> wide = stackalloc byte[8];
+        wide.Clear();
+        image.Slice(at, shape.Size).CopyTo(wide);
+        var unsigned = BinaryPrimitives.ReadUInt64LittleEndian(wide);
+        return shape.Form switch {
+            "bool" => (unsigned >> bit & 1) != 0 ? "TRUE" : "FALSE",
+            "u" => unsigned.ToString(CultureInfo.InvariantCulture),
+            "x" => "16#" + unsigned.ToString("X" + (shape.Size * 2), CultureInfo.InvariantCulture),
+            _ => shape.Size switch {
+                1 => ((sbyte)unsigned).ToString(CultureInfo.InvariantCulture),
+                2 => ((short)unsigned).ToString(CultureInfo.InvariantCulture),
+                4 => ((int)unsigned).ToString(CultureInfo.InvariantCulture),
+                _ => ((long)unsigned).ToString(CultureInfo.InvariantCulture),
+            },
+        };
+    }
+
+    private string TypeOf(string? type, string? rid, int? subPart) {
+        if (!string.IsNullOrEmpty(type)) {
+            return type;
+        }
+        if (rid is null) {
+            return "";
+        }
+        var code = unchecked((int)uint.Parse(rid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
+        if (_typeCodes.Value.TryGetValue(code, out var name)) {
+            return name;
+        }
+        if (code == 0x02000000) {
+            return "Void";
+        }
+        return code >> 24 != 2 && subPart is not null ? "Struct" : "RID " + rid;
+    }
+
+    /// <summary>The file states its own type codes: <c>T="Bool:33554433:Bool"</c> in every identifier part.</summary>
+    private Dictionary<int, string> HarvestTypeCodes() {
+        var codes = new Dictionary<int, string>();
+        var type = _db.Schema.FindObjectType("Siemens.Simatic.Lang.Model.Idents.IdentPartData")?.Id;
+        foreach (ref readonly var frame in _db.Frames) {
+            if (frame.TypeId != type) {
+                continue;
+            }
+            using var payload = _db.ReadBlob(frame, _identPayload);
+            var rest = payload.Span;
+            while (true) {
+                var hit = rest.IndexOf(" T=\""u8);
+                if (hit < 0) {
+                    break;
+                }
+                rest = rest[(hit + 4)..];
+                var firstColon = rest.IndexOf((byte)':');
+                if (firstColon <= 0) {
+                    continue;
+                }
+                var name = rest[..firstColon];
+                var afterName = rest[(firstColon + 1)..];
+                var secondColon = afterName.IndexOf((byte)':');
+                if (secondColon <= 0 || !System.Buffers.Text.Utf8Parser.TryParse(afterName[..secondColon], out int code, out var used) || used != secondColon || code < 0) {
+                    continue;
+                }
+                if (name.IndexOf((byte)'"') < 0) {
+                    codes[code] = Encoding.UTF8.GetString(name);
+                }
+            }
+        }
+        return codes;
+    }
+
+    private static List<TiaMember> Freeze(List<MemberNode> nodes) {
+        var result = new List<TiaMember>(nodes.Count);
+        foreach (var n in nodes) {
+            result.Add(new TiaMember(n.Name, n.Type, n.Path, n.Section, n.Comment, n.StartValue, n.Children.Count == 0 ? [] : Freeze(n.Children)));
+        }
+        return result;
+    }
+
+    private sealed class InterfaceContext {
+        public List<TiaObjectKey> Parts { get; set; } = [];
+        public Dictionary<string, string>? Comments { get; set; }
+        public Dictionary<string, string> Values { get; } = [];
+        public bool HasOptimizedLayout { get; set; }
+        public int? RootOptimizedBits { get; set; }
+    }
+
+    private sealed class MemberNode(string name, string type, string path, string section, string? comment, string? startValue, string? rid, List<MemberNode> children) {
+        public string Name { get; } = name;
+        public string Type { get; } = type;
+        public string Path { get; } = path;
+        public string Section { get; } = section;
+        public string? Comment { get; } = comment;
+        public string? StartValue { get; set; } = startValue;
+        public string? Rid { get; } = rid;
+        public List<MemberNode> Children { get; } = children;
+        public int? OptimizedBitOffset { get; set; }
+    }
+}

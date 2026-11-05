@@ -1,0 +1,7 @@
+<Project>
+    <ItemGroup>
+        <PackageVersion Include="ConsoleAppFramework" Version="5.7.13" />
+        <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
+        <PackageVersion Include="TUnit" Version="1.65.68" />
+    </ItemGroup>
+</Project>

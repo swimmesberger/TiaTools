@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TiaFormat/TiaFormat.csproj" />
+    <Project Path="src/TiaDump/TiaDump.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TiaFormat.Tests/TiaFormat.Tests.csproj" />
+  </Folder>
+</Solution>
