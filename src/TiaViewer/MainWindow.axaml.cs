@@ -4,6 +4,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -16,11 +19,23 @@ namespace TiaViewer;
 public sealed partial class MainWindow : Window {
     private const int ResultLimit = 2000;
 
+    /// <summary>What the follow gesture is called here.</summary>
+    private static readonly string Command = OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl";
+    private static readonly string Option = OperatingSystem.IsMacOS() ? "Option" : "Alt";
+
+    private static readonly IBrush LightSelection = Brush.Parse("#332563EB");
+    private static readonly IBrush DarkSelection = Brush.Parse("#554C86F5");
+    private static readonly IBrush LightCurrentLine = Brush.Parse("#0A000000");
+    private static readonly IBrush DarkCurrentLine = Brush.Parse("#0FFFFFFF");
+    private static readonly IBrush LightLineNumbers = Brush.Parse("#9CA3AF");
+    private static readonly IBrush DarkLineNumbers = Brush.Parse("#6B7280");
+
     private readonly TokenColorizer _colorizer = new();
     private readonly Stack<TiaLocation> _back = new();
     private readonly Stack<TiaLocation> _forward = new();
     private readonly Dictionary<TiaItem, TreeRow> _rows = [];
     private readonly ObservableCollection<TreeRow> _roots = [];
+    private readonly Dictionary<TiaItem, string> _paths = [];
     private TiaProject? _project;
     private TiaItem? _current;
     private bool _selectingFromCode;
@@ -29,10 +44,32 @@ public sealed partial class MainWindow : Window {
     public MainWindow() {
         InitializeComponent();
         Tree.ItemsSource = _roots;
+        using (var icon = AssetLoader.Open(new Uri("avares://TiaViewer/Assets/icon.png"))) {
+            WelcomeIcon.Source = new Bitmap(icon);
+        }
+        using (var icon = AssetLoader.Open(new Uri("avares://TiaViewer/Assets/icon.png"))) {
+            Icon = new WindowIcon(icon);
+        }
+        ToolTip.SetTip(BackButton, $"Back ({Option}+Left)");
+        ToolTip.SetTip(ForwardButton, $"Forward ({Option}+Right)");
+        ToolTip.SetTip(OpenButton, $"Open an archive or project ({Command}+O)");
+        ToolTip.SetTip(SearchBox, $"Search all source ({Command}+Shift+F)");
+        Hint.Text = "Read-only";
+        Editor.Options.HighlightCurrentLine = true;
+        Editor.TextArea.SelectionCornerRadius = 2;
+        Editor.TextArea.SelectionBorder = null;
+        Editor.TextArea.SelectionForeground = null;
+        Editor.TextArea.TextView.CurrentLineBorder = new Pen(Brushes.Transparent, 0);
+        // Room around the line numbers, which otherwise touch the edge and the text.
+        Editor.TextArea.LeftMargins.Insert(0, new Border { Width = 6 });
+        Editor.TextArea.LeftMargins.Add(new Border { Width = 8 });
+        Editor.TextArea.Caret.PositionChanged += (_, _) => ShowCaret();
+        Editor.IsVisible = false;
         Editor.TextArea.TextView.LineTransformers.Add(_colorizer);
         SearchPanel.Install(Editor);
 
         OpenButton.Click += async (_, _) => await PickAndOpenAsync();
+        WelcomeOpen.Click += async (_, _) => await PickAndOpenAsync();
         BackButton.Click += (_, _) => GoBack();
         ForwardButton.Click += (_, _) => GoForward();
         Tree.SelectionChanged += OnTreeSelection;
@@ -70,7 +107,8 @@ public sealed partial class MainWindow : Window {
     }
 
     public async Task OpenAsync(string path) {
-        Status.Text = "Opening…";
+        Status.Text = "Opening " + Path.GetFileName(path) + "…";
+        Busy.IsVisible = true;
         try {
             var project = await Task.Run(() => {
                 var opened = TiaProject.Open(path);
@@ -82,19 +120,30 @@ public sealed partial class MainWindow : Window {
             _back.Clear();
             _forward.Clear();
             Title = $"{project.Root.Name} - TIA Viewer";
+            _paths.Clear();
+            RememberPaths(project.Root, "");
             TreeFilter.Text = "";
             FillTree();
-            Heading.Text = "";
-            Welcome.IsVisible = true;
-            Welcome.Text = "Choose a block on the left.\nCtrl or Cmd + click a name in the source to follow it.";
+            HeadingBar.IsVisible = false;
+            Editor.IsVisible = false;
             Editor.Document = new TextDocument();
+            ShowWelcome(project.Root.Name, $"Choose a block on the left.\n{Command} + click a name in the source to follow it.", canOpen: false);
             var closed = project.Items.Count(item => item.IsClosed);
-            Status.Text = string.Create(CultureInfo.InvariantCulture, $"{project.Items.Count} items, {closed} closed");
+            Status.Text = string.Create(CultureInfo.InvariantCulture, $"{Path.GetFileName(path)}  ·  {project.Items.Count} items, {closed} closed");
+            Hint.Text = $"Read-only  ·  {Command} + click a name to follow it";
+            CaretPlace.Text = "";
             ShowPlaces(null);
             ResultsList.ItemsSource = null;
+            ResultsChip.IsVisible = false;
             UpdateNavigation();
         } catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or TiaFormat.TiaFormatException) {
             Status.Text = "Could not open it: " + e.Message;
+            // With nothing else open, this is what there is to see.
+            if (_project is null) {
+                ShowWelcome("Could not open it", e.Message, canOpen: true);
+            }
+        } finally {
+            Busy.IsVisible = false;
         }
     }
 
@@ -139,17 +188,23 @@ public sealed partial class MainWindow : Window {
             }
         }
         Welcome.IsVisible = false;
-        Heading.Text = HeadingOf(item);
+        Editor.IsVisible = true;
+        ShowHeading(item);
         var clamped = Math.Clamp(line, 0, document.LineCount - 1);
-        Editor.ScrollToLine(clamped + 1);
+        Editor.CaretOffset = document.LineStart(clamped);
         // Line 0 means the block as such, not a place in it.
         if (clamped == 0) {
             Editor.Select(0, 0);
             Editor.ScrollToHome();
         } else {
             Editor.Select(document.LineStart(clamped), document.LineText(clamped).Length);
+            // Once the new text is laid out: only then does the view know its height, and can put the line in the middle.
+            Dispatcher.UIThread.Post(() => {
+                if (_current == item) {
+                    Editor.ScrollToLine(clamped + 1);
+                }
+            }, DispatcherPriority.Loaded);
         }
-        Editor.CaretOffset = document.LineStart(clamped);
         Reveal(item);
         UpdateNavigation();
     }
@@ -160,19 +215,48 @@ public sealed partial class MainWindow : Window {
         var uses = item is null || project is null ? [] : project.ReferencesFrom(item);
         UsedByList.ItemsSource = usedBy.OrderBy(reference => reference.Kind).ThenBy(reference => reference.From.Name, StringComparer.OrdinalIgnoreCase).Select(PlaceRow.UsedBy).ToList();
         UsesList.ItemsSource = uses.OrderBy(reference => reference.Kind).ThenBy(reference => reference.To.Name, StringComparer.OrdinalIgnoreCase).Select(PlaceRow.Uses).ToList();
-        // A header treats an underscore as an access key, and block names are full of them.
-        var name = item is null ? "" : item.Name.Replace("_", "__", StringComparison.Ordinal) + " ";
-        UsedByTab.Header = string.Create(CultureInfo.InvariantCulture, $"{name}is used by ({usedBy.Count})");
-        UsesTab.Header = string.Create(CultureInfo.InvariantCulture, $"{name}uses ({uses.Count})");
+        // These lists stay while walking through them, so they say whose they are.
+        UsedByHeader.Text = item is null ? "Used by" : item.Name + " is used by";
+        UsesHeader.Text = item is null ? "Uses" : item.Name + " uses";
+        UsedByCount.Text = usedBy.Count.ToString(CultureInfo.InvariantCulture);
+        UsesCount.Text = uses.Count.ToString(CultureInfo.InvariantCulture);
         var closed = item is null || project is null ? 0 : project.ClosedBlocksAround(item);
         ClosedNote.Text = closed == 0 ? "" : string.Create(CultureInfo.InvariantCulture, $"{closed} blocks on this PLC are closed. What they call or use is not known, so this list may be incomplete.");
         ClosedNote.IsVisible = closed != 0;
     }
 
-    private static string HeadingOf(TiaItem item) {
-        var number = item.Number is { } value ? " " + value.ToString(CultureInfo.InvariantCulture) : "";
-        var language = item.Language is null ? "" : "  ·  " + item.Language;
-        return $"{item.Kind}{number}  {item.Name}{language}{(item.IsClosed ? "  ·  closed" : "")}";
+    private void ShowHeading(TiaItem item) {
+        HeadingBar.IsVisible = true;
+        HeadingBadge.Kind = item.Kind;
+        var number = item.Number is { } value ? "  " + value.ToString(CultureInfo.InvariantCulture) : "";
+        Heading.Text = item.Name + number;
+        LanguageText.Text = item.Language;
+        LanguageChip.IsVisible = item.Language is not null;
+        ClosedChip.IsVisible = item.IsClosed;
+        Breadcrumb.Text = _paths.GetValueOrDefault(item, "");
+    }
+
+    private void ShowWelcome(string title, string text, bool canOpen) {
+        Welcome.IsVisible = true;
+        WelcomeTitle.Text = title;
+        WelcomeText.Text = text;
+        WelcomeOpen.IsVisible = canOpen;
+        WelcomeHint.IsVisible = canOpen;
+    }
+
+    private void ShowCaret() {
+        var caret = Editor.TextArea.Caret;
+        CaretPlace.Text = string.Create(CultureInfo.InvariantCulture, $"Line {caret.Line}, column {caret.Column}");
+    }
+
+    private void RememberPaths(TiaTreeNode node, string path) {
+        foreach (var child in node.Children) {
+            if (child.Item is { } item) {
+                _paths[item] = path;
+            } else {
+                RememberPaths(child, path.Length == 0 ? child.Name : path + "  ›  " + child.Name);
+            }
+        }
     }
 
     private int CurrentLine() => Math.Max(0, Editor.TextArea.Caret.Line - 1);
@@ -205,7 +289,7 @@ public sealed partial class MainWindow : Window {
         var filter = TreeFilter.Text?.Trim() ?? "";
         foreach (var child in project.Root.Children) {
             if (Row(child, null, filter) is { } row) {
-                row.IsExpanded = filter.Length != 0 || child.Name != "Libraries and system";
+                row.IsExpanded = filter.Length != 0 || child.Name != TreeRow.LibrariesName;
                 _roots.Add(row);
             }
         }
@@ -268,9 +352,10 @@ public sealed partial class MainWindow : Window {
         }
         var results = await Task.Run(() => project.Search(text, ResultLimit));
         ResultsList.ItemsSource = results.Select(PlaceRow.Found).ToList();
-        ResultsTab.Header = results.Count >= ResultLimit
-            ? string.Create(CultureInfo.InvariantCulture, $"Search results (first {ResultLimit})")
-            : string.Create(CultureInfo.InvariantCulture, $"Search results ({results.Count})");
+        ResultsCount.Text = results.Count >= ResultLimit
+            ? string.Create(CultureInfo.InvariantCulture, $"first {ResultLimit}")
+            : results.Count.ToString(CultureInfo.InvariantCulture);
+        ResultsChip.IsVisible = true;
         Panels.SelectedItem = ResultsTab;
     }
 
@@ -284,6 +369,9 @@ public sealed partial class MainWindow : Window {
         } else if (TokenColorizer.IsFollowGesture(e.KeyModifiers) && e.KeyModifiers.HasFlag(KeyModifiers.Shift) && e.Key == Key.F) {
             SearchBox.Focus();
             SearchBox.SelectAll();
+            e.Handled = true;
+        } else if (TokenColorizer.IsFollowGesture(e.KeyModifiers) && !e.KeyModifiers.HasFlag(KeyModifiers.Shift) && e.Key == Key.O) {
+            _ = PickAndOpenAsync();
             e.Handled = true;
         }
     }
@@ -333,7 +421,12 @@ public sealed partial class MainWindow : Window {
     }
 
     private void ApplyTheme() {
-        _colorizer.IsDark = ActualThemeVariant == ThemeVariant.Dark;
+        var isDark = ActualThemeVariant == ThemeVariant.Dark;
+        _colorizer.IsDark = isDark;
+        // The selection has to leave the colours of the text readable: it is how a followed line is marked.
+        Editor.TextArea.SelectionBrush = isDark ? DarkSelection : LightSelection;
+        Editor.TextArea.TextView.CurrentLineBackground = isDark ? DarkCurrentLine : LightCurrentLine;
+        Editor.LineNumbersForeground = isDark ? DarkLineNumbers : LightLineNumbers;
         Editor.TextArea.TextView.Redraw();
     }
 }

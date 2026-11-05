@@ -1,9 +1,133 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TiaViewer.App"
+             Name="TIA Viewer"
              RequestedThemeVariant="Default">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="Viewer.Source" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="Viewer.Panel" Color="#F6F7F9" />
+                    <SolidColorBrush x:Key="Viewer.Line" Color="#E2E4E8" />
+                    <SolidColorBrush x:Key="Viewer.Hover" Color="#E9EBEF" />
+                    <SolidColorBrush x:Key="Viewer.Muted" Color="#6B7280" />
+                    <SolidColorBrush x:Key="Viewer.Icon" Color="#3F4650" />
+                    <SolidColorBrush x:Key="Viewer.Chip" Color="#E9EBEF" />
+                    <SolidColorBrush x:Key="Viewer.Call" Color="#1D4ED8" />
+                    <SolidColorBrush x:Key="Viewer.Selected" Color="#D9E5FE" />
+                    <SolidColorBrush x:Key="Viewer.SelectedHover" Color="#CBDBFD" />
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#D5D8DE" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#B4B9C2" />
+                    <SolidColorBrush x:Key="TextControlBackground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="Viewer.Source" Color="#1E1F22" />
+                    <SolidColorBrush x:Key="Viewer.Panel" Color="#26282C" />
+                    <SolidColorBrush x:Key="Viewer.Line" Color="#3A3D42" />
+                    <SolidColorBrush x:Key="Viewer.Hover" Color="#35383D" />
+                    <SolidColorBrush x:Key="Viewer.Muted" Color="#9AA0A8" />
+                    <SolidColorBrush x:Key="Viewer.Icon" Color="#C8CCD2" />
+                    <SolidColorBrush x:Key="Viewer.Chip" Color="#3A3D42" />
+                    <SolidColorBrush x:Key="Viewer.Call" Color="#7DA7FF" />
+                    <SolidColorBrush x:Key="Viewer.Selected" Color="#2C3F66" />
+                    <SolidColorBrush x:Key="Viewer.SelectedHover" Color="#354B78" />
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#44474D" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#5A5E65" />
+                    <SolidColorBrush x:Key="TextControlBackground" Color="#1E1F22" />
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1E1F22" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
-        <FluentTheme DensityStyle="Compact" />
+        <FluentTheme DensityStyle="Compact">
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Light" Accent="#2563EB" />
+                <ColorPaletteResources x:Key="Dark" Accent="#4C86F5" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+
+        <Style Selector="Path.icon">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="StrokeThickness" Value="1.4" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="Stroke" Value="{DynamicResource Viewer.Icon}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Path.small">
+            <Setter Property="Width" Value="13" />
+            <Setter Property="Height" Value="13" />
+            <Setter Property="Stretch" Value="Uniform" />
+            <Setter Property="Stroke" Value="{DynamicResource Viewer.Muted}" />
+        </Style>
+        <Style Selector="Button:disabled Path.icon">
+            <Setter Property="Opacity" Value="0.35" />
+        </Style>
+
+        <Style Selector="TextBlock.muted">
+            <Setter Property="Foreground" Value="{DynamicResource Viewer.Muted}" />
+        </Style>
+
+        <Style Selector="Button.tool">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="6,4" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+        <Style Selector="Button.tool:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Viewer.Hover}" />
+        </Style>
+        <Style Selector="Button.tool:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Viewer.Line}" />
+        </Style>
+        <Style Selector="Button.tool:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <Style Selector="Border.chip">
+            <Setter Property="Background" Value="{DynamicResource Viewer.Chip}" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Padding" Value="5,1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.chip TextBlock">
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+
+        <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+            <Setter Property="Background" Value="{DynamicResource Viewer.Selected}" />
+        </Style>
+        <Style Selector="TreeViewItem:selected:focus /template/ Border#PART_LayoutRoot">
+            <Setter Property="Background" Value="{DynamicResource Viewer.Selected}" />
+        </Style>
+        <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot:pointerover">
+            <Setter Property="Background" Value="{DynamicResource Viewer.SelectedHover}" />
+        </Style>
+        <Style Selector="ListBox.places ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Viewer.Selected}" />
+        </Style>
+        <Style Selector="ListBox.places ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Viewer.SelectedHover}" />
+        </Style>
+
+        <Style Selector="ListBox.places">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBox.places ListBoxItem">
+            <Setter Property="Padding" Value="10,2" />
+            <Setter Property="MinHeight" Value="24" />
+        </Style>
+        <Style Selector="TextBlock.verb">
+            <Setter Property="Foreground" Value="{DynamicResource Viewer.Muted}" />
+        </Style>
+        <Style Selector="TextBlock.verb.call">
+            <Setter Property="Foreground" Value="{DynamicResource Viewer.Call}" />
+        </Style>
     </Application.Styles>
 </Application>

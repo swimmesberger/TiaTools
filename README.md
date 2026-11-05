@@ -59,7 +59,7 @@ dotnet run --project src/TiaViewer -c Release -- Project.zap20
 - **Follow a name:** Ctrl or Cmd + click it in the source. Back and forward are on Alt+Left and Alt+Right.
 - **Who uses this:** the tabs below the source. Walking through a list keeps the list.
 - **Search:** the box at the top for all source, Ctrl or Cmd + F within a block, the box on the left for block names.
-- **Open:** the button, drag and drop, or an argument.
+- **Open:** the button, Ctrl or Cmd + O, drag and drop, or an argument.
 
 References come from source, so a closed block's calls are not among them. The viewer says how many blocks that affects, and a short list may be incomplete. It sees direct calls, calls through instance data blocks and multi-instances, and other uses by name; it does not yet tell a read from a write. Protected source stays closed.
 
@@ -143,7 +143,7 @@ If the dump reports SCL tags without a rule, the reader met a token it does not 
 |---|---|
 | `src/TiaFormat` | The library, base class library only: `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL and FBD text, tag tables, and `TiaProject`: tree, tokens, references, search) |
 | `src/TiaDump` | The command line tool |
-| `src/TiaViewer` | The viewer, in Avalonia |
+| `src/TiaViewer` | The viewer, in Avalonia. `Glyphs.cs` holds its icons; `Assets/make_icons.py` draws the app icon, and the files it writes are committed |
 | `tests/TiaFormat.Tests` | Unit tests |
 | `tools/TiaOpennessExport` | Exports a project through TIA Portal for comparing. Not in the solution, because it needs TIA |
 | [docs/FORMAT.md](docs/FORMAT.md) | The format, enough to write a reader in any language. Each claim says how far real archives confirm it |

@@ -8,6 +8,8 @@
     <string>TIA Viewer</string>
     <key>CFBundleIdentifier</key>
     <string>com.swimmesberger.tiaviewer</string>
+    <key>CFBundleIconFile</key>
+    <string>icon</string>
     <key>CFBundleExecutable</key>
     <string>TiaViewer</string>
     <key>CFBundlePackageType</key>

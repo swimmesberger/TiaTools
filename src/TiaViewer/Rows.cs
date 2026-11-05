@@ -1,12 +1,21 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using Avalonia.Media;
 using TiaFormat.Program;
 
 namespace TiaViewer;
 
 /// <summary>One line of the tree.</summary>
 public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyPropertyChanged {
+    /// <summary>The tree's last root, which is no PLC.</summary>
+    public const string LibrariesName = "Libraries and system";
+
+    private static readonly IBrush FolderFill = Brush.Parse("#E9B44C");
+    private static readonly IBrush FolderLine = Brush.Parse("#C8922A");
+    private static readonly IBrush PlcLine = Brush.Parse("#3B7BF0");
+    private static readonly IBrush LibraryLine = Brush.Parse("#6B7280");
+
     private bool _isExpanded;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -19,7 +28,25 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public string Kind => Node.Item?.Kind ?? "";
 
+    public bool IsItem => Node.Item is not null;
+
+    public bool IsHolder => Node.Item is null;
+
     public bool IsClosed => Node.Item?.IsClosed ?? false;
+
+    /// <summary>A closed block is there, but there is less to see in it.</summary>
+    public double NameOpacity => IsClosed ? 0.6 : 1;
+
+    public string Number => Node.Item?.Number is { } number ? number.ToString(CultureInfo.InvariantCulture) : "";
+
+    /// <summary>How many blocks and tag tables are below, with what the filter leaves.</summary>
+    public string Count => IsHolder ? ItemsBelow().ToString(CultureInfo.InvariantCulture) : "";
+
+    public Geometry Glyph => Parent is not null ? Glyphs.Folder : Name == LibrariesName ? Glyphs.Library : Glyphs.Plc;
+
+    public IBrush? GlyphFill => Parent is not null ? FolderFill : null;
+
+    public IBrush GlyphLine => Parent is not null ? FolderLine : Name == LibrariesName ? LibraryLine : PlcLine;
 
     public ObservableCollection<TreeRow> Children { get; } = [];
 
@@ -32,28 +59,41 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
             }
         }
     }
+
+    private int ItemsBelow() => Children.Sum(child => child.IsItem ? 1 : child.ItemsBelow());
 }
 
 /// <summary>One line of a list that leads to a place in the source.</summary>
-public sealed class PlaceRow(TiaItem item, int line, string place, string text) {
+public sealed class PlaceRow(TiaItem item, int line, TiaItem named, TiaReferenceKind? kind, string text) {
+    /// <summary>The block the line is in.</summary>
     public TiaItem Item { get; } = item;
 
     public int Line { get; } = line;
 
-    public string Place { get; } = place;
+    public string Kind { get; } = named.Kind;
+
+    /// <summary>The block the row is about: the one who uses, or the one used.</summary>
+    public string Name { get; } = named.Name;
+
+    public string At { get; } = (line + 1).ToString(CultureInfo.InvariantCulture);
+
+    public string Verb { get; } = kind switch {
+        TiaReferenceKind.Call => "call",
+        TiaReferenceKind.Use => "use",
+        _ => "",
+    };
+
+    public bool HasVerb => Verb.Length != 0;
+
+    public bool IsCall => Verb == "call";
 
     public string Text { get; } = text;
 
     /// <summary>A line elsewhere that refers to the block on show.</summary>
-    public static PlaceRow UsedBy(TiaReference reference) => new(reference.From, reference.Line, Describe(reference.Kind, reference.From, reference.Line), reference.Text);
+    public static PlaceRow UsedBy(TiaReference reference) => new(reference.From, reference.Line, reference.From, reference.Kind, reference.Text);
 
     /// <summary>A line of the block on show that refers to another: it names the other, and leads to the line.</summary>
-    public static PlaceRow Uses(TiaReference reference) => new(reference.From, reference.Line, Describe(reference.Kind, reference.To, reference.Line), reference.Text);
+    public static PlaceRow Uses(TiaReference reference) => new(reference.From, reference.Line, reference.To, reference.Kind, reference.Text);
 
-    public static PlaceRow Found(TiaSearchResult result) => new(result.Item, result.Line, $"{result.Item.Kind} {result.Item.Name}:{(result.Line + 1).ToString(CultureInfo.InvariantCulture)}", result.Text);
-
-    private static string Describe(TiaReferenceKind kind, TiaItem item, int line) {
-        var verb = kind == TiaReferenceKind.Call ? "call" : "use";
-        return $"{verb}  {item.Kind} {item.Name}:{(line + 1).ToString(CultureInfo.InvariantCulture)}";
-    }
+    public static PlaceRow Found(TiaSearchResult result) => new(result.Item, result.Line, result.Item, null, result.Text);
 }

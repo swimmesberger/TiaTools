@@ -7,6 +7,8 @@
         <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
         <InvariantGlobalization>true</InvariantGlobalization>
         <PublishAot>true</PublishAot>
+        <Product>TIA Viewer</Product>
+        <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,6 +16,10 @@
         <PackageReference Include="Avalonia.Desktop" />
         <PackageReference Include="Avalonia.Themes.Fluent" />
         <PackageReference Include="Avalonia.AvaloniaEdit" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\icon.png" />
     </ItemGroup>
 
     <ItemGroup>
