@@ -79,6 +79,8 @@ On a Mac, this builds `artifacts/TIA Viewer.app`, signed ad hoc, and registers i
 src/TiaViewer/macos/bundle.sh
 ```
 
+It needs Xcode's command line tools. Homebrew's .NET is built from source, and its Native AOT link asks for OpenSSL and Brotli, which macOS has none of to link against. The script then takes them from Homebrew (`brew install openssl@3 brotli`), and says so. Such an app only runs where Homebrew has them installed, so build one to hand to others with Microsoft's .NET SDK, which links neither.
+
 **How far it is tested.** On Windows, on sample A, through Native AOT: opening takes under a second, and following a call, the lists, search and a 20,000 line data block all work. **The macOS parts have not been run:** the bundle, the double-click and the Cmd key. Windows has no file association yet, so use *Open with*. To hand the app to others it needs signing, and notarization on a Mac.
 
 ## Using it to answer a question

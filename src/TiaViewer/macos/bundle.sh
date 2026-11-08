@@ -10,6 +10,29 @@ case "$(uname -m)" in
     *) runtime=osx-x64 ;;
 esac
 
+# A .NET built from source, such as Homebrew's, marks its Native AOT pack non-portable. The link then asks for the system's
+# OpenSSL and Brotli, which macOS does not have to link against: take Homebrew's. The app then loads them from Homebrew when
+# it runs, so it only runs where they are installed. Microsoft's own SDK links neither, and is what to build with to share it.
+sdk="$(dotnet --info | sed -n 's/^ *Base Path: *//p' | head -n 1)"
+root="${sdk%/sdk/*}"
+for marker in "$root"/packs/Microsoft.NETCore.App.Runtime.NativeAOT."$runtime"/*/runtimes/"$runtime"/native/nonportable.txt; do
+    [ -e "$marker" ] || continue
+    if ! command -v brew >/dev/null 2>&1; then
+        echo "This .NET ($root) needs OpenSSL and Brotli to link, and there is no Homebrew to take them from. Use Microsoft's .NET SDK." >&2
+        exit 1
+    fi
+    openssl="$(brew --prefix openssl@3)/lib"
+    brotli="$(brew --prefix brotli)/lib"
+    if [ ! -d "$openssl" ] || [ ! -d "$brotli" ]; then
+        echo "This .NET ($root) needs OpenSSL and Brotli to link: brew install openssl@3 brotli" >&2
+        exit 1
+    fi
+    echo "Linking against Homebrew's OpenSSL and Brotli, which this .NET asks for: the app runs only where they are installed."
+    LIBRARY_PATH="$openssl:$brotli${LIBRARY_PATH:+:$LIBRARY_PATH}"
+    export LIBRARY_PATH
+    break
+done
+
 publish="$output/publish-$runtime"
 dotnet publish src/TiaViewer -c Release -r "$runtime" -o "$publish"
 
