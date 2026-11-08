@@ -3,6 +3,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -13,6 +14,7 @@ using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Search;
 using TiaFormat.Program;
+using TiaFormat.Storage;
 
 namespace TiaViewer;
 
@@ -40,6 +42,7 @@ public sealed partial class MainWindow : Window {
     private TiaItem? _current;
     private bool _selectingFromCode;
     private string? _pending;
+    private string? _exported;
 
     public MainWindow() {
         InitializeComponent();
@@ -70,6 +73,23 @@ public sealed partial class MainWindow : Window {
 
         OpenButton.Click += async (_, _) => await PickAndOpenAsync();
         WelcomeOpen.Click += async (_, _) => await PickAndOpenAsync();
+        ExportAllButton.Click += async (_, _) => await PickAndExportAsync(null);
+        ExportBlockButton.Click += async (_, _) => {
+            if (_current is { } item) {
+                await PickAndExportAsync(new TiaTreeNode(item.Name, item));
+            }
+        };
+        CopyButton.Click += async (_, _) => {
+            if (_current is { } item) {
+                await CopySourceAsync(item);
+            }
+        };
+        ShowFolderButton.Click += async (_, _) => {
+            if (_exported is { } folder) {
+                await Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(folder));
+            }
+        };
+        ToolTip.SetTip(ExportAllButton, "Write every block and tag table as readable files, in their folders");
         BackButton.Click += (_, _) => GoBack();
         ForwardButton.Click += (_, _) => GoForward();
         Tree.SelectionChanged += OnTreeSelection;
@@ -131,6 +151,9 @@ public sealed partial class MainWindow : Window {
             var closed = project.Items.Count(item => item.IsClosed);
             Status.Text = string.Create(CultureInfo.InvariantCulture, $"{Path.GetFileName(path)}  ·  {project.Items.Count} items, {closed} closed");
             Hint.Text = $"Read-only  ·  {Command} + click a name to follow it";
+            ExportAllButton.IsEnabled = true;
+            ShowFolderButton.IsVisible = false;
+            ToolTip.SetTip(Status, null);
             CaretPlace.Text = "";
             ShowPlaces(null);
             ResultsList.ItemsSource = null;
@@ -401,6 +424,103 @@ public sealed partial class MainWindow : Window {
     private int? OffsetUnder(PointerEventArgs e) {
         var position = Editor.GetPositionFromPoint(e.GetPosition(Editor));
         return position is { } found ? Editor.Document.GetOffset(found.Location) : null;
+    }
+
+    /// <summary>Puts a block's text, as shown, on the clipboard.</summary>
+    public async Task CopySourceAsync(TiaItem item) {
+        if (_project is not { } project || Clipboard is not { } clipboard) {
+            return;
+        }
+        await clipboard.SetTextAsync(project.Document(item).Text);
+        Status.Text = "Copied the source of " + item.Name;
+        ShowFolderButton.IsVisible = false;
+    }
+
+    private async Task PickAndExportAsync(TiaTreeNode? node) {
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions {
+            Title = "Choose a folder to export into",
+            AllowMultiple = false,
+        });
+        if (folders is [var folder, ..] && folder.TryGetLocalPath() is { } parent) {
+            await ExportToAsync(node, parent);
+        }
+    }
+
+    /// <summary>
+    /// Writes a node with everything below it, or with null the whole program, as the command line's dump does.
+    /// It goes into a new folder inside the one given, so nothing already there is overwritten. Returns that folder, or null if it failed.
+    /// </summary>
+    public async Task<string?> ExportToAsync(TiaTreeNode? node, string parent) {
+        if (_project is not { } project) {
+            return null;
+        }
+        var target = NewFolder(Path.GetFullPath(parent), TiaSourceExport.Safe(node is null ? project.Root.Name : $"{project.Root.Name} - {node.Name}"));
+        HashSet<TiaObjectKey>? chosen = null;
+        if (node is not null) {
+            chosen = [];
+            Collect(node, chosen);
+        }
+        Busy.IsVisible = true;
+        Status.Text = "Exporting…";
+        ShowFolderButton.IsVisible = false;
+        try {
+            var result = await Task.Run(() => new TiaSourceExport(project.Program, target) {
+                Blocks = chosen is null ? null : block => chosen.Contains(block.Frame.Key),
+                TagTables = chosen is null ? null : table => chosen.Contains(table.Frame.Key),
+            }.Run());
+            // The status bar has room for the gist; the tip has the rest.
+            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles} files to \"{Path.GetFileName(target)}\"");
+            if (result.Failures.Count != 0) {
+                text += string.Create(CultureInfo.InvariantCulture, $", {result.Failures.Count} blocks failed");
+            }
+            var details = new List<string> { target };
+            if (result.Empty != 0) {
+                details.Add(string.Create(CultureInfo.InvariantCulture, $"{result.Empty} closed blocks have nothing stored, so index.tsv only lists them."));
+            }
+            details.AddRange(result.Failures);
+            Status.Text = text;
+            ToolTip.SetTip(Status, string.Join('\n', details));
+            _exported = target;
+            ShowFolderButton.IsVisible = true;
+            return target;
+        } catch (Exception e) when (e is IOException or UnauthorizedAccessException) {
+            Status.Text = "Could not export: " + e.Message;
+            return null;
+        } finally {
+            Busy.IsVisible = false;
+        }
+    }
+
+    private static void Collect(TiaTreeNode node, HashSet<TiaObjectKey> chosen) {
+        if (node.Item?.Block is { } block) {
+            chosen.Add(block.Frame.Key);
+        }
+        if (node.Item?.Table is { } table) {
+            chosen.Add(table.Frame.Key);
+        }
+        foreach (var child in node.Children) {
+            Collect(child, chosen);
+        }
+    }
+
+    private static string NewFolder(string parent, string name) {
+        var path = Path.Combine(parent, name);
+        for (var number = 2; Directory.Exists(path) || File.Exists(path); number++) {
+            path = Path.Combine(parent, string.Create(CultureInfo.InvariantCulture, $"{name} {number}"));
+        }
+        return path;
+    }
+
+    private void OnExportRow(object? sender, RoutedEventArgs e) {
+        if (sender is MenuItem { DataContext: TreeRow row }) {
+            _ = PickAndExportAsync(row.Node);
+        }
+    }
+
+    private void OnCopyRow(object? sender, RoutedEventArgs e) {
+        if (sender is MenuItem { DataContext: TreeRow { Node.Item: { } item } }) {
+            _ = CopySourceAsync(item);
+        }
     }
 
     private async Task PickAndOpenAsync() {

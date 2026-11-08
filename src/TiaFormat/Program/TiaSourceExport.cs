@@ -2,17 +2,15 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.Win32.SafeHandles;
-using TiaFormat;
-using TiaFormat.Program;
 
-namespace TiaDump;
+namespace TiaFormat.Program;
 
-/// <summary>Writes one archive's program as a file tree: environment / PLC / folder path / block.</summary>
-internal sealed class SourceDump(TiaProgram program, string root, bool raw, Regex? filter) {
-    internal sealed record Result(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures);
+/// <summary>What an export wrote. A block that failed is named in <see cref="Failures"/>; the rest were still written.</summary>
+public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures);
 
+/// <summary>Writes a program as readable files in a tree, environment / PLC / folder path / block, with an index.tsv of every block. Used by the command line and the viewer alike, so both write the same files.</summary>
+public sealed class TiaSourceExport(TiaProgram program, string root) {
     private static readonly SearchValues<char> Forbidden = SearchValues.Create("<>:\"/\\|?*\0");
 
     private readonly ConcurrentQueue<string> _failures = new();
@@ -20,7 +18,16 @@ internal sealed class SourceDump(TiaProgram program, string root, bool raw, Rege
     private long _bytes;
     private int _unknown;
 
-    public Result Run() {
+    /// <summary>Which blocks to write, all if null.</summary>
+    public Func<TiaBlock, bool>? Blocks { get; init; }
+
+    /// <summary>Which tag tables to write, all if null.</summary>
+    public Func<TiaTagTable, bool>? TagTables { get; init; }
+
+    /// <summary>Also write each network as stored, next to its block. Never an encrypted part.</summary>
+    public bool Raw { get; init; }
+
+    public TiaExportResult Run() {
         Directory.CreateDirectory(root);
         var work = new List<(TiaBlock Block, string Path)>();
         var protectedCount = 0;
@@ -28,7 +35,7 @@ internal sealed class SourceDump(TiaProgram program, string root, bool raw, Rege
         var empty = 0;
         var index = new StringBuilder("object\tenvironment\tplc\tkind\tnumber\tlanguage\tknow-how\tfile\tname\n");
         foreach (var block in program.Blocks) {
-            if (filter is not null && !filter.IsMatch(block.Name)) {
+            if (Blocks is { } include && !include(block)) {
                 continue;
             }
             if (block.IsStub) {
@@ -58,9 +65,9 @@ internal sealed class SourceDump(TiaProgram program, string root, bool raw, Rege
             },
             output => output.Dispose());
 
-        var tagFiles = filter is null ? WriteTagTables() : 0;
+        var tagFiles = WriteTagTables();
         File.WriteAllText(Path.Combine(root, "index.tsv"), index.ToString(), new UTF8Encoding(false));
-        return new Result(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]);
+        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]);
     }
 
     private void WriteBlock(TiaBlock block, string path, PooledByteWriter output) {
@@ -68,7 +75,7 @@ internal sealed class SourceDump(TiaProgram program, string root, bool raw, Rege
             output.Clear();
             Interlocked.Add(ref _unknown, TiaSourceWriter.Write(program, block, output));
             WriteFile(path, output.WrittenSpan);
-            if (raw && !block.IsKnowHowProtected) {
+            if (Raw && !block.IsKnowHowProtected) {
                 WriteRaw(block, path, output);
             }
         } catch (Exception e) when (e is TiaFormatException or ArgumentOutOfRangeException or IndexOutOfRangeException or InvalidDataException or IOException) {
@@ -92,7 +99,7 @@ internal sealed class SourceDump(TiaProgram program, string root, bool raw, Rege
         var count = 0;
         using var output = new PooledByteWriter();
         foreach (var table in program.ReadTagTables()) {
-            if (table.Tags.Count == 0) {
+            if (table.Tags.Count == 0 || (TagTables is { } include && !include(table))) {
                 continue;
             }
             output.Clear();
@@ -115,7 +122,7 @@ internal sealed class SourceDump(TiaProgram program, string root, bool raw, Rege
         return _paths.Reserve(Path.Combine(ProgramFolder(block.Frame), Safe(block.Name) + extension), block.Frame.ObjectId);
     }
 
-    private string ProgramFolder(in TiaFormat.Storage.TiaFrame frame) {
+    private string ProgramFolder(in Storage.TiaFrame frame) {
         var environment = program.Environment(frame);
         var holder = environment.Kind == "ProjectData" ? "Project" : Safe($"{environment.Kind}-{environment.Name}-{environment.Id}");
         var folder = program.FolderPath(frame);
@@ -136,7 +143,8 @@ internal sealed class SourceDump(TiaProgram program, string root, bool raw, Rege
         Interlocked.Add(ref _bytes, content.Length);
     }
 
-    private static string Safe(string name) {
+    /// <summary>A name made fit for a file or folder on any system: what no system allows becomes an underscore.</summary>
+    public static string Safe(string name) {
         if (name.AsSpan().IndexOfAny(Forbidden) < 0 && !name.EndsWith('.') && name.Length != 0) {
             return name;
         }

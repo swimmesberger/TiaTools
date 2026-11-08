@@ -107,9 +107,9 @@ public sealed class TiaProjectTest {
         document.DeclarationLine("#missing").Should().BeNull();
     }
 
-    private static TiaFileBuilder File() => new(TiaSourceFileTest.Schema);
+    internal static TiaFileBuilder File() => new(TiaSourceFileTest.Schema);
 
-    private static void Block(TiaFileBuilder file, ulong id, string name, string kind, string body, string members = "<Root />", ulong? generatedFrom = null) {
+    internal static void Block(TiaFileBuilder file, ulong id, string name, string kind, string body, string members = "<Root />", ulong? generatedFrom = null) {
         file.WriteObject(Root, id + 100, [TiaSourceFileTest.Part(members, "BlockSource")]);
         file.WriteObject(Unit, id + 200, [TiaFileBuilder.Segment(8, (4, TiaFileBuilder.Blob(Encoding.UTF8.GetBytes(Scl(body)), compress: false)), (8, TiaFileBuilder.String("SCL")))]);
         file.WriteObject(CodeBlock, id, [
@@ -122,7 +122,7 @@ public sealed class TiaProjectTest {
     }
 
     /// <summary>Written to a folder, as an archive would be: a project opens by path.</summary>
-    private static TiaProject Opened(TiaFileBuilder file) {
+    internal static TiaProject Opened(TiaFileBuilder file) {
         file.Commit();
         var folder = Directory.CreateTempSubdirectory("tiaproject").FullName;
         Directory.CreateDirectory(Path.Combine(folder, "System"));

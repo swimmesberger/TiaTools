@@ -22,6 +22,10 @@ public static class Glyphs {
 
     public static Geometry Library { get; } = Geometry.Parse("M3 2.5V13.5M6 2.5V13.5M9 3L12.5 13.2");
 
+    public static Geometry Copy { get; } = Geometry.Parse("M6.5 5.5H12.5C13 5.5 13.5 6 13.5 6.5V13C13.5 13.5 13 14 12.5 14H6.5C6 14 5.5 13.5 5.5 13V6.5C5.5 6 6 5.5 6.5 5.5ZM10.5 5.5V3.5C10.5 3 10 2.5 9.5 2.5H3.5C3 2.5 2.5 3 2.5 3.5V10C2.5 10.5 3 11 3.5 11H5.5");
+
+    public static Geometry Export { get; } = Geometry.Parse("M8 10V2.5M5 5.5L8 2.5L11 5.5M2.5 9.5V12.5C2.5 13.1 2.9 13.5 3.5 13.5H12.5C13.1 13.5 13.5 13.1 13.5 12.5V9.5");
+
     public static Geometry UsedBy { get; } = Geometry.Parse("M14 8H5M8.5 4.5L5 8L8.5 11.5M2 3V13");
 
     public static Geometry Uses { get; } = Geometry.Parse("M2 8H11M7.5 4.5L11 8L7.5 11.5M14 3V13");

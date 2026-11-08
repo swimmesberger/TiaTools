@@ -109,7 +109,13 @@ internal sealed class TiaDumpCommands {
         var database = TiaDatabase.Open(archive, verify);
         var program = new TiaProgram(database);
         var opened = clock.Elapsed;
-        var result = new SourceDump(program, output, raw, grep is null ? null : new Regex(grep, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1))).Run();
+        var filter = grep is null ? null : new Regex(grep, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+        // A filter on block names leaves the tag tables out.
+        var result = new TiaSourceExport(program, output) {
+            Blocks = filter is null ? null : block => filter.IsMatch(block.Name),
+            TagTables = filter is null ? null : _ => false,
+            Raw = raw,
+        }.Run();
         clock.Stop();
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
             $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
