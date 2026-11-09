@@ -1,0 +1,62 @@
+FUNCTION_BLOCK "Filler"
+TITLE = Fills one bottle
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Fills the bottle under the valve to the recipe's volume, then lets the foam settle.
+   VAR_INPUT
+      start : Bool;   // A bottle stands under the filler
+      levelRaw : Int;   // Level sensor, raw
+      valveOpened : Bool;   // End switch: open
+      valveClosed : Bool;   // End switch: closed
+      recipe : "typeRecipe";   // What to fill
+      reset : Bool;   // Acknowledge a fault
+   END_VAR
+
+   VAR_OUTPUT
+      openValve : Bool;   // Drives the fill valve
+      done : Bool;   // The bottle is full and may move on
+      fault : Bool;   // The valve has a fault
+   END_VAR
+
+   VAR
+      step : Int;   // 0 idle, 10 filling, 20 settling, 30 done
+      level : Real;   // Level in ml
+      valve : "Valve";   // The fill valve
+      settleTimer {InstructionName := 'TON_TIME'; LibVersion := '1.0'} : TON_TIME;
+   END_VAR
+
+
+BEGIN
+	#level := "Scale"(raw := #levelRaw, low := 0.0, high := 1000.0);
+
+	CASE #step OF
+	    0:  // Idle: wait for a bottle
+	        IF #start AND NOT #fault THEN
+	            #step := 10;
+	        END_IF;
+	    10: // Filling: until the recipe's volume is reached
+	        IF #level >= #recipe.volume THEN
+	            #step := 20;
+	        END_IF;
+	    20: // Settling: the foam goes down
+	        IF #settleTimer.Q THEN
+	            #step := 30;
+	        END_IF;
+	    30: // Done: wait until the bottle has left
+	        IF NOT #start THEN
+	            #step := 0;
+	        END_IF;
+	END_CASE;
+
+	#settleTimer(IN := #step = 20,
+	             PT := #recipe.settleTime);
+	#valve(open := #step = 10,
+	       opened := #valveOpened,
+	       closed := #valveClosed,
+	       reset := #reset);
+
+	#openValve := #valve.output;
+	#done := #step = 30;
+	#fault := #valve.fault;
+END_FUNCTION_BLOCK
+

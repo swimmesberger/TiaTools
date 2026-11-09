@@ -70,6 +70,12 @@
             <Setter Property="Opacity" Value="0.35" />
         </Style>
 
+        <!-- The theme puts a text box's text at the top: with macOS's font that leaves it visibly above the middle. -->
+        <Style Selector="TextBox">
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="6,4" />
+        </Style>
+
         <Style Selector="TextBlock.muted">
             <Setter Property="Foreground" Value="{DynamicResource Viewer.Muted}" />
         </Style>

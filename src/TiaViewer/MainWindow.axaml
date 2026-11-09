@@ -99,19 +99,22 @@
 
             <Grid Grid.Column="2" RowDefinitions="Auto,*,1,230">
                 <Border x:Name="HeadingBar" BorderBrush="{DynamicResource Viewer.Line}" BorderThickness="0,0,0,1" Padding="12,8" IsVisible="False">
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*" RowDefinitions="Auto,Auto">
-                        <local:KindBadge x:Name="HeadingBadge" Margin="0,0,8,0" />
-                        <TextBlock x:Name="Heading" Grid.Column="1" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                        <Border x:Name="LanguageChip" Grid.Column="2" Classes="chip" Margin="8,0,0,0">
-                            <TextBlock x:Name="LanguageText" />
-                        </Border>
-                        <Border x:Name="ClosedChip" Grid.Column="3" Classes="chip" Margin="6,0,0,0">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <Path Classes="icon small" Width="11" Height="11" Data="{x:Static local:Glyphs.Lock}" />
-                                <TextBlock Text="closed" />
-                            </StackPanel>
-                        </Border>
-                        <StackPanel Grid.Column="4" Grid.RowSpan="2" Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- The name and its chips in one panel: a wider path below must not spread them apart. -->
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                        <StackPanel Orientation="Horizontal">
+                            <local:KindBadge x:Name="HeadingBadge" Margin="0,0,8,0" />
+                            <TextBlock x:Name="Heading" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <Border x:Name="LanguageChip" Classes="chip" Margin="8,0,0,0">
+                                <TextBlock x:Name="LanguageText" />
+                            </Border>
+                            <Border x:Name="ClosedChip" Classes="chip" Margin="6,0,0,0">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Path Classes="icon small" Width="11" Height="11" Data="{x:Static local:Glyphs.Lock}" />
+                                    <TextBlock Text="closed" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Grid.RowSpan="2" Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <Button x:Name="CopyButton" Classes="tool" ToolTip.Tip="Copy this block's source">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Path Classes="icon" Data="{x:Static local:Glyphs.Copy}" />
@@ -125,7 +128,7 @@
                                 </StackPanel>
                             </Button>
                         </StackPanel>
-                        <TextBlock x:Name="Breadcrumb" Grid.Row="1" Grid.ColumnSpan="4" Classes="muted" FontSize="12" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
+                        <TextBlock x:Name="Breadcrumb" Grid.Row="1" Classes="muted" FontSize="12" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
                     </Grid>
                 </Border>
 

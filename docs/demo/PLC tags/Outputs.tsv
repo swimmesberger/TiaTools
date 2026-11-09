@@ -1,0 +1,5 @@
+Infeed_Motor	Bool	%Q0.0	Infeed conveyor motor
+Outfeed_Motor	Bool	%Q0.1	Outfeed conveyor motor
+Filler_Valve	Bool	%Q0.2	Opens the fill valve
+Lamp_Running	Bool	%Q0.3	The line runs
+Lamp_Fault	Bool	%Q0.4	A fault waits to be acknowledged

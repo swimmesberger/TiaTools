@@ -1,0 +1,16 @@
+FUNCTION "Scale" : Real
+TITLE = Scale an analog value
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Scales the raw value of an analog input, 0 to 27648, to a range in engineering units.
+   VAR_INPUT
+      raw : Int;   // Raw value of the analog input
+      low : Real;   // Value at 0
+      high : Real;   // Value at 27648
+   END_VAR
+
+
+BEGIN
+	#Scale := #low + INT_TO_REAL(#raw) / 27648.0 * (#high - #low);
+END_FUNCTION
+

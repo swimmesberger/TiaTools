@@ -1,0 +1,22 @@
+ORGANIZATION_BLOCK "Main"
+TITLE = "Main Program Sweep (Cycle)"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      Initial_Call : Bool;   // Initial call of this OB
+      Remanence : Bool;   // =True, if remanent data are available
+   END_VAR
+
+
+BEGIN
+	// Take the recipe the operator chose, then run the line.
+	"Recipes".active := "Recipes".list[LIMIT(MN := 1, IN := "Recipe_Selected", MX := 3)];
+
+	"LineData"(start := "Button_Start",
+	           stop := NOT "Button_Stop",
+	           reset := "Button_Reset");
+
+	"Lamp_Running" := "LineData".running;
+	"Lamp_Fault" := "LineData".fault;
+END_ORGANIZATION_BLOCK
+

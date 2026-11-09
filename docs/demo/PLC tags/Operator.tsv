@@ -1,0 +1,2 @@
+Recipe_Selected	Int	%MW10	Recipe chosen on the panel, 1 to 3
+Bottles_Filled	DInt	%MD12	Bottles filled since the last start

@@ -54,6 +54,8 @@ internal static class Program {
                 return FromArchive(args[1], args[2], args[3]);
             case "compiled-copy" when args.Length == 3:
                 return CompiledCopy(args[1], args[2]);
+            case "demo" when args.Length == 4:
+                return Demo(args[1], args[2], args[3]);
             default:
                 Console.Error.WriteLine("""
                     usage:
@@ -61,6 +63,7 @@ internal static class Program {
                       TiaOpennessExport attach <out>                     export the project open in the one running TIA
                       TiaOpennessExport archive <.zap> <empty dir> <out> retrieve a copy, export it, close it unsaved
                       TiaOpennessExport compiled-copy <.ap21> <out>      compile a retrieved copy, export it, close it unsaved
+                      TiaOpennessExport demo <sources> <empty dir> <out>    build the demo project from docs/demo and archive it
 
                     Keep <empty dir> short, such as C:\\Users\\me\\tc: TIA refuses to retrieve into a long path, and only says
                     "Unable to retrieve the project". An export refuses blocks that are not compiled; source generation does not.
@@ -186,6 +189,94 @@ internal static class Program {
         return 0;
     }
 
+    /// <summary>
+    /// Builds a new project from invented sources, for pictures and tries that show nothing of anyone's plant: a PLC, its
+    /// tag tables, then the types and blocks in the order order.txt gives, each in the folder its file is in. It saves the
+    /// new project and writes it as an archive. It opens no other project.
+    /// </summary>
+    private static int Demo(string sources, string workFolder, string output) {
+        var work = new DirectoryInfo(workFolder);
+        if (work.Exists && work.EnumerateFileSystemInfos().Any()) {
+            Console.Error.WriteLine($"{workFolder} is not empty; the project is created in a folder of its own.");
+            return 1;
+        }
+        var clock = Stopwatch.StartNew();
+        using var portal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
+        Console.WriteLine($"TIA Portal started in {clock.Elapsed.TotalSeconds:F0} s");
+        var project = portal.Projects.Create(work, "FillingLine");
+        try {
+            var cpu = portal.HardwareCatalog.Find("6ES7 516-3AN02-0AB0").OrderBy(entry => entry.TypeIdentifier, StringComparer.Ordinal).LastOrDefault()
+                ?? throw new InvalidOperationException("No CPU 1516-3 PN/DP in the hardware catalog.");
+            Console.WriteLine($"CPU {cpu.TypeIdentifier}");
+            var device = project.Devices.CreateWithItem(cpu.TypeIdentifier, "PLC_Line", "Line");
+            var plc = device.DeviceItems.SelectMany(Software).Single();
+
+            foreach (var file in Directory.GetFiles(Path.Combine(sources, "PLC tags"), "*.tsv").OrderBy(file => file, StringComparer.Ordinal)) {
+                var table = plc.TagTableGroup.TagTables.Create(Path.GetFileNameWithoutExtension(file));
+                foreach (var line in File.ReadAllLines(file).Where(line => line.Length != 0)) {
+                    var fields = line.Split('\t');
+                    var tag = table.Tags.Create(fields[0], fields[1], fields[2]);
+                    tag.Comment.Items.First().Text = fields[3];
+                }
+            }
+
+            // A new PLC comes with an empty Main; the demo has its own.
+            plc.BlockGroup.Blocks.Find("Main")?.Delete();
+            var failed = 0;
+            foreach (var entry in File.ReadAllLines(Path.Combine(sources, "order.txt")).Where(line => line.Length != 0 && !line.StartsWith("#", StringComparison.Ordinal))) {
+                var parts = entry.Split('/');
+                var folders = parts.Skip(1).Take(parts.Length - 2).ToList();
+                var source = plc.ExternalSourceGroup.ExternalSources.CreateFromFile(parts.Last(), Path.GetFullPath(Path.Combine(sources, entry)));
+                // One run reports every source TIA refuses, not only the first.
+                try {
+                    Generate(plc, source, parts[0], folders);
+                    Console.WriteLine($"generated {entry}");
+                } catch (EngineeringTargetInvocationException e) {
+                    failed++;
+                    Console.WriteLine($"failed {entry}: {e.Message.Replace(Environment.NewLine, " ")}");
+                }
+                source.Delete();
+            }
+            if (failed != 0) {
+                Console.Error.WriteLine($"{failed} sources failed; nothing archived.");
+                return 1;
+            }
+
+            project.Save();
+            Directory.CreateDirectory(output);
+            project.Archive(new DirectoryInfo(output), "FillingLine.zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
+            Console.WriteLine($"archived to {output} after {clock.Elapsed.TotalSeconds:F0} s");
+            return 0;
+        } finally {
+            project.Close();
+        }
+    }
+
+    private static void Generate(PlcSoftware plc, PlcExternalSource source, string root, List<string> folders) {
+        if (root == "PLC data types") {
+            if (folders.Count == 0) {
+                source.GenerateBlocksFromSource(GenerateBlockOption.None);
+            } else {
+                PlcTypeUserGroup group = null;
+                foreach (var name in folders) {
+                    var groups = group is null ? plc.TypeGroup.Groups : group.Groups;
+                    group = groups.Find(name) ?? groups.Create(name);
+                }
+                source.GenerateBlocksFromSource(group, GenerateBlockOption.None);
+            }
+        } else if (folders.Count == 0) {
+            source.GenerateBlocksFromSource(GenerateBlockOption.None);
+        } else {
+            PlcBlockUserGroup group = null;
+            foreach (var name in folders) {
+                var groups = group is null ? plc.BlockGroup.Groups : group.Groups;
+                group = groups.Find(name) ?? groups.Create(name);
+            }
+            source.GenerateBlocksFromSource(group, GenerateBlockOption.None);
+        }
+    }
+
+
     private static IEnumerable<PlcSoftware> Plcs(Project project) {
         var devices = new List<Device>(project.Devices);
         devices.AddRange(project.UngroupedDevicesGroup.Devices);
@@ -205,14 +296,15 @@ internal static class Program {
             }
         }
 
-        static IEnumerable<PlcSoftware> Software(DeviceItem item) {
-            if (item.GetService<SoftwareContainer>()?.Software is PlcSoftware plc) {
-                yield return plc;
-            }
-            foreach (var child in item.DeviceItems) {
-                foreach (var nested in Software(child)) {
-                    yield return nested;
-                }
+    }
+
+    private static IEnumerable<PlcSoftware> Software(DeviceItem item) {
+        if (item.GetService<SoftwareContainer>()?.Software is PlcSoftware plc) {
+            yield return plc;
+        }
+        foreach (var child in item.DeviceItems) {
+            foreach (var nested in Software(child)) {
+                yield return nested;
             }
         }
     }

@@ -1,0 +1,65 @@
+FUNCTION_BLOCK "FillingLine"
+TITLE = The filling line
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Infeed conveyor, filler and outfeed conveyor, started and stopped as one line.
+   VAR_INPUT
+      start : Bool;   // Start the line
+      stop : Bool;   // Stop the line
+      reset : Bool;   // Acknowledge faults
+   END_VAR
+
+   VAR_OUTPUT
+      running : Bool;   // The line runs
+      fault : Bool;   // A station has a fault
+   END_VAR
+
+   VAR
+      infeed : "Conveyor";   // Brings bottles to the filler
+      filler : "Filler";   // Fills them
+      outfeed : "Conveyor";   // Takes them to the packer
+      lastDone : Bool;   // The filler was done in the last cycle
+   END_VAR
+
+
+BEGIN
+	// A fault stops the whole line.
+	IF #stop OR #fault THEN
+	    #running := FALSE;
+	ELSIF #start THEN
+	    #running := TRUE;
+	    "Bottles_Filled" := 0;
+	END_IF;
+
+	// The infeed holds each bottle under the filler until it is full.
+	#infeed(enable := #running,
+	        bottleAtEnd := "Infeed_BottleAtFiller",
+	        nextReady := #filler.done,
+	        motorFeedback := "Infeed_MotorFeedback",
+	        reset := #reset);
+
+	#filler(start := "Infeed_BottleAtFiller" AND #running,
+	        levelRaw := "Filler_Level",
+	        valveOpened := "Filler_ValveOpened",
+	        valveClosed := "Filler_ValveClosed",
+	        recipe := "Recipes".active,
+	        reset := #reset);
+
+	#outfeed(enable := #running,
+	         bottleAtEnd := "Outfeed_BottleAtEnd",
+	         nextReady := "Packer_Ready",
+	         motorFeedback := "Outfeed_MotorFeedback",
+	         reset := #reset);
+
+	// Count each bottle once, when it is done.
+	IF #filler.done AND NOT #lastDone THEN
+	    "Bottles_Filled" := "Bottles_Filled" + 1;
+	END_IF;
+	#lastDone := #filler.done;
+
+	"Infeed_Motor" := #infeed.motorOn;
+	"Outfeed_Motor" := #outfeed.motorOn;
+	"Filler_Valve" := #filler.openValve;
+	#fault := #infeed.fault OR #filler.fault OR #outfeed.fault;
+END_FUNCTION_BLOCK
+

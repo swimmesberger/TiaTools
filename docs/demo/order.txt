@@ -1,0 +1,12 @@
+# The demo program, in the order TIA has to generate it: what a source names has to exist first.
+# The folders below "PLC data types" and "Program blocks" become the project's folders.
+PLC data types/Line/typeRecipe.udt
+Program blocks/Common/Scale.scl
+Program blocks/Common/Motor.scl
+Program blocks/Common/Valve.scl
+Program blocks/Line/Conveyor.scl
+Program blocks/Line/Filler.scl
+Program blocks/Line/FillingLine.scl
+Program blocks/Data/Recipes.db
+Program blocks/Data/LineData.db
+Program blocks/Main.scl

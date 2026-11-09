@@ -1,0 +1,11 @@
+Button_Start	Bool	%I0.0	Start the line
+Button_Stop	Bool	%I0.1	Stop the line, normally closed
+Button_Reset	Bool	%I0.2	Acknowledge faults
+Infeed_BottleAtFiller	Bool	%I1.0	Photo eye: a bottle stands under the filler
+Infeed_MotorFeedback	Bool	%I1.1	Infeed contactor is closed
+Outfeed_BottleAtEnd	Bool	%I1.2	Photo eye at the end of the outfeed
+Outfeed_MotorFeedback	Bool	%I1.3	Outfeed contactor is closed
+Filler_ValveOpened	Bool	%I1.4	Fill valve is open
+Filler_ValveClosed	Bool	%I1.5	Fill valve is closed
+Packer_Ready	Bool	%I1.6	The packer can take a bottle
+Filler_Level	Int	%IW64	Level in the bottle, raw 0 to 27648
