@@ -6,3 +6,8 @@ obj/
 TestResults/
 artifacts/
 .DS_Store
+.env
+.env.*
+.scratch/
+__pycache__/
+apm_modules/
