@@ -18,7 +18,7 @@ A read-only reader for Siemens TIA Portal projects that needs no TIA Portal: a v
 - `docs/`: project knowledge beyond the code, kept as an Open Knowledge Format bundle. `docs/index.md` lists every page, `docs/guide.md` says what lives where and how the folder is kept. `docs/FORMAT.md` is the file format.
 - `specs/`: what each feature must do, and how it is built; format in `specs/README.md`.
 - `.agents/skills/`: procedures in the Agent Skills format.
-- `tools/`: besides `TiaOpennessExport`, `check_repo.py` keeps this layout consistent, `check_commits.py` checks commit messages, `log_add.py` adds log entries, `hooks/` holds the commit-msg hook, `tests/` the tests of these scripts.
+- `tools/`: besides `TiaOpennessExport`, `check_repo.py` keeps this layout consistent, `check_commits.py` checks commit messages, `log_add.py` adds log entries, `package_release.py` packs a release's zips with their notices, `hooks/` holds the commit-msg hook, `tests/` the tests of these scripts.
 
 ## Commands
 
@@ -98,6 +98,7 @@ One per repository. It keeps its own folder outside `docs/` (`.specify/`, `opens
 - A term is unclear, or you are about to name something: `GLOSSARY.md`.
 - How the file is laid out, what the reader may assume and how sure that is: `docs/FORMAT.md`; what is still open: its section Open questions.
 - Comparing the reader's output with TIA Portal, or building the demo project: `docs/comparing-with-tia.md`.
+- Releasing a version, or a new dependency in the published programs: `docs/releasing.md`.
 - Module boundaries, why the code is shaped as it is, whether something may be added: `docs/architecture.md`, then the ADRs it cites.
 - A decision seems odd, or you are about to make one that is hard to reverse: `docs/adr/index.md` and the `adr` skill.
 - What a feature must do: its file in `specs/`; how it is built: the `.plan.md` next to it.

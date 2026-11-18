@@ -2,6 +2,7 @@
 
 ## 2026-11-18
 
+* **Creation**: [releasing](releasing.md) says how a version is released: a tag starts a workflow that builds the Windows programs through Native AOT, and `tools/package_release.py` packs them with the notices of the packages they contain.
 * **Update**: [ADR 0010](adr/0010-readme-pictures-are-rendered-headless.md) records that the README's pictures are rendered headless by `tools/ReadmePictures`, after the first script that took them was lost; [comparing with TIA](comparing-with-tia.md) says how to run it and the [architecture](architecture.md) lists it.
 * **Update**: the [architecture](architecture.md) lists the viewer's new test project, which came with [spec 0003](../specs/0003-viewer-menus.md) for the viewer's menus, About window, recent files and the file types its open dialog accepts.
 * **Update**: [ADR 0009](adr/0009-apache-2-0-with-the-commons-clause.md) records the licence, Apache 2.0 with the Commons Clause and additional terms, and why it fits a tool used at work that nobody should sell, in whole or in part, without permission.

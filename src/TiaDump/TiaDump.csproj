@@ -4,6 +4,8 @@
         <LangVersion>preview</LangVersion>
         <AssemblyName>tiadump</AssemblyName>
         <Description>Lists and dumps the program source in a TIA Portal archive, without TIA Portal.</Description>
+        <!-- One native program per platform with dotnet publish -r <runtime>; see docs/releasing.md. -->
+        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,0 +1,48 @@
+name: release
+# Builds the Windows programs for a version tag and attaches them to its GitHub release. See docs/releasing.md.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Put vswhere on the PATH, which the Native AOT link needs
+        shell: pwsh
+        run: Add-Content $env:GITHUB_PATH "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
+      - name: Publish the viewer
+        run: dotnet publish src/TiaViewer -c Release -r win-x64 -o artifacts/publish/viewer
+      - name: Publish tiadump
+        run: dotnet publish src/TiaDump -c Release -r win-x64 -o artifacts/publish/tiadump
+      - name: Check that tiadump starts
+        run: artifacts/publish/tiadump/tiadump.exe --help
+      - name: Pack the zips
+        shell: bash
+        env:
+          TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        # On a tag, the tag must be the viewer's version.
+        run: python tools/package_release.py --rid win-x64 --viewer artifacts/publish/viewer --tiadump artifacts/publish/tiadump --out artifacts/release ${TAG:+--tag "$TAG"}
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: release-win-x64
+          path: artifacts/release/*.zip
+      - name: Attach them to the release
+        if: github.ref_type == 'tag'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # A new tag gets a draft release, to be given notes and published by hand; an existing release gets its zips replaced.
+          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --verify-tag --draft --title "TiaTools ${TAG#v}" --generate-notes
+          gh release upload "$TAG" artifacts/release/*.zip --clobber
