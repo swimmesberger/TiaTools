@@ -25,7 +25,7 @@ A PLC program lives in a TIA Portal project, and reading one usually takes TIA P
 
 It reads project archives (`.zap*`), projects (`.ap*`) and global libraries (`.al*`). It has been tried with files from TIA Portal V15.1, V20 and V21.
 
-> **Status:** early. It was compared block by block with TIA Portal on one real project, and has read a few others; see [how far to trust the output](#how-far-to-trust-the-output). For Windows, the viewer and `tiadump` are on the [releases page](https://github.com/swimmesberger/TiaTools/releases/latest); elsewhere, build them from source, which takes a minute.
+> **Status:** early. It was compared block by block with TIA Portal on one real project, and has read a few others; see [how far to trust the output](#how-far-to-trust-the-output). For Windows and macOS, the viewer and `tiadump` are on the [releases page](https://github.com/swimmesberger/TiaTools/releases/latest); on Linux, build them from source, which takes a minute.
 
 ## The viewer
 
@@ -34,6 +34,8 @@ It reads project archives (`.zap*`), projects (`.ap*`) and global libraries (`.a
 | <picture><source media="(prefers-color-scheme: dark)" srcset=".github/images/references-dark.png"><img src=".github/images/references-light.png" alt="The Motor block, with the two places that call it listed below the source"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset=".github/images/search-dark.png"><img src=".github/images/search-light.png" alt="Search results for fault across all blocks, one of them open"></picture> |
 
 On Windows, download `TIA-Viewer-<version>-win-x64.zip` from the [latest release](https://github.com/swimmesberger/TiaTools/releases/latest), unpack it and run `TiaViewer.exe`. It needs nothing else installed. It is not signed yet, so Windows SmartScreen may warn the first time; *More info › Run anyway* starts it.
+
+On a Mac, download `TIA-Viewer-<version>-macos-universal.zip` from the same release, for Apple silicon and Intel from macOS 13, unpack it and move `TIA Viewer.app` to *Applications*. It needs nothing else installed. It is not signed with a Developer ID or notarized yet, so macOS blocks it the first time: open it once, then choose *Open Anyway* in System Settings › Privacy & Security. Or, in Terminal: `xattr -dr com.apple.quarantine "/Applications/TIA Viewer.app"`.
 
 To run it from source instead, install the [.NET 10 SDK](https://dotnet.microsoft.com/download), then from a clone of this repository:
 
@@ -57,7 +59,7 @@ Colours and links come from the tokens stored in the project, not from a grammar
 
 ### As an app
 
-Native AOT makes it a single program that starts in under a second. Publish it on the platform it is for, since Native AOT does not cross-compile. On Windows this needs Visual Studio's C++ tools, with `vswhere.exe` on the `PATH`:
+Native AOT makes it a single program that starts in under a second. Publish it on the system it is for, since Native AOT does not compile for another one. On Windows this needs Visual Studio's C++ tools, with `vswhere.exe` on the `PATH`:
 
 ```bash
 dotnet publish src/TiaViewer -c Release -r win-x64
@@ -69,13 +71,13 @@ On a Mac, this builds `artifacts/TIA Viewer.app`, signed ad hoc, and registers i
 src/TiaViewer/macos/bundle.sh
 ```
 
-It needs Xcode's command line tools. Homebrew's .NET is built from source, and its Native AOT link asks for OpenSSL and Brotli, which macOS has none of to link against. The script then takes them from Homebrew (`brew install openssl@3 brotli`), and says so. Such an app only runs where Homebrew has them installed, so build one to hand to others with Microsoft's .NET SDK, which links neither.
+It needs Xcode's command line tools. Homebrew's .NET is built from source, and its Native AOT link asks for OpenSSL and Brotli, which macOS has none of to link against. The script then takes them from Homebrew (`brew install openssl@3 brotli`), and says so. Such an app only runs where Homebrew has them installed, so build one to hand to others with Microsoft's .NET SDK, which links neither. The Mac zips on the releases page are built that way, for Apple silicon and Intel in one, by `tools/release_macos.sh` ([releasing](docs/releasing.md)).
 
-**How far it is tested.** On Windows, through Native AOT, on a real project: opening takes under a second, and following a call, the lists, search, export and a 20,000 line data block all work. On macOS it builds and runs as an app: the menu bar and its Cmd shortcuts, About, the recent files, the open dialog, and a file opened through Launch Services as a double-click does, were checked; Cmd + click to follow a name is not confirmed yet. Windows has no file association yet, so use *Open with*. To hand the app to others it needs signing, and notarization on a Mac.
+**How far it is tested.** On Windows, through Native AOT, on a real project: opening takes under a second, and following a call, the lists, search, export and a 20,000 line data block all work. On macOS it builds and runs as an app: the menu bar and its Cmd shortcuts, About, the recent files, the open dialog, and a file opened through Launch Services as a double-click does, were checked; Cmd + click to follow a name is not confirmed yet. Windows has no file association yet, so use *Open with*. The downloads are not signed with a certificate yet, so Windows and macOS each ask once before the first start, as described above.
 
 ## The command line
 
-On Windows, download `tiadump-<version>-win-x64.zip` from the [latest release](https://github.com/swimmesberger/TiaTools/releases/latest): one `tiadump.exe`, with nothing else to install. Elsewhere, build it:
+On Windows, download `tiadump-<version>-win-x64.zip` from the [latest release](https://github.com/swimmesberger/TiaTools/releases/latest): one `tiadump.exe`. On a Mac, download `tiadump-<version>-macos-universal.zip`: one `tiadump`, which macOS blocks until you run `xattr -d com.apple.quarantine tiadump` once. Neither needs anything else installed. On Linux, build it:
 
 ```bash
 dotnet build src/TiaDump -c Release
