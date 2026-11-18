@@ -167,6 +167,8 @@ class PackageMacRelease(unittest.TestCase):
                 "TIA Viewer.app/Contents/MacOS/TiaViewer", "TIA Viewer.app/Contents/Resources/icon.icns",
                 "TIA Viewer.app/Contents/_CodeSignature/CodeResources"])
 
+    # Windows keeps no Unix permissions, so the fixture cannot make a file executable there; the Mac zips are packed on a Mac.
+    @unittest.skipIf(sys.platform == "win32", "no Unix permissions on Windows")
     def test_the_programs_stay_executable(self):
         for zip_path, program in zip(self.f.release(), ["TIA Viewer.app/Contents/MacOS/TiaViewer", "tiadump"]):
             with zipfile.ZipFile(zip_path) as z:
