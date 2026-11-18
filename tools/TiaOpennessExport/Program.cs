@@ -63,7 +63,7 @@ internal static class Program {
                       TiaOpennessExport attach <out>                     export the project open in the one running TIA
                       TiaOpennessExport archive <.zap> <empty dir> <out> retrieve a copy, export it, close it unsaved
                       TiaOpennessExport compiled-copy <.ap21> <out>      compile a retrieved copy, export it, close it unsaved
-                      TiaOpennessExport demo <sources> <empty dir> <out>    build the demo project from docs/demo and archive it
+                      TiaOpennessExport demo <sources> <empty dir> <out>    build the demo project from demo/ and archive it
 
                     Keep <empty dir> short, such as C:\\Users\\me\\tc: TIA refuses to retrieve into a long path, and only says
                     "Unable to retrieve the project". An export refuses blocks that are not compiled; source generation does not.

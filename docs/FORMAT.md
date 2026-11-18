@@ -1,3 +1,9 @@
+---
+type: Format reference
+title: "The TIA Portal project database format"
+description: "The file format of TIA Portal projects, archives and libraries, enough to write a read-only reader in any language, with how far real archives confirm each claim."
+status: stable
+---
 # The TIA Portal project database format
 
 Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers). `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
@@ -547,10 +553,10 @@ The text is the same after compiling. TIA exports SimaticML only for a compiled 
 
 ## Open questions
 
-What is left of the comparison with TIA Portal, most important first. The README says how to run it.
+What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
 
 1. **A second project.** Most of sections 11 and 12 was worked out from A alone, `MFlags` above all, and A's V20 archive is the same program. B has not been compared with TIA. A rule that overfits shows there first.
-2. **FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles; the README says how. Then compare parts, wires and negated pins as data with what `FlgNetRenderer` reads, not as text, since our FBD text is our own layout. That would also settle whether a network stores `Time` under `TON`, as TIA shows it, where we print `TON`.
+2. **FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles, as the comparison page says. Then compare parts, wires and negated pins as data with what `FlgNetRenderer` reads, not as text, since our FBD text is our own layout. That would also settle whether a network stores `Time` under `TON`, as TIA shows it, where we print `TON`.
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, plain FBD, STL and GRAPH.** No sample has any unprotected. A small new project in TIA with one block of each would close that, and being invented, like the demo project, it can go into the tests as a fixture. It would also test the rules on something new.
 5. **Hardware, optional.** The reader lists no devices. A `tiadump devices` command (name, type, address, network) could be checked against TIA's Network overview.
