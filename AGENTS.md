@@ -18,7 +18,7 @@ A read-only reader for Siemens TIA Portal projects that needs no TIA Portal: a v
 - `docs/`: project knowledge beyond the code, kept as an Open Knowledge Format bundle. `docs/index.md` lists every page, `docs/guide.md` says what lives where and how the folder is kept. `docs/FORMAT.md` is the file format.
 - `specs/`: what each feature must do, and how it is built; format in `specs/README.md`.
 - `.agents/skills/`: procedures in the Agent Skills format.
-- `tools/`: besides `TiaOpennessExport`, `check_repo.py` keeps this layout consistent, `check_commits.py` checks commit messages, `log_add.py` adds log entries, `package_release.py` packs a release's zips with their notices, `hooks/` holds the commit-msg hook, `tests/` the tests of these scripts.
+- `tools/`: besides `TiaOpennessExport`, `check_repo.py` keeps this layout consistent, `check_commits.py` checks commit messages, `log_add.py` adds log entries, `package_release.py` packs a release's zips with their notices, `release_macos.sh` builds a release's Mac zips, `hooks/` holds the commit-msg hook, `tests/` the tests of these scripts.
 
 ## Commands
 

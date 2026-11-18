@@ -1,13 +1,13 @@
 ---
 type: Guide
 title: "Releasing"
-description: "How a version is released: the tag, the workflow that builds the Windows programs, and what the zips hold."
+description: "How a version is released: the tag, the workflow that builds the Windows programs, the Mac build, and what the zips hold."
 generated: { by: claude-code/claude-opus-5-5, at: 2026-11-18T16:00:00Z }
 status: draft
 ---
 # Releasing
 
-A release is a version tag, `v` and the viewer's `<Version>`, with a GitHub release that offers the viewer and `tiadump` as Windows programs. The workflow `.github/workflows/release.yml` builds them when a tag is pushed.
+A release is a version tag, `v` and the viewer's `<Version>`, with a GitHub release that offers the viewer and `tiadump` as Windows and Mac programs. The workflow `.github/workflows/release.yml` builds the Windows ones when a tag is pushed; the Mac ones are built on a Mac with `tools/release_macos.sh` and attached by hand.
 
 ## Steps
 
@@ -23,19 +23,20 @@ A release is a version tag, `v` and the viewer's `<Version>`, with a GitHub rele
    ```
 
 3. The workflow publishes both programs through Native AOT on Windows, checks that `tiadump` starts, packs the zips and attaches them to a draft release with notes generated from the commits.
-4. Edit the draft's notes: what is new, what to download, that the programs are not signed. Then publish it. The README links to the latest release, so it is a release only once it is published and not marked as a pre-release.
+4. Build the Mac zips from the tag and attach them to the draft, as [the Mac](#the-mac) describes.
+5. Edit the draft's notes: what is new, what to download, that the programs are not signed. Then publish it. The README links to the latest release, so it is a release only once it is published and not marked as a pre-release.
 
 Run by hand on a branch (*Run workflow*), it builds and packs the zips without a release, and keeps them as the run's artifact: a way to try a build before tagging. Run by hand on a tag that has the workflow, it builds that tag's zips again and replaces them in its release.
 
 ## What a zip holds
 
-`TIA-Viewer-<version>-win-x64.zip` holds `TiaViewer.exe` and the three native libraries it loads (Skia, HarfBuzz and ANGLE); `tiadump-<version>-win-x64.zip` holds `tiadump.exe`. Each also has `LICENSE.txt` and `THIRD-PARTY-NOTICES.txt`.
+`TIA-Viewer-<version>-win-x64.zip` holds `TiaViewer.exe` and the three native libraries it loads (Skia, HarfBuzz and ANGLE); `tiadump-<version>-win-x64.zip` holds `tiadump.exe`. `TIA-Viewer-<version>-macos-universal.zip` holds `TIA Viewer.app`, with the three native libraries it loads (Skia, HarfBuzz and Avalonia's own) inside; `tiadump-<version>-macos-universal.zip` holds `tiadump`. The Mac programs run on Apple silicon and on Intel, from macOS 13. Each zip also has `LICENSE.txt` and `THIRD-PARTY-NOTICES.txt`.
 
-`tools/package_release.py` makes them. It takes the notices from the packages the project restored: each package's licence and copyright from its nuspec, and the third-party notices file a package carries. Packages that only run at build time and native assets for other platforms are left out. It stops when a package has a licence other than MIT or a licence file, or when the publish folder holds a file no package accounts for, so a new dependency cannot ship without its notice. Check what the new licence asks for before teaching the script about it.
+`tools/package_release.py` makes them. It takes the notices from the packages the project restored: each package's licence and copyright from its nuspec, and the third-party notices file a package carries. Packages that only run at build time and native files for other platforms are left out. It stops when a package has a licence other than MIT or a licence file, or when the program's folder holds a file no package accounts for, so a new dependency cannot ship without its notice. It reads what the last restore wrote to `obj/`, so pack right after publishing: a build in between restores without the runtime, and the script stops rather than leave out the runtime's notices. Check what the new licence asks for before teaching the script about it.
 
-## By hand
+## By hand on Windows
 
-The same, without the workflow, on Windows with Visual Studio's C++ tools and `vswhere.exe` on the `PATH`:
+The same as the workflow, on Windows with Visual Studio's C++ tools and `vswhere.exe` on the `PATH`:
 
 ```bash
 dotnet publish src/TiaViewer -c Release -r win-x64 -o artifacts/publish/viewer
@@ -49,4 +50,22 @@ dotnet publish src/TiaDump -c Release -r win-x64 -o artifacts/publish/tiadump
 python tools/package_release.py --rid win-x64 --viewer artifacts/publish/viewer --tiadump artifacts/publish/tiadump --out artifacts/release
 ```
 
-The programs are not signed, so Windows SmartScreen warns the first time they start. A Mac build is not part of a release yet: `src/TiaViewer/macos/bundle.sh` builds the app, and handing it to others needs signing and notarization.
+The programs are not signed, so Windows SmartScreen warns the first time they start.
+
+## The Mac
+
+On a Mac with Xcode's command line tools and Microsoft's .NET SDK, from a checkout of the tag:
+
+```bash
+tools/release_macos.sh --tag v0.2.0
+```
+
+It publishes the viewer and `tiadump` for Apple silicon and for Intel, joins each pair into one program with `lipo`, wraps the viewer as an app with `src/TiaViewer/macos/bundle.sh --universal`, signs both ad hoc and packs them with `tools/package_release.py` into `artifacts/release`. Native AOT compiles for the other architecture of the same system, so one Mac builds both. Attach the zips to the release:
+
+```bash
+gh release upload v0.2.0 artifacts/release/*-macos-universal.zip
+```
+
+It must be Microsoft's SDK: a .NET built from source, such as Homebrew's, links the programs against Homebrew's OpenSSL and Brotli, so they would run only where Homebrew has those installed. `bundle.sh --universal` refuses such a .NET. With both installed, put Microsoft's first, for example `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" tools/release_macos.sh --tag v0.2.0`.
+
+The programs are signed ad hoc, not with a Developer ID, and not notarized, so macOS blocks them the first time: the viewer starts after *Open Anyway* in System Settings › Privacy & Security, and either program after `xattr -d com.apple.quarantine` (`-dr` for the app). A Developer ID and notarization would remove that step; they need an Apple Developer account.

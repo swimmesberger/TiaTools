@@ -173,7 +173,7 @@ That builds the solution, where warnings fail the build, and runs the library's 
 | `demo` | The demo project's program |
 | [`docs`](docs/index.md) | Project knowledge: [the format](docs/FORMAT.md), the architecture, decisions and how we work, listed in its index |
 | `AGENTS.md`, `GLOSSARY.md`, `specs`, `.agents/skills` | Instructions, terms, feature specs and procedures for coding agents, in the layout of [agentic-repo-template](https://github.com/swimmesberger/agentic-repo-template) |
-| `tools/*.py`, `Makefile` | The repository's own checks, and the packing of a release ([releasing](docs/releasing.md)) |
+| `tools/*.py`, `tools/*.sh`, `Makefile` | The repository's own checks, and the building and packing of a release ([releasing](docs/releasing.md)) |
 | `.github/images` | The pictures in this README |
 
 ## License
