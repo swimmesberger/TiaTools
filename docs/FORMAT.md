@@ -545,6 +545,16 @@ The text is the same after compiling. TIA exports SimaticML only for a compiled 
 
 **How far the format is version-bound**: the same reader reads V15.1, V20 and V21 unchanged. A, upgraded from V20 to V21, gives byte-identical source for all 963 block files and 14 tag files; only the system instruction list and object ids changed; frame layout, blobs and relations did not move. On V15.1 kind 4 blobs do not occur and per-relation lists occur once, so those two rest on V20. Versions before 1400 use other headers (section 3), and none was tried.
 
+## Open questions
+
+What is left of the comparison with TIA Portal, most important first. The README says how to run it.
+
+1. **A second project.** Most of sections 11 and 12 was worked out from A alone, `MFlags` above all, and A's V20 archive is the same program. B has not been compared with TIA. A rule that overfits shows there first.
+2. **FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles; the README says how. Then compare parts, wires and negated pins as data with what `FlgNetRenderer` reads, not as text, since our FBD text is our own layout. That would also settle whether a network stores `Time` under `TON`, as TIA shows it, where we print `TON`.
+3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
+4. **LAD, plain FBD, STL and GRAPH.** No sample has any unprotected. A small new project in TIA with one block of each would close that, and being invented, like the demo project, it can go into the tests as a fixture. It would also test the rules on something new.
+5. **Hardware, optional.** The reader lists no devices. A `tiadump devices` command (name, type, address, network) could be checked against TIA's Network overview.
+
 ## This repository's reader
 
 `src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and booleans and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them.

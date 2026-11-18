@@ -214,7 +214,7 @@ dotnet test --project tests/TiaFormat.Tests
 
 Warnings fail the build. A bug fix comes with a regression test, and a change to what the reader understands updates `docs/FORMAT.md` in the same commit. Commits use Conventional Commits.
 
-**Working on the reader itself?** What is left of the comparison with TIA Portal: [HANDOVER.md](HANDOVER.md).
+**Working on the reader itself?** What is left of the comparison with TIA Portal: [open questions](docs/FORMAT.md#open-questions).
 
 ## Comparing with TIA Portal
 
