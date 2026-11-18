@@ -1,13 +1,13 @@
 ---
 type: Guide
 title: "Releasing"
-description: "How a version is released: the tag, the workflow that builds the Windows programs, the Mac build, and what the zips hold."
+description: "How a version is released: the tag, the workflow that builds the Windows and Mac programs, and what the zips hold."
 generated: { by: claude-code/claude-opus-5-5, at: 2026-11-18T16:00:00Z }
 status: draft
 ---
 # Releasing
 
-A release is a version tag, `v` and the viewer's `<Version>`, with a GitHub release that offers the viewer and `tiadump` as Windows and Mac programs. The workflow `.github/workflows/release.yml` builds the Windows ones when a tag is pushed; the Mac ones are built on a Mac with `tools/release_macos.sh` and attached by hand.
+A release is a version tag, `v` and the viewer's `<Version>`, with a GitHub release that offers the viewer and `tiadump` as Windows and Mac programs. The workflow `.github/workflows/release.yml` builds both when a tag is pushed.
 
 ## Steps
 
@@ -22,11 +22,10 @@ A release is a version tag, `v` and the viewer's `<Version>`, with a GitHub rele
    git push origin v0.2.0
    ```
 
-3. The workflow publishes both programs through Native AOT on Windows, checks that `tiadump` starts, packs the zips and attaches them to a draft release with notes generated from the commits.
-4. Build the Mac zips from the tag and attach them to the draft, as [the Mac](#the-mac) describes.
-5. Edit the draft's notes: what is new, what to download, that the programs are not signed. Then publish it. The README links to the latest release, so it is a release only once it is published and not marked as a pre-release.
+3. The workflow builds on a Windows and a Mac runner at once. Each publishes both programs through Native AOT, checks that `tiadump` starts and packs its zips; the Mac does what [the Mac](#the-mac) describes. A last job attaches all four zips to a draft release with notes generated from the commits.
+4. Edit the draft's notes: what is new, what to download, that the programs are not signed. Then publish it. The README links to the latest release, so it is a release only once it is published and not marked as a pre-release.
 
-Run by hand on a branch (*Run workflow*), it builds and packs the zips without a release, and keeps them as the run's artifact: a way to try a build before tagging. Run by hand on a tag that has the workflow, it builds that tag's zips again and replaces them in its release.
+Run by hand on a branch (*Run workflow*), it builds and packs the zips without a release, and keeps them as the run's artifacts: a way to try a build before tagging. Run by hand on a tag that has the workflow, it builds that tag's zips again and replaces them in its release.
 
 ## What a zip holds
 
@@ -54,13 +53,13 @@ The programs are not signed, so Windows SmartScreen warns the first time they st
 
 ## The Mac
 
-On a Mac with Xcode's command line tools and Microsoft's .NET SDK, from a checkout of the tag:
+The workflow runs `tools/release_macos.sh`. By hand, on a Mac with Xcode's command line tools and Microsoft's .NET SDK, from a checkout of the tag:
 
 ```bash
 tools/release_macos.sh --tag v0.2.0
 ```
 
-It publishes the viewer and `tiadump` for Apple silicon and for Intel, joins each pair into one program with `lipo`, wraps the viewer as an app with `src/TiaViewer/macos/bundle.sh --universal`, signs both ad hoc and packs them with `tools/package_release.py` into `artifacts/release`. Native AOT compiles for the other architecture of the same system, so one Mac builds both. Attach the zips to the release:
+It publishes the viewer and `tiadump` for Apple silicon and for Intel, joins each pair into one program with `lipo`, wraps the viewer as an app with `src/TiaViewer/macos/bundle.sh --universal`, signs both ad hoc and packs them with `tools/package_release.py` into `artifacts/release`. Native AOT compiles for the other architecture of the same system, so one Mac builds both. To attach zips built by hand to the release:
 
 ```bash
 gh release upload v0.2.0 artifacts/release/*-macos-universal.zip
