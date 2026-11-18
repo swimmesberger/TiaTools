@@ -25,7 +25,7 @@ A PLC program lives in a TIA Portal project, and reading one usually takes TIA P
 
 It reads project archives (`.zap*`), projects (`.ap*`) and global libraries (`.al*`). It has been tried with files from TIA Portal V15.1, V20 and V21.
 
-> **Status:** early. It was compared block by block with TIA Portal on one real project, and has read a few others; see [how far to trust the output](#how-far-to-trust-the-output). There are no ready-made downloads yet: build it from source, which takes a minute.
+> **Status:** early. It was compared block by block with TIA Portal on one real project, and has read a few others; see [how far to trust the output](#how-far-to-trust-the-output). For Windows, the viewer and `tiadump` are on the [releases page](https://github.com/swimmesberger/TiaTools/releases/latest); elsewhere, build them from source, which takes a minute.
 
 ## The viewer
 
@@ -33,7 +33,9 @@ It reads project archives (`.zap*`), projects (`.ap*`) and global libraries (`.a
 |---|---|
 | <picture><source media="(prefers-color-scheme: dark)" srcset=".github/images/references-dark.png"><img src=".github/images/references-light.png" alt="The Motor block, with the two places that call it listed below the source"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset=".github/images/search-dark.png"><img src=".github/images/search-light.png" alt="Search results for fault across all blocks, one of them open"></picture> |
 
-Install the [.NET 10 SDK](https://dotnet.microsoft.com/download), then from a clone of this repository:
+On Windows, download `TIA-Viewer-<version>-win-x64.zip` from the [latest release](https://github.com/swimmesberger/TiaTools/releases/latest), unpack it and run `TiaViewer.exe`. It needs nothing else installed. It is not signed yet, so Windows SmartScreen may warn the first time; *More info › Run anyway* starts it.
+
+To run it from source instead, install the [.NET 10 SDK](https://dotnet.microsoft.com/download), then from a clone of this repository:
 
 ```bash
 dotnet run --project src/TiaViewer -c Release -- Project.zap21
@@ -72,6 +74,8 @@ It needs Xcode's command line tools. Homebrew's .NET is built from source, and i
 **How far it is tested.** On Windows, through Native AOT, on a real project: opening takes under a second, and following a call, the lists, search, export and a 20,000 line data block all work. On macOS it builds and runs as an app: the menu bar and its Cmd shortcuts, About, the recent files, the open dialog, and a file opened through Launch Services as a double-click does, were checked; Cmd + click to follow a name is not confirmed yet. Windows has no file association yet, so use *Open with*. To hand the app to others it needs signing, and notarization on a Mac.
 
 ## The command line
+
+On Windows, download `tiadump-<version>-win-x64.zip` from the [latest release](https://github.com/swimmesberger/TiaTools/releases/latest): one `tiadump.exe`, with nothing else to install. Elsewhere, build it:
 
 ```bash
 dotnet build src/TiaDump -c Release
