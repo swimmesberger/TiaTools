@@ -44,7 +44,12 @@ public sealed partial class MainWindow : Window {
     private string? _pending;
     private string? _exported;
 
-    public MainWindow() {
+    public MainWindow() : this(new RecentFiles(RecentFiles.DefaultFile)) {
+    }
+
+    /// <param name="recent">The list of recently opened files, which <see cref="OpenAsync"/> adds to.</param>
+    public MainWindow(RecentFiles recent) {
+        _recent = recent;
         InitializeComponent();
         Tree.ItemsSource = _roots;
         using (var icon = AssetLoader.Open(new Uri("avares://TiaViewer/Assets/icon.png"))) {

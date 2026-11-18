@@ -145,7 +145,7 @@ It uses the base class library only. [The format](docs/FORMAT.md) it reads is de
 
 ## The demo project
 
-The pictures show an invented filling line, not anyone's plant. Its program is in [`demo`](demo) as SCL sources, with tag tables and the order to generate them in. With TIA Portal V21 on Windows, [this](docs/comparing-with-tia.md#the-demo-project) makes a new project from them and archives it, for trying the tools on without a project of your own.
+The pictures show an invented filling line, not anyone's plant. Its program is in [`demo`](demo) as SCL sources, with tag tables and the order to generate them in. With TIA Portal V21 on Windows, [this](docs/comparing-with-tia.md#the-demo-project) makes a new project from them and archives it, for trying the tools on without a project of your own. `tools/ReadmePictures` takes the pictures from that archive.
 
 ## Changing it
 
@@ -165,6 +165,7 @@ That builds the solution, where warnings fail the build, and runs the library's 
 | `tests/TiaFormat.Tests` | The library's tests |
 | `tests/TiaViewer.Tests` | The viewer's tests: recent files, file types, version |
 | `tools/TiaOpennessExport` | Exports a project through TIA Portal for comparing, and builds the demo project. Not in the solution, because it needs TIA |
+| `tools/ReadmePictures` | Takes the pictures in this README from the demo project |
 | `demo` | The demo project's program |
 | [`docs`](docs/index.md) | Project knowledge: [the format](docs/FORMAT.md), the architecture, decisions and how we work, listed in its index |
 | `AGENTS.md`, `GLOSSARY.md`, `specs`, `.agents/skills` | Instructions, terms, feature specs and procedures for coding agents, in the layout of [agentic-repo-template](https://github.com/swimmesberger/agentic-repo-template) |

@@ -10,3 +10,4 @@
 * [0007](0007-one-spec-file-per-feature.md) - One spec file per feature in specs/, the how in a plan next to it
 * [0008](0008-conventional-commits.md) - Commit messages and pull request titles follow Conventional Commits
 * [0009](0009-apache-2-0-with-the-commons-clause.md) - TiaTools is licensed under Apache 2.0 with the Commons Clause and additional terms: free to use, change and use in paid work, not to sell without permission
+* [0010](0010-readme-pictures-are-rendered-headless.md) - The README's pictures are rendered headless by a tool in the solution, on Avalonia.Headless

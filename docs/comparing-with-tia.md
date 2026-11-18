@@ -51,4 +51,10 @@ The demo project's program is in `demo/` as SCL sources, with tag tables and `or
 tools/TiaOpennessExport/bin/Release/net48/TiaOpennessExport.exe demo demo C:/Users/me/td <out folder>
 ```
 
-The archive stays outside this repository, as every archive does.
+The archive stays outside this repository, as every archive does. To take the README's pictures from it again, after a change to how the viewer looks:
+
+```bash
+dotnet run --project tools/ReadmePictures -c Release -- <out folder>/FillingLine.zap21 .github/images
+```
+
+It renders the viewer without a screen, at the same size every time, so only what changed in the viewer changes in the pictures. Run it on Windows: text is drawn with the machine's fonts, and the current pictures were taken there.

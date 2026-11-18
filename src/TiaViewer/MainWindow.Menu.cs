@@ -12,7 +12,7 @@ namespace TiaViewer;
 public sealed partial class MainWindow {
     private static readonly bool IsMac = OperatingSystem.IsMacOS();
 
-    private readonly RecentFiles _recent = new(RecentFiles.DefaultFile);
+    private readonly RecentFiles _recent;
     private readonly NativeMenu _recentMenu = new();
     private readonly List<(NativeMenuItem Item, Action Run)> _menuCommands = [];
     private NativeMenuItem? _exportAllItem;

@@ -17,6 +17,7 @@ TiaTools reads a TIA Portal project's own database file and turns its PLC progra
 - `tests/TiaFormat.Tests`: tests of the library, on TUnit. They build small files with `TiaFileBuilder` instead of reading real archives.
 - `tests/TiaViewer.Tests`: tests of the viewer's parts that need no window (recent files, file types, version), on TUnit. Menus and dialogs are checked by running the viewer.
 - `tools/TiaOpennessExport`: a .NET Framework 4.8 tool on TIA Portal's Openness assemblies, outside the solution. It exports what TIA generates, for `tiadump compare`, and builds the demo project. Nothing else depends on it.
+- `tools/ReadmePictures`: takes the README's pictures by opening the demo project in the viewer's `MainWindow` on Avalonia's headless platform ([ADR 0010](adr/0010-readme-pictures-are-rendered-headless.md)). It is in the solution, so the build catches it when the viewer changes.
 
 ## Why it is this shape
 

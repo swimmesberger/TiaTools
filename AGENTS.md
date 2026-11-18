@@ -11,6 +11,7 @@ A read-only reader for Siemens TIA Portal projects that needs no TIA Portal: a v
 - `tests/TiaViewer.Tests`: the viewer's tests of what runs without a window: recent files, file types, version.
 - `tools/TiaOpennessExport`: exports a project through TIA Portal Openness for comparing, and builds the demo project. It needs Windows and TIA Portal V21, so it is not in `TiaTools.slnx`.
 - `demo/`: the demo project's program as SCL sources and tag tables: an invented filling line, the only project whose content may appear in this repository.
+- `tools/ReadmePictures`: takes the README's pictures of the viewer from the demo project, rendered headless (ADR 0010).
 - `.github/images/`: the pictures in the README.
 - `CLAUDE.md` files: one-line routers (`@AGENTS.md`). Never put content in them; a `CLAUDE.md` with content of its own stops Claude Code from reading the `AGENTS.md` next to it.
 - `GLOSSARY.md`: the glossary.
@@ -32,6 +33,7 @@ Other commands:
 
 - The tool: `dotnet run --project src/TiaDump -c Release -- <command> <archive> ...`; the commands are in the README.
 - The viewer: `dotnet run --project src/TiaViewer -c Release -- <archive>`
+- The README's pictures, after a change to how the viewer looks: `dotnet run --project tools/ReadmePictures -c Release -- <demo archive> .github/images`, on Windows; building the demo archive is in `docs/comparing-with-tia.md`.
 - Log entry: `python3 tools/log_add.py "**Update**: what and why, with a [link](page.md)"`
 
 ## Rules that always apply
