@@ -167,6 +167,12 @@ That builds the solution, where warnings fail the build, and runs the library's 
 | `tools/*.py`, `Makefile` | The repository's own checks |
 | `.github/images` | The pictures in this README |
 
+## License
+
+Use TiaTools for anything, commercial work included: read your own projects or your customers', change it, share it for free, and use it in paid work such as consulting, engineering, reviewing a customer's PLC program or training. What needs permission is selling it: selling TiaTools, or software that contains any part of its code, or charging others for it as a hosted service. To do that, ask the author, [swimmesberger](https://github.com/swimmesberger), first.
+
+Legally, that is the [Apache License 2.0](LICENSE) with the [Commons Clause](https://commonsclause.com/) and a few additional terms that spell out what selling means here; all of it is at the top of [LICENSE](LICENSE). It makes TiaTools source-available rather than open source in the OSI sense.
+
 ## Trademarks
 
 Siemens, SIMATIC, STEP 7 and TIA Portal are trademarks of Siemens AG. TiaTools is not made, endorsed or supported by Siemens. It reads files that TIA Portal writes, and Siemens publishes no description of their format, so a new TIA version can change what it finds.
