@@ -1,6 +1,4 @@
 # Editor configuration, see https://editorconfig.org
-# C# whitespace is checked in CI with `dotnet format whitespace`; see
-# .github/instructions/csharp.instructions.md ("Formatting").
 root = true
 
 [*]
@@ -15,10 +13,7 @@ trim_trailing_whitespace = true
 [*.{bat,cmd}]
 end_of_line = crlf
 
-[*.{yml,yaml,typ,astro}]
-indent_size = 2
-
-[{.github,site}/**]
+[*.{yml,yaml}]
 indent_size = 2
 
 [*.md]
@@ -253,7 +248,7 @@ resharper_entity_framework_model_validation_unlimited_string_length_highlighting
 dotnet_diagnostic.CA1859.severity = suggestion
 
 # --- Async / Threading (Microsoft.VisualStudio.Threading.Analyzers) ---
-# async void forbidden (suppress per-site for Akka actor callbacks only)
+# async void forbidden
 dotnet_diagnostic.VSTHRD100.severity = error
 # async void event handlers that hide exceptions
 dotnet_diagnostic.VSTHRD101.severity = error
