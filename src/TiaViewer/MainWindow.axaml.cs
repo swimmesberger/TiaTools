@@ -70,15 +70,12 @@ public sealed partial class MainWindow : Window {
         Editor.IsVisible = false;
         Editor.TextArea.TextView.LineTransformers.Add(_colorizer);
         SearchPanel.Install(Editor);
+        BuildMenu();
 
         OpenButton.Click += async (_, _) => await PickAndOpenAsync();
         WelcomeOpen.Click += async (_, _) => await PickAndOpenAsync();
         ExportAllButton.Click += async (_, _) => await PickAndExportAsync(null);
-        ExportBlockButton.Click += async (_, _) => {
-            if (_current is { } item) {
-                await PickAndExportAsync(new TiaTreeNode(item.Name, item));
-            }
-        };
+        ExportBlockButton.Click += (_, _) => ExportCurrent();
         CopyButton.Click += async (_, _) => {
             if (_current is { } item) {
                 await CopySourceAsync(item);
@@ -159,8 +156,12 @@ public sealed partial class MainWindow : Window {
             ResultsList.ItemsSource = null;
             ResultsChip.IsVisible = false;
             UpdateNavigation();
+            UpdateMenu();
+            RememberOpened(path);
         } catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or TiaFormat.TiaFormatException) {
             Status.Text = "Could not open it: " + e.Message;
+            // A recent file that is gone or broken would fail again.
+            _recent.Remove(path);
             // With nothing else open, this is what there is to see.
             if (_project is null) {
                 ShowWelcome("Could not open it", e.Message, canOpen: true);
@@ -230,6 +231,7 @@ public sealed partial class MainWindow : Window {
         }
         Reveal(item);
         UpdateNavigation();
+        UpdateMenu();
     }
 
     private void ShowPlaces(TiaItem? item) {
@@ -265,6 +267,7 @@ public sealed partial class MainWindow : Window {
         WelcomeText.Text = text;
         WelcomeOpen.IsVisible = canOpen;
         WelcomeHint.IsVisible = canOpen;
+        RecentPanel.IsVisible = canOpen && _recent.Paths.Count != 0;
     }
 
     private void ShowCaret() {
@@ -389,12 +392,7 @@ public sealed partial class MainWindow : Window {
         } else if (e.KeyModifiers == KeyModifiers.Alt && e.Key == Key.Right) {
             GoForward();
             e.Handled = true;
-        } else if (TokenColorizer.IsFollowGesture(e.KeyModifiers) && e.KeyModifiers.HasFlag(KeyModifiers.Shift) && e.Key == Key.F) {
-            SearchBox.Focus();
-            SearchBox.SelectAll();
-            e.Handled = true;
-        } else if (TokenColorizer.IsFollowGesture(e.KeyModifiers) && !e.KeyModifiers.HasFlag(KeyModifiers.Shift) && e.Key == Key.O) {
-            _ = PickAndOpenAsync();
+        } else if (RunMenuShortcut(e)) {
             e.Handled = true;
         }
     }
@@ -527,7 +525,7 @@ public sealed partial class MainWindow : Window {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions {
             Title = "Open a TIA Portal archive or project",
             AllowMultiple = false,
-            FileTypeFilter = [new FilePickerFileType("TIA Portal archive or project") { Patterns = ["*.zap*", "*.ap*", "*.al*", "PEData.plf"] }, FilePickerFileTypes.All],
+            FileTypeFilter = [TiaFileTypes.PickerType(wildcards: !OperatingSystem.IsMacOS()), FilePickerFileTypes.All],
         });
         if (files is [var file, ..] && file.TryGetLocalPath() is { } path) {
             await OpenAsync(path);

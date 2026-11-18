@@ -8,6 +8,7 @@ build:
 
 test:
 	dotnet test --project tests/TiaFormat.Tests
+	dotnet test --project tests/TiaViewer.Tests
 	python3 -m unittest discover -s tools/tests
 
 check-repo:

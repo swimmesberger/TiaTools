@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TiaViewer.AboutWindow"
+        Title="About TIA Viewer" Width="380" SizeToContent="Height" CanResize="False" CanMinimize="False" CanMaximize="False"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Viewer.Source}">
+    <StackPanel Margin="28,24,28,20" Spacing="6">
+        <Image x:Name="AppIcon" Width="96" Height="96" HorizontalAlignment="Center" Margin="0,0,0,6" />
+        <TextBlock x:Name="AppName" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+        <TextBlock x:Name="AppVersion" Classes="muted" FontSize="12" HorizontalAlignment="Center" />
+        <TextBlock TextAlignment="Center" TextWrapping="Wrap" Margin="0,10,0,0"
+                   Text="Reads the PLC program in a Siemens TIA Portal project without TIA Portal. Nothing is changed, and protected blocks stay closed." />
+        <TextBlock Classes="muted" FontSize="12" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0"
+                   Text="Part of TiaTools, under the Apache License 2.0 with the Commons Clause." />
+        <Button x:Name="RepositoryLink" Classes="tool" HorizontalAlignment="Center" FontSize="12"
+                Foreground="{DynamicResource Viewer.Call}" Cursor="Hand" />
+        <TextBlock Classes="muted" FontSize="11" TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"
+                   Text="Siemens and TIA Portal are trademarks of Siemens AG. TIA Viewer is not made or endorsed by Siemens." />
+        <!-- Windows dialogs close with a button; a Mac's About window has none, only its close button. -->
+        <Button x:Name="CloseButton" Content="OK" IsDefault="True" IsCancel="True" HorizontalAlignment="Right" MinWidth="80"
+                HorizontalContentAlignment="Center" Margin="0,12,0,0" />
+    </StackPanel>
+</Window>

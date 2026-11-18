@@ -8,6 +8,8 @@
         Background="{DynamicResource Viewer.Source}"
         DragDrop.AllowDrop="True">
     <DockPanel>
+        <!-- The window's menu, for where it is not shown at the top of the screen as on a Mac: there this hides itself. -->
+        <NativeMenuBar DockPanel.Dock="Top" Background="{DynamicResource Viewer.Panel}" />
         <Border DockPanel.Dock="Top" Background="{DynamicResource Viewer.Panel}" BorderBrush="{DynamicResource Viewer.Line}"
                 BorderThickness="0,0,0,1" Padding="8,6">
             <Grid ColumnDefinitions="Auto,*">
@@ -190,6 +192,22 @@
                                    Text="Read a PLC program without TIA Portal.&#10;Nothing is changed, and protected source stays closed." />
                         <Button x:Name="WelcomeOpen" Classes="accent" HorizontalAlignment="Center" Padding="14,6" Margin="0,8,0,0" Content="Open archive or project…" />
                         <TextBlock x:Name="WelcomeHint" Classes="muted" FontSize="12" HorizontalAlignment="Center" Text="or drop it here" />
+                        <StackPanel x:Name="RecentPanel" Width="460" Margin="0,22,0,0" IsVisible="False">
+                            <TextBlock Text="Recent" Classes="muted" FontSize="12" FontWeight="SemiBold" Margin="8,0,0,4" />
+                            <ItemsControl x:Name="RecentList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="local:RecentRow">
+                                        <Button Classes="tool" Click="OnRecentClick" ToolTip.Tip="{Binding Path}" Padding="8,4"
+                                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Folder}" Classes="muted" FontSize="11" TextTrimming="PathSegmentEllipsis" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>

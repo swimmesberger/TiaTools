@@ -15,6 +15,7 @@ TiaTools reads a TIA Portal project's own database file and turns its PLC progra
 - `src/TiaDump`: the `tiadump` command line tool, on `TiaFormat` and ConsoleAppFramework.
 - `src/TiaViewer`: the viewer, on `TiaFormat` and Avalonia, published through Native AOT.
 - `tests/TiaFormat.Tests`: tests of the library, on TUnit. They build small files with `TiaFileBuilder` instead of reading real archives.
+- `tests/TiaViewer.Tests`: tests of the viewer's parts that need no window (recent files, file types, version), on TUnit. Menus and dialogs are checked by running the viewer.
 - `tools/TiaOpennessExport`: a .NET Framework 4.8 tool on TIA Portal's Openness assemblies, outside the solution. It exports what TIA generates, for `tiadump compare`, and builds the demo project. Nothing else depends on it.
 
 ## Why it is this shape

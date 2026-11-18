@@ -22,7 +22,8 @@
     <string>13.0</string>
     <key>NSHighResolutionCapable</key>
     <true/>
-    <!-- macOS has no wildcard for an extension, so each TIA version is listed: a new one needs an entry. -->
+    <!-- macOS has no wildcard for an extension, so each TIA version is listed, V11 to V30 with and without _1.
+         They must equal TiaFileTypes.cs, which the open dialog uses; a test in tests/TiaViewer.Tests checks that. -->
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
@@ -34,8 +35,10 @@
             <string>Default</string>
             <key>CFBundleTypeExtensions</key>
             <array>
-                <string>zap14</string><string>zap15</string><string>zap15_1</string><string>zap16</string><string>zap17</string><string>zap18</string>
-                <string>zap19</string><string>zap20</string><string>zap21</string><string>zap22</string><string>zap23</string><string>zap24</string>
+                <string>zap11</string><string>zap11_1</string><string>zap12</string><string>zap12_1</string><string>zap13</string><string>zap13_1</string><string>zap14</string><string>zap14_1</string><string>zap15</string><string>zap15_1</string>
+                <string>zap16</string><string>zap16_1</string><string>zap17</string><string>zap17_1</string><string>zap18</string><string>zap18_1</string><string>zap19</string><string>zap19_1</string><string>zap20</string><string>zap20_1</string>
+                <string>zap21</string><string>zap21_1</string><string>zap22</string><string>zap22_1</string><string>zap23</string><string>zap23_1</string><string>zap24</string><string>zap24_1</string><string>zap25</string><string>zap25_1</string>
+                <string>zap26</string><string>zap26_1</string><string>zap27</string><string>zap27_1</string><string>zap28</string><string>zap28_1</string><string>zap29</string><string>zap29_1</string><string>zap30</string><string>zap30_1</string>
             </array>
         </dict>
         <dict>
@@ -47,8 +50,10 @@
             <string>Default</string>
             <key>CFBundleTypeExtensions</key>
             <array>
-                <string>ap14</string><string>ap15</string><string>ap15_1</string><string>ap16</string><string>ap17</string><string>ap18</string>
-                <string>ap19</string><string>ap20</string><string>ap21</string><string>ap22</string><string>ap23</string><string>ap24</string>
+                <string>ap11</string><string>ap11_1</string><string>ap12</string><string>ap12_1</string><string>ap13</string><string>ap13_1</string><string>ap14</string><string>ap14_1</string><string>ap15</string><string>ap15_1</string>
+                <string>ap16</string><string>ap16_1</string><string>ap17</string><string>ap17_1</string><string>ap18</string><string>ap18_1</string><string>ap19</string><string>ap19_1</string><string>ap20</string><string>ap20_1</string>
+                <string>ap21</string><string>ap21_1</string><string>ap22</string><string>ap22_1</string><string>ap23</string><string>ap23_1</string><string>ap24</string><string>ap24_1</string><string>ap25</string><string>ap25_1</string>
+                <string>ap26</string><string>ap26_1</string><string>ap27</string><string>ap27_1</string><string>ap28</string><string>ap28_1</string><string>ap29</string><string>ap29_1</string><string>ap30</string><string>ap30_1</string>
             </array>
         </dict>
         <dict>
@@ -60,8 +65,10 @@
             <string>Default</string>
             <key>CFBundleTypeExtensions</key>
             <array>
-                <string>al14</string><string>al15</string><string>al15_1</string><string>al16</string><string>al17</string><string>al18</string>
-                <string>al19</string><string>al20</string><string>al21</string><string>al22</string><string>al23</string><string>al24</string>
+                <string>al11</string><string>al11_1</string><string>al12</string><string>al12_1</string><string>al13</string><string>al13_1</string><string>al14</string><string>al14_1</string><string>al15</string><string>al15_1</string>
+                <string>al16</string><string>al16_1</string><string>al17</string><string>al17_1</string><string>al18</string><string>al18_1</string><string>al19</string><string>al19_1</string><string>al20</string><string>al20_1</string>
+                <string>al21</string><string>al21_1</string><string>al22</string><string>al22_1</string><string>al23</string><string>al23_1</string><string>al24</string><string>al24_1</string><string>al25</string><string>al25_1</string>
+                <string>al26</string><string>al26_1</string><string>al27</string><string>al27_1</string><string>al28</string><string>al28_1</string><string>al29</string><string>al29_1</string><string>al30</string><string>al30_1</string>
             </array>
         </dict>
     </array>

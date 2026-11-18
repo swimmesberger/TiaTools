@@ -9,6 +9,10 @@
         <PublishAot>true</PublishAot>
         <Product>TIA Viewer</Product>
         <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+        <!-- Shown in About; keep it equal to CFBundleShortVersionString in macos/Info.plist, which a test checks. -->
+        <Version>0.1.0</Version>
+        <!-- For the source-generated calls into macOS (MacRecentDocuments). -->
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>

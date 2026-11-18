@@ -100,3 +100,22 @@ public sealed class PlaceRow(TiaItem item, int line, TiaItem named, TiaReference
 
     public static PlaceRow Found(TiaSearchResult result) => new(result.Item, result.Line, result.Item, null, result.Text);
 }
+
+/// <summary>One recently opened file on the start screen: its name, and below it the folder it is in.</summary>
+public sealed class RecentRow(string path) {
+    public string Path { get; } = path;
+
+    public string Name => System.IO.Path.GetFileName(System.IO.Path.TrimEndingDirectorySeparator(Path));
+
+    /// <summary>The folder it is in, with the home folder shortened to <c>~</c> where that is the custom.</summary>
+    public string Folder {
+        get {
+            var folder = System.IO.Path.GetDirectoryName(System.IO.Path.TrimEndingDirectorySeparator(Path)) ?? "";
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (!OperatingSystem.IsWindows() && home.Length != 0 && (folder == home || folder.StartsWith(home + "/", StringComparison.Ordinal))) {
+                return "~" + folder[home.Length..];
+            }
+            return folder;
+        }
+    }
+}

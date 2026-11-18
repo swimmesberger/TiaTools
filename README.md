@@ -39,12 +39,15 @@ Install the [.NET 10 SDK](https://dotnet.microsoft.com/download), then from a cl
 dotnet run --project src/TiaViewer -c Release -- Project.zap21
 ```
 
-- **Open:** the button, Ctrl or Cmd + O, drag and drop, or an argument.
+- **Open:** the button, *File › Open…* or Ctrl or Cmd + O, drag and drop, or an argument. *File › Open Recent* and the start screen list the last ten archives, projects and libraries opened.
 - **Follow a name:** Ctrl or Cmd + click it in the source. Back and forward are on Alt+Left and Alt+Right.
 - **Who uses this:** the tabs below the source. Walking through a list keeps the list.
-- **Search:** the box at the top for all source, Ctrl or Cmd + F within a block, the box on the left for block names.
+- **Search:** the box at the top for all source (Ctrl or Cmd + Shift + F), Ctrl or Cmd + F within a block, the box on the left for block names. Both are in the *Edit* menu too.
 - **Export:** *Export all…* in the toolbar, *Export…* above a block, or right-click a PLC or folder in the tree. It writes the same files as `tiadump dump`, with an `index.tsv` of what it wrote, into a new folder inside the one you choose, so nothing there is overwritten.
-- **Copy:** *Copy* above a block puts its source on the clipboard; so does right-clicking it in the tree.
+- **Copy:** *Copy* above a block puts its source on the clipboard; so does right-clicking it in the tree, or *Edit › Copy* while the tree has the focus.
+- **Menus:** on a Mac in the menu bar, with *About TIA Viewer* in the app menu; on Windows in the window, with *About* under *Help*.
+
+The recent files are kept in `~/Library/Application Support/TIA Viewer` on a Mac and `%LOCALAPPDATA%\TIA Viewer` on Windows; on a Mac they also go to the system's recent documents. *Clear Menu* forgets them.
 
 References come from source, so a closed block's calls are not among them. The viewer says how many blocks that affects, and a short list may be incomplete. It sees direct calls, calls through instance data blocks and multi-instances, and other uses by name; it does not yet tell a read from a write.
 
@@ -58,7 +61,7 @@ Native AOT makes it a single program that starts in under a second. Publish it o
 dotnet publish src/TiaViewer -c Release -r win-x64
 ```
 
-On a Mac, this builds `artifacts/TIA Viewer.app`, signed ad hoc, and registers it for `.zap*`, `.ap*` and `.al*` files, so that a double-click opens them:
+On a Mac, this builds `artifacts/TIA Viewer.app`, signed ad hoc, and registers it for `.zap*`, `.ap*` and `.al*` files of V11 to V30, so that a double-click opens them:
 
 ```bash
 src/TiaViewer/macos/bundle.sh
@@ -66,7 +69,7 @@ src/TiaViewer/macos/bundle.sh
 
 It needs Xcode's command line tools. Homebrew's .NET is built from source, and its Native AOT link asks for OpenSSL and Brotli, which macOS has none of to link against. The script then takes them from Homebrew (`brew install openssl@3 brotli`), and says so. Such an app only runs where Homebrew has them installed, so build one to hand to others with Microsoft's .NET SDK, which links neither.
 
-**How far it is tested.** On Windows, through Native AOT, on a real project: opening takes under a second, and following a call, the lists, search, export and a 20,000 line data block all work. On macOS it builds and runs; the double-click and the Cmd key are not confirmed yet. Windows has no file association yet, so use *Open with*. To hand the app to others it needs signing, and notarization on a Mac.
+**How far it is tested.** On Windows, through Native AOT, on a real project: opening takes under a second, and following a call, the lists, search, export and a 20,000 line data block all work. On macOS it builds and runs as an app: the menu bar and its Cmd shortcuts, About, the recent files, the open dialog, and a file opened through Launch Services as a double-click does, were checked; Cmd + click to follow a name is not confirmed yet. Windows has no file association yet, so use *Open with*. To hand the app to others it needs signing, and notarization on a Mac.
 
 ## The command line
 
@@ -150,7 +153,7 @@ The pictures show an invented filling line, not anyone's plant. Its program is i
 make check
 ```
 
-That builds the solution, where warnings fail the build, and runs the library's tests and the repository's own checks; without `make`, the commands are in [AGENTS.md](AGENTS.md). Contributors and their coding agents follow AGENTS.md. Above all: nothing from a real project enters the repository, neither archives, dumps and exports nor names or source taken from them, and know-how protected blocks stay closed. A bug fix comes with a regression test, and a change to what the reader understands updates `docs/FORMAT.md` in the same commit. Commits use Conventional Commits; `git config core.hooksPath tools/hooks` checks each one as you make it.
+That builds the solution, where warnings fail the build, and runs the library's and the viewer's tests and the repository's own checks; without `make`, the commands are in [AGENTS.md](AGENTS.md). Contributors and their coding agents follow AGENTS.md. Above all: nothing from a real project enters the repository, neither archives, dumps and exports nor names or source taken from them, and know-how protected blocks stay closed. A bug fix comes with a regression test, and a change to what the reader understands updates `docs/FORMAT.md` in the same commit. Commits use Conventional Commits; `git config core.hooksPath tools/hooks` checks each one as you make it.
 
 **Working on the reader itself?** What is left: [open questions](docs/FORMAT.md#open-questions). How to compare its output with TIA Portal: [comparing with TIA Portal](docs/comparing-with-tia.md).
 
@@ -159,7 +162,8 @@ That builds the solution, where warnings fail the build, and runs the library's 
 | `src/TiaFormat` | The library: `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL and FBD text, tag tables, `TiaSourceExport`, which writes them as files, and `TiaProject`: tree, tokens, references, search) |
 | `src/TiaDump` | The command line tool |
 | `src/TiaViewer` | The viewer, in Avalonia. `Glyphs.cs` holds its icons; `Assets/make_icons.py` draws the app icon, and the files it writes are committed |
-| `tests/TiaFormat.Tests` | Unit tests |
+| `tests/TiaFormat.Tests` | The library's tests |
+| `tests/TiaViewer.Tests` | The viewer's tests: recent files, file types, version |
 | `tools/TiaOpennessExport` | Exports a project through TIA Portal for comparing, and builds the demo project. Not in the solution, because it needs TIA |
 | `demo` | The demo project's program |
 | [`docs`](docs/index.md) | Project knowledge: [the format](docs/FORMAT.md), the architecture, decisions and how we work, listed in its index |

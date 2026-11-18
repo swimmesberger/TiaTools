@@ -8,6 +8,7 @@ A read-only reader for Siemens TIA Portal projects that needs no TIA Portal: a v
 - `src/TiaDump`: the `tiadump` command line tool.
 - `src/TiaViewer`: the viewer, in Avalonia, published through Native AOT. `macos/bundle.sh` builds the Mac app; `Assets/make_icons.py` draws the app icon, and the files it writes are committed.
 - `tests/TiaFormat.Tests`: the library's tests. `TiaFileBuilder` builds the small files they read.
+- `tests/TiaViewer.Tests`: the viewer's tests of what runs without a window: recent files, file types, version.
 - `tools/TiaOpennessExport`: exports a project through TIA Portal Openness for comparing, and builds the demo project. It needs Windows and TIA Portal V21, so it is not in `TiaTools.slnx`.
 - `demo/`: the demo project's program as SCL sources and tag tables: an invented filling line, the only project whose content may appear in this repository.
 - `.github/images/`: the pictures in the README.
@@ -23,7 +24,7 @@ A read-only reader for Siemens TIA Portal projects that needs no TIA Portal: a v
 Checks, all run by `make check` unless noted:
 
 - Build: `dotnet build TiaTools.slnx`. Warnings fail the build.
-- Tests: `dotnet test --project tests/TiaFormat.Tests` (the library) and `python3 -m unittest discover -s tools/tests` (the repository scripts).
+- Tests: `dotnet test --project tests/TiaFormat.Tests` (the library), `dotnet test --project tests/TiaViewer.Tests` (the viewer) and `python3 -m unittest discover -s tools/tests` (the repository scripts).
 - Repository consistency: `python3 tools/check_repo.py`
 - Commit messages of this branch, against the remote's default branch: `make check-commits` (needs the remote, so not part of `make check`)
 
