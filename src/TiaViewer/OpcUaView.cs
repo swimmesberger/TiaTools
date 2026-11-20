@@ -62,15 +62,15 @@ public sealed class OpcUaView : UserControl {
         page.Children.Add(Heading("General"));
         page.Children.Add(Rows(
             ("Activate OPC UA server", Check(server.IsEnabled)),
-            ("Application name", Value(server.ApplicationName)),
+            ("Application name", server.ApplicationName is { } application ? Text(application) : NotStored("SIMATIC.S7-1500.OPC-UA.Application:" + plc.Name)),
             ("Device item", Text(server.ConfigType is null ? server.DeviceItem : server.DeviceItem + "  (" + server.ConfigType + ")"))));
 
         page.Children.Add(Heading("Options"));
         var options = new List<(string, Control)> {
-            ("Port", NotStored("4840")),
-            ("Enable standard SIMATIC server interface", NotStored("on")),
-            ("Minimum publishing interval", server.MinimumPublishingInterval is { } interval ? Text(Invariant($"{interval} ms")) : NotStored(null)),
-            ("Minimum sampling interval", NotStored(null)),
+            ("Port", server.Port is { } port ? Text(port.ToString(CultureInfo.InvariantCulture)) : NotStored("4840")),
+            ("Enable standard SIMATIC server interface", Switch(server.StandardServerInterface, "on")),
+            ("Minimum publishing interval", Milliseconds(server.MinimumPublishingInterval, "1000 ms")),
+            ("Minimum sampling interval", Milliseconds(server.MinimumSamplingInterval, "1000 ms")),
         };
         options.AddRange(server.OtherSettings.Select(setting => (setting.Name, (Control)Text(setting.Value))));
         page.Children.Add(Rows([.. options]));
@@ -80,13 +80,13 @@ public sealed class OpcUaView : UserControl {
             ("Server certificate", Text(server.ServerCertificateAssigned ? "assigned" : "none")),
             ("Security policies", Policies(server.SecurityPolicies)),
             ("Trusted clients", Text(server.TrustedClientCertificates == 1 ? "1 certificate" : Invariant($"{server.TrustedClientCertificates} certificates"))),
-            ("Automatically accept all client certificates during runtime", Check(server.AutoAcceptClientCertificates))));
+            ("Automatically accept all client certificates during runtime", Switch(server.AutoAcceptClientCertificates, "on"))));
 
         page.Children.Add(Heading("Security  ›  User authentication"));
         page.Children.Add(Rows(
-            ("Enable guest authentication", NotStored(null)),
-            ("Enable user name and password authentication", NotStored(null))));
-        page.Children.Add(Note("Port, standard interface, sampling interval and user authentication are stored only once changed, under keys this reader has not yet seen; TIA's default is shown where Siemens' manual gives one. Users and certificates are not read."));
+            ("Enable guest authentication", Switch(server.GuestAuthentication, "on")),
+            ("Enable user name and password authentication", Switch(server.PasswordAuthentication, "off"))));
+        page.Children.Add(Note("TIA stores a setting only once it is changed. The defaults shown are what TIA Portal V21 sets for a new S7-1500 with firmware V2.9; other firmware may differ. Users and certificates are not read."));
         return page;
     }
 
@@ -99,10 +99,12 @@ public sealed class OpcUaView : UserControl {
             var stored = Muted(policy.IsEnabled is null ? "not stored" : "", 12);
             stored.VerticalAlignment = VerticalAlignment.Center;
             line.Children.Add(stored);
-            ToolTip.SetTip(line, "Stored key EnableSecurityPolicies_" + policy.Key + "; the policy name is " + Inferred + ".");
+            ToolTip.SetTip(line, "Stored key EnableSecurityPolicies_" + policy.Key + (policy.Key.StartsWith("256RSA", StringComparison.Ordinal) || policy.Name == policy.Key ? "; the policy name is " + Inferred + "." : "; checked in TIA."));
             list.Children.Add(line);
         }
-        list.Children.Add(Muted("Policy names " + Inferred + "; hover a line for its stored key.", 12));
+        list.Children.Add(Muted(policies.All(policy => policy.IsEnabled is null)
+            ? "None stored: TIA turns on No security and Basic256Sha256 (its default for firmware V2.9). Hover a line for its stored key."
+            : "Hover a line for its stored key.", 12));
         return list;
     }
 
@@ -165,7 +167,7 @@ public sealed class OpcUaView : UserControl {
             Check(entry.Tag.ExternalVisible),
         ],
         entry => entry.Tag.Name,
-        "¹ From HMI/OPC UA/Web API, and visible in HMI engineering: " + Inferred + ". Double-click a tag, or press Enter, to open its table.");
+        "¹ From HMI/OPC UA/Web API, and visible in HMI engineering, as TIA's tag table shows them. Double-click a tag, or press Enter, to open its table.");
 
     /// <summary>A list with a header row and a note below; a row is opened by double-click or Enter.</summary>
     private Control Table<T>(string columns, Control[] header, IReadOnlyList<T> rows, Func<T, Control[]> cells, Func<T, string> name, string note) {
@@ -261,7 +263,10 @@ public sealed class OpcUaView : UserControl {
 
     private static TextBlock Text(string text) => new() { Text = text, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 3, 8, 3), TextTrimming = TextTrimming.CharacterEllipsis };
 
-    private static Control Value(string? text) => text is null ? NotStored(null) : Text(text);
+    /// <summary>A switch: its check box, or not stored with TIA's default.</summary>
+    private static Control Switch(bool? value, string tiaDefault) => value is null ? NotStored(tiaDefault) : Check(value);
+
+    private static Control Milliseconds(long? value, string tiaDefault) => value is { } ms ? Text(Invariant($"{ms} ms")) : NotStored(tiaDefault);
 
     /// <summary>A setting the project does not store, with TIA's default where it is known.</summary>
     private static TextBlock NotStored(string? tiaDefault) {
