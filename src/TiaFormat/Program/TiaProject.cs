@@ -5,6 +5,9 @@ namespace TiaFormat.Program;
 
 /// <summary>Something a project lists and can show as text: a block or a tag table.</summary>
 public sealed class TiaItem {
+    /// <summary>The kind of a PLC's OPC UA report, which is shown like an item but is no part of the program.</summary>
+    public const string OpcUaReportKind = "OPC UA";
+
     internal TiaItem(string name, string kind, long? number, string? language, bool isClosed, string scope, bool isProject, TiaBlock? block, TiaTagTable? table) {
         Name = name;
         Kind = kind;
@@ -38,6 +41,12 @@ public sealed class TiaItem {
     public TiaBlock? Block { get; }
 
     public TiaTagTable? Table { get; }
+
+    /// <summary>A PLC's OPC UA report: not searched, referenced, counted or exported.</summary>
+    public bool IsReport => Kind == OpcUaReportKind;
+
+    /// <summary>For a report, the PLC it is about; else null.</summary>
+    public string? ReportPlc { get; internal init; }
 }
 
 /// <summary>A node of a project's tree: a folder, or an item with no children.</summary>
@@ -93,14 +102,27 @@ public sealed class TiaProject {
 
     public TiaTreeNode Root { get; }
 
+    /// <summary>The blocks and tag tables: what is searched, referenced and exported.</summary>
     public List<TiaItem> Items { get; } = [];
+
+    /// <summary>One OPC UA report per PLC of the project, in the tree beside the PLC's folders.</summary>
+    public List<TiaItem> Reports { get; } = [];
 
     /// <summary>Opens a <c>.zap*</c> archive, a project or library file or folder, or a <c>PEData.plf</c>.</summary>
     public static TiaProject Open(string path) => new(path, new TiaProgram(TiaDatabase.Open(path)));
 
-    /// <summary>The item's text, made once.</summary>
-    public TiaDocument Document(TiaItem item) => _documents.GetOrAdd(item, static (key, program) =>
-        key.Table is { } table ? TiaDocumentBuilder.Build(table) : TiaDocumentBuilder.Build(program, key.Block!), Program);
+    /// <summary>The item's text, made once, when it is first asked for.</summary>
+    public TiaDocument Document(TiaItem item) => _documents.GetOrAdd(item, static (key, project) =>
+        key.ReportPlc is { } plc ? project.Report(plc)
+        : key.Table is { } table ? TiaDocumentBuilder.Build(table)
+        : TiaDocumentBuilder.Build(project.Program, key.Block!), this);
+
+    /// <summary>The report <c>tiadump opcua --plc</c> writes for the PLC, as plain text.</summary>
+    private TiaDocument Report(string plc) {
+        var output = new StringWriter { NewLine = "\n" };
+        TiaOpcUaWriter.WriteMarkdown(TiaOpcUa.Read(Program, plc), TiaOpcUaWriter.Title(Path), output);
+        return new TiaDocument(output.ToString(), []);
+    }
 
     /// <summary>Makes all texts and the references between them. Without it references are empty; searching makes the texts itself.</summary>
     public void BuildIndex() {
@@ -137,7 +159,7 @@ public sealed class TiaProject {
     public IReadOnlyList<TiaReference> ReferencesFrom(TiaItem item) => _from.TryGetValue(item, out var list) ? list : [];
 
     /// <summary>How many blocks around this item are closed: what they refer to is not known.</summary>
-    public int ClosedBlocksAround(TiaItem item) => _closed.GetValueOrDefault(item.Scope);
+    public int ClosedBlocksAround(TiaItem item) => item.IsReport ? 0 : _closed.GetValueOrDefault(item.Scope);
 
     /// <summary>Lines holding the text, whatever its case, the project's own before a library's.</summary>
     public IReadOnlyList<TiaSearchResult> Search(string text, int limit = 2000) {
@@ -222,6 +244,7 @@ public sealed class TiaProject {
 
     private void BuildTree(TiaTreeNode root) {
         var plcs = new Dictionary<string, TiaTreeNode>();
+        var projectPlcs = new Dictionary<string, string>();
         var libraries = new TiaTreeNode("Libraries and system");
         foreach (var block in Program.Blocks) {
             if (block.IsStub) {
@@ -230,6 +253,7 @@ public sealed class TiaProject {
             var item = ItemOf(block);
             Items.Add(item);
             var holder = HolderOf(block.Frame, root, libraries, plcs);
+            NoteProjectPlc(block.Frame, projectPlcs);
             Place(holder, Program.FolderPath(block.Frame), item);
         }
         foreach (var table in Program.ReadTagTables()) {
@@ -240,12 +264,27 @@ public sealed class TiaProject {
             var item = new TiaItem(table.Name, "Tags", null, null, false, ScopeOf(table.Frame), environment.Kind == "ProjectData", null, table);
             Items.Add(item);
             Place(HolderOf(table.Frame, root, libraries, plcs), Program.FolderPath(table.Frame), item);
+            NoteProjectPlc(table.Frame, projectPlcs);
+        }
+        foreach (var (key, holder) in plcs) {
+            if (projectPlcs.TryGetValue(key, out var plc)) {
+                var report = new TiaItem(TiaItem.OpcUaReportKind, TiaItem.OpcUaReportKind, null, null, false, key, true, null, null) { ReportPlc = plc };
+                Reports.Add(report);
+                holder.Children.Add(new TiaTreeNode(report.Name, report));
+            }
         }
         Sort(root);
         Sort(libraries);
         if (libraries.Children.Count != 0) {
             // The project comes first: most of this tree is the system's own.
             root.Children.Add(libraries);
+        }
+    }
+
+    /// <summary>Remembers a PLC of the project itself by its holder's key: it gets an OPC UA report.</summary>
+    private void NoteProjectPlc(in TiaFrame frame, Dictionary<string, string> projectPlcs) {
+        if (Program.Environment(frame).Kind == "ProjectData" && Program.PlcName(frame) is { } plc) {
+            projectPlcs.TryAdd(ScopeOf(frame), plc);
         }
     }
 
@@ -300,9 +339,12 @@ public sealed class TiaProject {
         _ => name,
     };
 
+    private static int Rank(TiaTreeNode node) => node.Item is null ? 1 : node.Item.IsReport ? 0 : 2;
+
     private static void Sort(TiaTreeNode node) {
+        // A PLC's OPC UA report first, then folders, then items.
         node.Children.Sort((a, b) => {
-            var folders = (a.Item is null ? 0 : 1).CompareTo(b.Item is null ? 0 : 1);
+            var folders = Rank(a).CompareTo(Rank(b));
             return folders != 0 ? folders : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
         });
         foreach (var child in node.Children) {

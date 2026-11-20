@@ -77,12 +77,12 @@ public sealed partial class MainWindow {
 
     private void UpdateMenu() {
         _exportAllItem!.IsEnabled = _project is not null;
-        _exportBlockItem!.IsEnabled = _current is not null;
+        _exportBlockItem!.IsEnabled = _current is { IsReport: false };
         _findItem!.IsEnabled = Editor.IsVisible;
     }
 
     private void ExportCurrent() {
-        if (_current is { } item) {
+        if (_current is { IsReport: false } item) {
             _ = PickAndExportAsync(new TiaTreeNode(item.Name, item));
         }
     }

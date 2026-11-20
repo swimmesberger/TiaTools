@@ -2,6 +2,7 @@
 
 ## 2026-11-20
 
+* **Update**: [spec 0005](../specs/0005-viewer-opc-ua.md) and its plan: the viewer shows each PLC's OPC UA report as the first entry under the PLC, made when first shown and kept out of search and export.
 * **Update**: [the format](FORMAT.md) gains section 18, where a PLC's OPC UA settings, server storage and roles are stored and how tags and members carry external access, checked on three more samples (C, D, E); [spec 0004](../specs/0004-opc-ua-report.md) and its plan describe `tiadump opcua`, which reports them.
 
 ## 2026-11-18

@@ -96,20 +96,17 @@ internal sealed class TiaDumpCommands {
     /// <param name="plc">Only this PLC.</param>
     [Command("opcua")]
     public int OpcUa([Argument] string archive, bool json = false, string? plc = null) {
-        var report = TiaOpcUa.Read(new TiaProgram(TiaDatabase.Open(archive)));
-        if (plc is not null) {
-            report = new TiaOpcUaReport([.. report.Plcs.Where(entry => entry.Name == plc)]);
-            if (report.Plcs.Count == 0) {
-                Console.Error.WriteLine($"No PLC named {plc}.");
-                return 1;
-            }
+        var report = TiaOpcUa.Read(new TiaProgram(TiaDatabase.Open(archive)), plc);
+        if (plc is not null && report.Plcs.Count == 0) {
+            Console.Error.WriteLine($"No PLC named {plc}.");
+            return 1;
         }
         if (json) {
             using var stdout = Console.OpenStandardOutput();
             TiaOpcUaWriter.WriteJson(report, stdout);
             stdout.Write("\n"u8);
         } else {
-            TiaOpcUaWriter.WriteMarkdown(report, Path.GetFileName(Path.TrimEndingDirectorySeparator(archive)), Console.Out);
+            TiaOpcUaWriter.WriteMarkdown(report, TiaOpcUaWriter.Title(archive), Console.Out);
         }
         return 0;
     }

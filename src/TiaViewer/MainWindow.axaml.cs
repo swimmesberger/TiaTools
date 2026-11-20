@@ -263,6 +263,8 @@ public sealed partial class MainWindow : Window {
         LanguageText.Text = item.Language;
         LanguageChip.IsVisible = item.Language is not null;
         ClosedChip.IsVisible = item.IsClosed;
+        ExportBlockButton.IsVisible = !item.IsReport;
+        ToolTip.SetTip(CopyButton, item.IsReport ? "Copy this report" : "Copy this block's source");
         Breadcrumb.Text = _paths.GetValueOrDefault(item, "");
     }
 

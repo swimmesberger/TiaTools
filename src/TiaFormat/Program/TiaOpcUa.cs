@@ -120,7 +120,8 @@ public static class TiaOpcUa {
         "OpcUaEnableServer", "ApplicationName", "AutoAcceptClient", "MinimumPublishingInterval", "ServerCertificateId", "TrustedClientCertificatesIds",
     ];
 
-    public static TiaOpcUaReport Read(TiaProgram program) {
+    /// <summary>The report of every PLC of the project, or of the one named <paramref name="plc"/> only.</summary>
+    public static TiaOpcUaReport Read(TiaProgram program, string? plc = null) {
         var db = program.Database;
         var s = db.Schema;
         var name = s.Attribute(Core, "Name");
@@ -138,31 +139,32 @@ public static class TiaOpcUa {
         var interfaces = new Dictionary<ulong, List<string>>();
         foreach (ref readonly var frame in db.Frames) {
             if (frame.TypeId == plcType) {
-                if (program.Environment(frame).Kind == "ProjectData") {
-                    plcs.Add((frame, db.ReadString(frame, name) ?? ""));
+                if (program.Environment(frame).Kind == "ProjectData" && db.ReadString(frame, name) is var plcName && (plc is null || plcName == plc)) {
+                    plcs.Add((frame, plcName ?? ""));
                 }
             } else if (frame.TypeId == itemType) {
-                if (IsOpcUaItem(db.ReadString(frame, configName), db.ReadString(frame, subtype)) && db.TryGetTarget(frame, target, out var plc)) {
-                    items.TryAdd(plc.ObjectId, frame);
+                if (IsOpcUaItem(db.ReadString(frame, configName), db.ReadString(frame, subtype)) && db.TryGetTarget(frame, target, out var owner)) {
+                    items.TryAdd(owner.ObjectId, frame);
                 }
             } else if (frame.TypeId == storageType) {
-                if (db.TryGetTarget(frame, target, out var plc)) {
-                    storages.TryAdd(plc.ObjectId, frame);
+                if (db.TryGetTarget(frame, target, out var owner)) {
+                    storages.TryAdd(owner.ObjectId, frame);
                 }
-            } else if (frame.TypeId == interfaceType && db.TryGetTarget(frame, target, out var plc)) {
-                (interfaces.TryGetValue(plc.ObjectId, out var list) ? list : interfaces[plc.ObjectId] = []).Add(db.ReadString(frame, name) ?? "");
+            } else if (frame.TypeId == interfaceType && db.TryGetTarget(frame, target, out var owner)) {
+                (interfaces.TryGetValue(owner.ObjectId, out var list) ? list : interfaces[owner.ObjectId] = []).Add(db.ReadString(frame, name) ?? "");
             }
         }
 
         var blocks = program.Blocks.Where(block => !block.IsStub && block.Kind.StartsWith("DB", StringComparison.Ordinal) && program.Environment(block.Frame).Kind == "ProjectData").ToList();
         var tables = program.ReadTagTables().Where(table => program.Environment(table.Frame).Kind == "ProjectData").ToList();
         var result = new List<TiaOpcUaPlc>();
-        foreach (var (plc, plcName) in plcs.OrderBy(entry => entry.Name, StringComparer.Ordinal)) {
-            bool Owns(in TiaFrame frame) => db.TryGetTarget(frame, target, out var owner) && owner.ObjectId == plc.ObjectId;
+        foreach (var (frame, plcName) in plcs.OrderBy(entry => entry.Name, StringComparer.Ordinal)) {
+            var id = frame.ObjectId;
+            bool Owns(in TiaFrame owned) => db.TryGetTarget(owned, target, out var owner) && owner.ObjectId == id;
             result.Add(new TiaOpcUaPlc(
                 plcName,
-                items.TryGetValue(plc.ObjectId, out var item) ? ReadServer(db, item, name, configName) : null,
-                storages.TryGetValue(plc.ObjectId, out var storage) ? ReadStorage(db, storage, interfaces.GetValueOrDefault(plc.ObjectId) ?? []) : null,
+                items.TryGetValue(id, out var item) ? ReadServer(db, item, name, configName) : null,
+                storages.TryGetValue(id, out var storage) ? ReadStorage(db, storage, interfaces.GetValueOrDefault(id) ?? []) : null,
                 [.. blocks.Where(block => Owns(block.Frame)).OrderBy(block => block.Number ?? long.MaxValue).ThenBy(block => block.Name, StringComparer.Ordinal).Select(block => ReadDataBlock(program, block))],
                 [.. tables.Where(table => Owns(table.Frame)).OrderBy(table => table.Name, StringComparer.Ordinal)
                     .Select(table => new TiaOpcUaTagTable(table.Name, [.. table.Tags.Where(tag => tag.Value is null)]))]));

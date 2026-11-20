@@ -8,6 +8,9 @@ namespace TiaFormat.Program;
 public static class TiaOpcUaWriter {
     private const int ListedMembers = 10;
 
+    /// <summary>The report's title for an archive: its file or folder name.</summary>
+    public static string Title(string archive) => Path.GetFileName(Path.TrimEndingDirectorySeparator(archive));
+
     /// <summary>The Markdown report: per PLC its server, storage, roles, data blocks and tags.</summary>
     public static void WriteMarkdown(TiaOpcUaReport report, string title, TextWriter output) {
         output.Write("# OPC UA: ");

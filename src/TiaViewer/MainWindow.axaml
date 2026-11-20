@@ -67,12 +67,12 @@
                             <StackPanel Orientation="Horizontal" Spacing="6" Background="Transparent">
                                 <StackPanel.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="{Binding ExportLabel}" Click="OnExportRow">
+                                        <MenuItem Header="{Binding ExportLabel}" IsVisible="{Binding CanExport}" Click="OnExportRow">
                                             <MenuItem.Icon>
                                                 <Path Classes="icon" Data="{x:Static local:Glyphs.Export}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="Copy source" IsVisible="{Binding IsItem}" Click="OnCopyRow">
+                                        <MenuItem Header="{Binding CopyLabel}" IsVisible="{Binding IsItem}" Click="OnCopyRow">
                                             <MenuItem.Icon>
                                                 <Path Classes="icon" Data="{x:Static local:Glyphs.Copy}" />
                                             </MenuItem.Icon>
