@@ -69,5 +69,5 @@ Not found in the sources: the names of the folders cut off in the picture (presu
 
 ## What it means for TiaTools
 
-- The stored key suffixes of section 18 of the [format](../FORMAT.md) line up with this list: `None`, `256_S`/`256_SE` for Basic256, `256SHA_S`/`256SHA_SE` for Basic256Sha256, and `256RSA_PSS_SE` for the later policy with RSA-PSS. That is still inferred from names, not checked in TIA.
-- A view that follows TIA's pages (General, Options, Security, User authentication) and its access columns for data blocks and tags will read familiar. A setting TiaTools has not found stored (port, guest access, user name and password) belongs on its page as "not stored", not left out.
+- The stored key suffixes of section 18 of the [format](../FORMAT.md) line up with this list: `None`, `128RSA_S`/`128RSA_SE` for Basic128Rsa15, `256_S`/`256_SE` for Basic256, `256SHA_S`/`256SHA_SE` for Basic256Sha256, and `256RSA_PSS_SE` for the later policy with RSA-PSS. Section 18 has since checked them, and the keys of port, guest access and user authentication, in TIA V21 through Openness, with TIA V21's defaults, which differ from this edition's: there only No security and Basic256Sha256 are on by default.
+- A view that follows TIA's pages (General, Options, Security, User authentication) and its access columns for data blocks and tags will read familiar. A setting that is not stored belongs on its page as "not stored" with TIA's default, not left out.

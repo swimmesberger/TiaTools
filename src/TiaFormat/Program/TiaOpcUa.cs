@@ -19,8 +19,9 @@ public sealed record TiaOpcUaPlc(
     IReadOnlyList<TiaOpcUaTagTable> TagTables);
 
 /// <summary>
-/// The settings of a PLC's OPC UA server, from the CPU's OPC UA device item. A setting the item does not store is null:
-/// TIA's default applies. Certificates are reported only as assigned or counted.
+/// The settings of a PLC's OPC UA server, from the CPU's OPC UA device item and, for the minimum sampling interval, the
+/// PLC itself. A setting that is not stored is null: TIA's default applies. Certificates are reported only as assigned
+/// or counted.
 /// </summary>
 public sealed record TiaOpcUaServer(
     string DeviceItem,
@@ -32,19 +33,37 @@ public sealed record TiaOpcUaServer(
     long? MinimumPublishingInterval,
     bool ServerCertificateAssigned,
     int TrustedClientCertificates,
-    IReadOnlyList<TiaOpcUaSetting> OtherSettings);
+    IReadOnlyList<TiaOpcUaSetting> OtherSettings) {
+    /// <summary>The server's TCP port; TIA's default is 4840.</summary>
+    public long? Port { get; init; }
+
+    /// <summary>Guest authentication, a session without user name.</summary>
+    public bool? GuestAuthentication { get; init; }
+
+    /// <summary>User name and password authentication. Only the switch: users and passwords are never read.</summary>
+    public bool? PasswordAuthentication { get; init; }
+
+    /// <summary>The standard SIMATIC server interface, the address space of the program's data blocks and tags.</summary>
+    public bool? StandardServerInterface { get; init; }
+
+    /// <summary>In ms; stored on the PLC, not on the OPC UA device item.</summary>
+    public long? MinimumSamplingInterval { get; init; }
+}
 
 /// <summary>
 /// One security policy switch, by the suffix of its stored key (<c>None</c>, <c>256_S</c>, <c>256SHA_SE</c>, ...);
-/// null when the key is not stored. Which OPC UA policy a suffix means is not confirmed; see the format page.
+/// null when the key is not stored. Each suffix is TIA Openness's name of the policy flag, checked in TIA; see the
+/// format page.
 /// </summary>
 public readonly record struct TiaOpcUaSecurityPolicy(string Key, bool? IsEnabled) {
     /// <summary>
-    /// The policy as TIA's list names it, inferred from the key and Siemens' manual (see the format page); the key
+    /// The OPC UA policy, named after TIA Openness's flag for the key and Siemens' manual (see the format page); the key
     /// itself for a key not seen.
     /// </summary>
     public string Name => Key switch {
         "None" => "No security",
+        "128RSA_S" => "Basic128Rsa15 - Sign",
+        "128RSA_SE" => "Basic128Rsa15 - Sign & Encrypt",
         "256_S" => "Basic256 - Sign",
         "256_SE" => "Basic256 - Sign & Encrypt",
         "256SHA_S" => "Basic256Sha256 - Sign",
@@ -128,11 +147,18 @@ public static class TiaOpcUa {
     private const string Core = "Siemens.Automation.ObjectFrame.ICoreAttributes";
     private const string ConfigBase = "Siemens.Simatic.HwConfiguration.Model.IConfigBaseData";
     private const string PolicyPrefix = "EnableSecurityPolicies_";
-    private static readonly string[] Policies = ["None", "256_S", "256_SE", "256SHA_S", "256SHA_SE", "256RSA_PSS_SE"];
+    private static readonly string[] Policies = ["None", "128RSA_S", "128RSA_SE", "256_S", "256_SE", "256SHA_S", "256SHA_SE", "256RSA_PSS_SE"];
 
     private static readonly HashSet<string> Named = [
         "OpcUaEnableServer", "ApplicationName", "AutoAcceptClient", "MinimumPublishingInterval", "ServerCertificateId", "TrustedClientCertificatesIds",
+        PortKey, GuestKey, PasswordKey, StandardInterfaceKey,
     ];
+
+    private const string PortKey = "OpcUaPortNumber";
+    private const string GuestKey = "OpcUaEnableGuestAuthentication";
+    private const string PasswordKey = "OpcUaEnablePasswordAuthentication";
+    private const string StandardInterfaceKey = "EnableStandardAddressSpace";
+    private const string SamplingKey = "MinimumSamplingInterval";
 
     /// <summary>The report of every PLC of the project, or of the one named <paramref name="plc"/> only.</summary>
     public static TiaOpcUaReport Read(TiaProgram program, string? plc = null) {
@@ -177,7 +203,7 @@ public static class TiaOpcUa {
             bool Owns(in TiaFrame owned) => db.TryGetTarget(owned, target, out var owner) && owner.ObjectId == id;
             result.Add(new TiaOpcUaPlc(
                 plcName,
-                items.TryGetValue(id, out var item) ? ReadServer(db, item, name, configName) : null,
+                items.TryGetValue(id, out var item) ? ReadServer(db, item, frame, name, configName) : null,
                 storages.TryGetValue(id, out var storage) ? ReadStorage(db, storage, interfaces.GetValueOrDefault(id) ?? []) : null,
                 [.. blocks.Where(block => Owns(block.Frame)).OrderBy(block => block.Number ?? long.MaxValue).ThenBy(block => block.Name, StringComparer.Ordinal).Select(block => ReadDataBlock(program, block))],
                 [.. tables.Where(table => Owns(table.Frame)).OrderBy(table => table.Name, StringComparer.Ordinal)
@@ -190,7 +216,7 @@ public static class TiaOpcUa {
     private static bool IsOpcUaItem(string? configName, string? subtype) =>
         (configName?.Contains(@"\OPC_UA\", StringComparison.OrdinalIgnoreCase) ?? false) || (subtype?.EndsWith(".OPC_UA", StringComparison.OrdinalIgnoreCase) ?? false);
 
-    private static TiaOpcUaServer ReadServer(TiaDatabase db, in TiaFrame item, TiaAttributeHandle name, TiaAttributeHandle configName) {
+    private static TiaOpcUaServer ReadServer(TiaDatabase db, in TiaFrame item, in TiaFrame plc, TiaAttributeHandle name, TiaAttributeHandle configName) {
         var policies = new List<TiaOpcUaSecurityPolicy>();
         foreach (var policy in Policies) {
             policies.Add(new TiaOpcUaSecurityPolicy(policy, db.ReadExpandoBoolean(item, PolicyPrefix + policy)));
@@ -221,7 +247,14 @@ public static class TiaOpcUa {
             db.ReadExpandoInteger(item, "MinimumPublishingInterval"),
             !string.IsNullOrWhiteSpace(db.ReadExpandoString(item, "ServerCertificateId")),
             trusted.Split([',', ';', ' ', '|'], StringSplitOptions.RemoveEmptyEntries).Length,
-            others);
+            others) {
+            Port = db.ReadExpandoInteger(item, PortKey),
+            GuestAuthentication = db.ReadExpandoBoolean(item, GuestKey),
+            // Named like a secret, but only the switch: the reader never looks for users or passwords.
+            PasswordAuthentication = db.ReadExpandoBoolean(item, PasswordKey),
+            StandardServerInterface = db.ReadExpandoBoolean(item, StandardInterfaceKey),
+            MinimumSamplingInterval = db.ReadExpandoInteger(plc, SamplingKey),
+        };
     }
 
     /// <summary>A scalar as text; null for a value this report does not show (blobs, structures).</summary>

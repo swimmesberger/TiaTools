@@ -74,6 +74,7 @@ internal static class TiaOpcUaFixture {
         <AttributeSet name="IConfigBaseData" id="0x6" persistent="true"><Attribute name="ConfigObjectTypeName" id="0" type="xs:string"/></AttributeSet>
         <ObjectType name="S7ControllerTargetData" id="0x00230002">
           <Implements ref="Siemens.Automation.ObjectFrame.ICoreAttributes"/>
+          <Implements ref="Siemens.Automation.ObjectFrame.ICoreExpandoAttributes"/>
           <Relation name="Environment" id="0x00232001" cardinality="1"><Target ref="Siemens.Automation.DomainModel.ProjectData"/></Relation>
         </ObjectType>
         <ObjectType name="DeviceItemData" id="0x00230003">
@@ -121,13 +122,15 @@ internal static class TiaOpcUaFixture {
             (1, "OpcUaEnableServer", BooleanType), (2, "ApplicationName", StringType), (3, "EnableSecurityPolicies_None", BooleanType),
             (4, "EnableSecurityPolicies_256SHA_SE", BooleanType), (5, "AutoAcceptClient", BooleanType), (6, "MinimumPublishingInterval", UIntType),
             (7, "ServerCertificateId", StringType), (8, "TrustedClientCertificatesIds", StringType), (9, "EncryptedPassword1", BlobType),
-            (10, "SamplingQueue", UIntType),
+            (10, "SamplingQueue", UIntType), (11, "OpcUaPortNumber", UIntType), (12, "OpcUaEnableGuestAuthentication", BooleanType),
+            (13, "OpcUaEnablePasswordAuthentication", BooleanType), (14, "EnableStandardAddressSpace", BooleanType),
         ]),
         (Storage, 802, [
             (1, "UsersAndRolesStorage", BlobType), (2, "LastCompiled", DateTimeType), (3, "LastDownloaded", DateTimeType),
             (4, "OPCUA.Expando.StructureJournalChanges", StringType), (5, "OPCUA.Expando.MappingJournalChanges", StringType),
         ]),
         (DataBlock, 803, [(1, "DBAccessibleFromOPCUA", BooleanType)]),
+        (Plc, 804, [(1, "MinimumSamplingInterval", UIntType)]),
     ];
 
     internal static readonly DateTime Compiled = new(2026, 3, 1, 8, 30, 0, DateTimeKind.Utc);
@@ -308,13 +311,14 @@ internal static class TiaOpcUaFixture {
             file.WriteSystem(0x70011, id, KeyTable(keys));
         }
         file.WriteObject(Project, 1, [Core("Filling line")]);
-        file.WriteObject(Plc, 10, [Core("Filler"), TiaFileBuilder.Slots((PlcEnvironment, Project, 1))]);
-        file.WriteObject(Plc, 11, [Core("Capper"), TiaFileBuilder.Slots((PlcEnvironment, Project, 1))]);
+        file.WriteObject(Plc, 10, [Core("Filler"), Expando((1, 100, null)), TiaFileBuilder.Slots((PlcEnvironment, Project, 1))]);
+        file.WriteObject(Plc, 11, [Core("Capper"), null, TiaFileBuilder.Slots((PlcEnvironment, Project, 1))]);
 
         if (options.HasItem) {
             var settings = new List<(uint, uint?, byte[]?)> {
                 Text(2, "Filler.OPC-UA"), Flag(3, false), Flag(4, true), Flag(5, false), (6, 250, null), Text(7, "3"), Text(8, "4,5"),
                 (9, null, TiaFileBuilder.Blob(Encoding.UTF8.GetBytes("not to be seen"), compress: false)), (10, 7, null),
+                (11, 4841, null), Flag(12, false), Flag(13, true), Flag(14, false),
             };
             if (options.StoresEnable) {
                 settings.Insert(0, Flag(1, true));
@@ -348,7 +352,7 @@ internal static class TiaOpcUaFixture {
             """);
         if (options.HasMasterCopy) {
             file.WriteObject(MasterCopy, 2, [Core("Line template")]);
-            file.WriteObject(Plc, 12, [Core("Copied"), TiaFileBuilder.Slots((PlcEnvironment, MasterCopy, 2))]);
+            file.WriteObject(Plc, 12, [Core("Copied"), null, TiaFileBuilder.Slots((PlcEnvironment, MasterCopy, 2))]);
             file.WriteObject(Root, 142, [null, Part("""<Root><Member ID="2" Name="Static"><Member ID="51" Name="Value" RID="0x02000001" /></Member></Root>""")]);
             file.WriteObject(DataBlock, 42, [
                 Core("Template", "DB"), null, TiaFileBuilder.Segment(9, (4, TiaFileBuilder.String("DB")), (8, TiaFileBuilder.String("DB"))),

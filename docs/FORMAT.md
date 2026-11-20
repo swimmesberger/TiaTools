@@ -554,20 +554,45 @@ The text is the same after compiling. TIA exports SimaticML only for a compiled 
 
 ## 18. OPC UA
 
-Where a PLC's OPC UA configuration lives. Found by walking every object of C, D and E; nothing here has been compared with TIA, so a meaning beyond the stored name is **[I]** at best. `tiadump opcua` reports it. This section names types and keys only, never what a sample stores in them.
+Where a PLC's OPC UA configuration lives. Found by walking every object of C, D and E, then checked in TIA Portal V21 on a copy of the demo project (CPU 1516-3 PN/DP, firmware V2.9): through Openness each setting of the CPU's OPC UA item, and each access column of a tag, was changed, the copy archived, and what it stored read with `tiadump inspect`. A key marked **[S]** below appeared, or changed, with its setting. `tiadump opcua` reports it all. This section names types and keys only, never what a sample stores in them.
 
 **The server's settings** are dictionary expando values (section 7.7) of the CPU's OPC UA device item: a `Siemens.Simatic.HwConfiguration.Model.DeviceItemData` whose `ICoreAttributes.Subtype` is `S71500.CPU.OPC_UA` and whose `IConfigBaseData.ConfigObjectTypeName` is `S71500\Submodules\CPU\OPC_UA\MDD_OpcUa_<version>`. `CoreObject.Target` leads to its PLC. Every PLC of the samples has one. **[S]**
 
-| Key | Type | |
-|---|---|---|
-| `OpcUaEnableServer` | bool | The server switch. Absent counts as off, TIA's default. **[I]** |
-| `ApplicationName` | string | The server's application name. |
-| `EnableSecurityPolicies_None`, `_256_S`, `_256_SE`, `_256SHA_S`, `_256SHA_SE`, `_256RSA_PSS_SE` | bool | Security policy switches. Which OPC UA policy each suffix means is **[?]**: the natural reading is Basic256 for `256`, Basic256Sha256 for `256SHA`, sign for `S` and sign and encrypt for `SE`, but what a never edited item stores does not fit TIA's defaults for a new CPU by that reading. Check in TIA before relying on one. |
-| `AutoAcceptClient` | bool | Accept client certificates automatically. |
-| `MinimumPublishingInterval` | uint | In ms. **[I]** |
-| `ServerCertificateId`, `TrustedClientCertificatesIds`, `OpcUaServerManagedCertificatesGroupName` | string | References into the certificate manager, not certificates. The report says only whether one is assigned, and counts the trusted ones. |
+| Key | Type | TIA's setting (Openness attribute) | Default |
+|---|---|---|---|
+| `OpcUaEnableServer` | bool | Activate OPC UA server (`OpcUaServer`). Absent counts as off. **[S]** | off |
+| `ApplicationName` | string | Application name (`OpcUaApplicationName`). **[S]** | `SIMATIC.S7-1500.OPC-UA.Application:<PLC>` |
+| `OpcUaPortNumber` | uint | Port (`OpcUaPort`). **[S]** | 4840 |
+| `EnableStandardAddressSpace` | bool | Enable standard SIMATIC server interface (`OpcUaStandardServerInterface`). **[S]** | on |
+| `MinimumPublishingInterval` | uint | Minimum publishing interval, ms (`OpcUaMinimumPublishingInterval`). **[S]** | 1000 |
+| `MaxSessions`, `MaxSessionTimeout`, `MaxMonitoredItems`, `MaxRegisteredNodes` | uint | Maximum number of sessions, session timeout in s, monitored items, registered nodes (`OpcUaMaxSessions`, ...). **[S]** | 15, 30, 2000, 10000 |
+| `OpcUaEnableGuestAuthentication` | bool | Enable guest authentication (`OpcUaGuestAuthentication`). **[S]** | on |
+| `OpcUaEnablePasswordAuthentication` | bool | Enable user name and password authentication (`OpcUaPasswordAuthentication`). A switch, not a password, though named like one. **[S]** | off |
+| `EnableSecurityPolicies_<suffix>` | bool | One per security policy, below (`OpcUaSecurityPolicies`). **[S]** | below |
+| `AutoAcceptClient` | bool | Automatically accept client certificates during runtime (`OpcUaAutoAcceptAllClientCertificates`). **[S]** | on |
+| `OpcUaEnableAlarmsAndConditions` | bool | Alarms and conditions (`OpcUaAlarmsAndConditionsEnable`). **[S]** | off |
+| `SupportDeprecatedTypeDictionary` | bool | `OpcUaDeprecatedTypeDictionary`. **[S]** | on |
+| `OpcUaEnableServerGlobalDiscoveryPush` | bool | `OpcUaServerGDSPushActive`. **[S]** | off |
+| `OpcUaEnableDiagnosisClientRequests` | bool | One of the diagnostics switches (`OpcUaDiagnosticsClientRequestsFailedActive`); the others were not changed. **[S]** | off |
+| `OpcUaSummarizeDiagnositcsInterval` | uint | `OpcUaDiagnosticsSummarizeInterval`, stored in ms where Openness gives s. Spelled so. **[S]** | 20 s |
+| `ExportArrayMembers` | bool | Export all array elements as separate nodes (`OpcUaExportArrayMembers`). **[S]** | on |
+| `ServerCertificateId`, `TrustedClientCertificatesIds`, `OpcUaServerManagedCertificatesGroupName` | string | References into the certificate manager, not certificates. The report says only whether one is assigned, and counts the trusted ones. | |
 
-Most keys are stored only once set. No key table of C, D or E names a port, guest access or user authentication setting, so where TIA keeps a changed one is **[?]**.
+The minimum sampling interval (`OpcUaMinimumSamplingInterval`, default 1000 ms) is not on this item: it is the expando key `MinimumSamplingInterval` (uint, ms) of the PLC, the `S7ControllerTargetData`. **[S]**
+
+**A key is stored only once its setting is changed.** A new CPU stores none of the keys above; switching the server on stores only `OpcUaEnableServer`, and every other setting still has its default. Changing the security policies stores the switch of every policy the firmware offers at once. So an absent key means TIA's default. The defaults in the table are what TIA Portal V21 sets for firmware V2.9, read through Openness; other firmware may differ. **[S]**
+
+**Security policies.** Each suffix is the name of an Openness `OpcUaSecurityPolicies` flag without its prefix: setting exactly one flag stored that suffix as 1 and every other as 0. **[S]** The default flags are `None`, `256SHA_S` and `256SHA_SE`.
+
+| Suffix | Openness flag | Policy |
+|---|---|---|
+| `None` | `OpcUaSecurityPoliciesNone` | No security |
+| `128RSA_S`, `128RSA_SE` | `...128RSAS`, `...128RSASE` | Basic128Rsa15, sign; sign and encrypt |
+| `256_S`, `256_SE` | `...256S`, `...256SE` | Basic256 |
+| `256SHA_S`, `256SHA_SE` | `...256SHAS`, `...256SHASE` | Basic256Sha256 |
+| `256RSA_PSS_SE`, and presumably `256RSA_PSS_S`, `256RSA_OAEP_S`, `256RSA_OAEP_SE` | `...256RSAPSSSE`, `...256RSAPSSS`, `...256RSAOAEPS`, `...256RSAOAEPSE` | Aes256Sha256RsaPss, Aes128Sha256RsaOaep **[I]** |
+
+The policy names follow the flags' names. Firmware V2.9 refuses the RSA-PSS and RSA-OAEP flags, and a CPU with newer firmware could not be added without a STEP 7 Professional licence, so those keys and names stay **[I]**. A sample that stores policy keys had its policies changed at some point, even if it now holds the defaults.
 
 **The server storage** is a `Siemens.Simatic.OpcUa.Model.OpcUaServerConfigurationData`, subtype `OpcUa.ServerStorage`, with `Target` to its PLC. The V20 samples have one per PLC, the V18 sample none. Its expando values: **[S]**
 
@@ -582,15 +607,15 @@ The schema also has `OpcUaInterfaceData`, `OpcUaNodeData`, `OpcUaListData` and `
 
 **Roles.** `UsersAndRolesStorage` is a 5 byte head (`01`, u32 0) and a .NET binary serialization stream ([MS-NRBF](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/)) of a `Siemens.Simatic.OpcUa.BusinessLogic.UsersAndRolesStorageContainer`: `Roles`, a list of `UaRoleMappingInfo` (`RoleId`, `ProjectRoleName`, `RoleName`, `RoleComment`, `RolePermissions` as a list of `UaNamespacePermissionInfo` with `NamespaceIndex`, `NamespaceUri` and `Permissions`, `IsImportedRole`); `RolesMap`, from an id of the project's user management to node ids; `NodePermissions`; `AccessRestrictions` per namespace; `AccessRestrictionsMap`; `Version`. **[S]** `Permissions` are OPC UA's `PermissionType` bits (Browse 1, ReadRolePermissions 2, ..., Read 32, Write 64, ReceiveEvents 2048). **[I]** The stream holds no users and no passwords; users are in the project's user management (`Siemens.Automation.Umac...`), which this reader does not read.
 
-**What a client may reach.** A data block is open to OPC UA unless `DBAccessibleFromOPCUA` is false (section 7.7). A member's access comes from the `MFlags` of section 11: the flags that write `ExternalAccessible := 'False'` close it, `79` makes it read-only, and a member under a closed or read-only one is taken to be the same. **[I]** A PLC tag (`EAMTZTagData`) has three flags in `Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem`, read as TIA's tag table columns: **[I]**
+**What a client may reach.** A data block is open to OPC UA unless `DBAccessibleFromOPCUA` is false (section 7.7). A member's access comes from the `MFlags` of section 11: the flags that write `ExternalAccessible := 'False'` close it, `79` makes it read-only, and a member under a closed or read-only one is taken to be the same. **[I]** A PLC tag (`EAMTZTagData`) has three flags in `Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem`, TIA's tag table columns: **[S]**
 
 | Attribute | Read as |
 |---|---|
-| `HmiStructureTypeRelevant` | Accessible from HMI/OPC UA/Web API |
-| `HmiReadOnly` | not Writable from HMI/OPC UA/Web API |
-| `HmiVisible` | Visible in HMI engineering |
+| `HmiStructureTypeRelevant` | Accessible from HMI/OPC UA/Web API (Openness `ExternalAccessible`) |
+| `HmiReadOnly` | not Writable from HMI/OPC UA/Web API (not `ExternalWritable`) |
+| `HmiVisible` | Visible in HMI engineering (`ExternalVisible`) |
 
-No other boolean of the tag's type could hold them, and most tags of the samples have the first and last set and `HmiReadOnly` clear, which is TIA's default. But some tags have the first clear and the last set, which TIA's tag table does not let a person set by hand. So whether `HmiStructureTypeRelevant` is the access switch is **[?]** until a tag is checked in TIA. A tag without an `IStructureItem` segment stores none of the three.
+Four tags of the demo, set through Openness to not accessible, not writable, not visible, and visible again after not accessible, stored what this table says, and `tiadump opcua` reported each as TIA showed it. TIA ties the columns together: clearing Accessible clears Writable and Visible, and setting Visible sets Accessible again. So the tags of the samples with `HmiStructureTypeRelevant` clear and `HmiVisible` set hold a combination TIA V21 does not make; the reader reports them not accessible, and what TIA shows for them is **[?]**. A tag without an `IStructureItem` segment stores none of the three.
 
 ## Open questions
 
@@ -601,7 +626,7 @@ What is left of the comparison with TIA Portal, most important first. [Comparing
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, plain FBD, STL and GRAPH.** No sample has any unprotected. A small new project in TIA with one block of each would close that, and being invented, like the demo project, it can go into the tests as a fixture. It would also test the rules on something new.
 5. **Hardware, optional.** The reader lists no devices. A `tiadump devices` command (name, type, address, network) could be checked against TIA's Network overview.
-6. **OPC UA.** Section 18 rests on stored names alone. In TIA, compare a sample's OPC UA server with its stored keys: which security policies it shows, and whether tags with `HmiStructureTypeRelevant` clear and `HmiVisible` set are accessible in the tag table. Then change the port, guest access and user authentication of a server in a copy and see which keys appear. A project with a user-defined server interface would show what the journals and `OpcUaInterfaceData` hold.
+6. **OPC UA.** The server's settings and the tags' access columns are checked (section 18). Left: the RSA-PSS and RSA-OAEP policy keys on a CPU with firmware V3 or later, which needs a STEP 7 Professional licence to add; what TIA shows for a sample's tag stored as not accessible but visible; a data block member's access (`MFlags`) in TIA's block editor, which needs the licence to generate a test block; the node ids and folders of the address space (spec 0006), from TIA's *OPC UA › Server › Export* or a client on a running server; and a project with a user-defined server interface, for what the journals and `OpcUaInterfaceData` hold.
 
 ## This repository's reader
 

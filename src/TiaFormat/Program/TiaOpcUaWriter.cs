@@ -8,6 +8,12 @@ namespace TiaFormat.Program;
 public static class TiaOpcUaWriter {
     private const int ListedMembers = 10;
 
+    /// <summary>What TIA Portal V21 sets for a new S7-1500 with firmware V2.9, read through Openness.</summary>
+    public const string Defaults =
+        "For a new S7-1500 with firmware V2.9, TIA Portal V21 sets: port 4840, the standard SIMATIC server interface on, minimum publishing and sampling interval 1000 ms, " +
+        "guest authentication on, user name and password authentication off, client certificates accepted automatically, and of the security policies " +
+        "No security and Basic256Sha256 sign, and sign and encrypt. Other firmware may differ.";
+
     /// <summary>The report's title for an archive: its file or folder name.</summary>
     public static string Title(string archive) => Path.GetFileName(Path.TrimEndingDirectorySeparator(archive));
 
@@ -57,13 +63,18 @@ public static class TiaOpcUaWriter {
         Row(output, "Application name", Stored(server.ApplicationName));
         Row(output, "Security policies", string.Join(", ", server.SecurityPolicies.Select(policy =>
             "`" + policy.Key + "` " + policy.IsEnabled switch { true => "on", false => "off", null => "not stored" })));
-        Row(output, "Accept client certificates automatically", server.AutoAcceptClientCertificates switch { true => "yes", false => "no", null => "not stored" });
+        Row(output, "Accept client certificates automatically", YesNo(server.AutoAcceptClientCertificates));
+        Row(output, "Port", server.Port is { } port ? port.ToString(CultureInfo.InvariantCulture) : "not stored");
+        Row(output, "Standard SIMATIC server interface", YesNo(server.StandardServerInterface));
         Row(output, "Minimum publishing interval", server.MinimumPublishingInterval is { } interval ? Invariant($"{interval} ms") : "not stored");
+        Row(output, "Minimum sampling interval", server.MinimumSamplingInterval is { } sampling ? Invariant($"{sampling} ms") : "not stored");
+        Row(output, "Guest authentication", YesNo(server.GuestAuthentication));
+        Row(output, "User name and password authentication", YesNo(server.PasswordAuthentication));
         Row(output, "Server certificate", server.ServerCertificateAssigned ? "assigned" : "none");
         Row(output, "Trusted client certificates", server.TrustedClientCertificates.ToString(CultureInfo.InvariantCulture));
         Row(output, "Other stored settings", server.OtherSettings.Count == 0 ? "none" : string.Join(", ", server.OtherSettings.Select(setting => "`" + setting.Name + "` = " + Cell(setting.Value))));
         output.WriteLine();
-        output.WriteLine("A setting that is not stored has TIA's default. Port, guest access and user authentication are stored only when changed, under names not yet seen. Which OPC UA policy each security key means is not confirmed (see the format page).");
+        output.WriteLine("A setting that is not stored has TIA's default. " + Defaults + " The policy names of the RSA-OAEP and RSA-PSS keys are not confirmed (see the format page).");
     }
 
     private static void WriteStorage(TiaOpcUaStorage storage, TextWriter output) {
@@ -145,7 +156,7 @@ public static class TiaOpcUaWriter {
             output.WriteLine(Invariant($"| {Cell(table.Name)} | {table.Tags.Count} | {Count(table, TiaExternalAccess.ReadWrite)} | {Count(table, TiaExternalAccess.ReadOnly)} | {Count(table, TiaExternalAccess.None)} | {Count(table, null)} |"));
         }
         output.WriteLine();
-        output.WriteLine("A tag's access is inferred from what it stores and not yet confirmed against TIA (see the format page): check a tag that matters in TIA's tag table.");
+        output.WriteLine("A tag's access is what TIA's tag table shows as Accessible, Writable and Visible from HMI/OPC UA/Web API. A tag stored as not accessible but visible is a combination TIA's tag table does not let a person set; what TIA makes of it is not confirmed (see the format page).");
         var limited = used.SelectMany(table => table.Tags.Where(tag => tag.ExternalAccess is TiaExternalAccess.None or TiaExternalAccess.ReadOnly).Select(tag => (table, tag))).ToList();
         if (limited.Count == 0) {
             return;
@@ -182,11 +193,12 @@ public static class TiaOpcUaWriter {
                 }
                 json.WriteEndObject();
                 Nullable(json, "autoAcceptClientCertificates", server.AutoAcceptClientCertificates);
-                if (server.MinimumPublishingInterval is { } interval) {
-                    json.WriteNumber("minimumPublishingIntervalMs", interval);
-                } else {
-                    json.WriteNull("minimumPublishingIntervalMs");
-                }
+                Number(json, "port", server.Port);
+                Nullable(json, "standardServerInterface", server.StandardServerInterface);
+                Number(json, "minimumPublishingIntervalMs", server.MinimumPublishingInterval);
+                Number(json, "minimumSamplingIntervalMs", server.MinimumSamplingInterval);
+                Nullable(json, "guestAuthentication", server.GuestAuthentication);
+                Nullable(json, "passwordAuthentication", server.PasswordAuthentication);
                 json.WriteBoolean("serverCertificateAssigned", server.ServerCertificateAssigned);
                 json.WriteNumber("trustedClientCertificates", server.TrustedClientCertificates);
                 json.WriteStartObject("otherSettings");
@@ -310,6 +322,16 @@ public static class TiaOpcUaWriter {
     }
 
     private static void Row(TextWriter output, string name, string value) => output.WriteLine($"| {name} | {value} |");
+
+    private static void Number(Utf8JsonWriter json, string name, long? value) {
+        if (value is { } number) {
+            json.WriteNumber(name, number);
+        } else {
+            json.WriteNull(name);
+        }
+    }
+
+    private static string YesNo(bool? value) => value switch { true => "yes", false => "no", null => "not stored" };
 
     private static string Stored(string? value) => value is null ? "not stored" : Cell(value);
 

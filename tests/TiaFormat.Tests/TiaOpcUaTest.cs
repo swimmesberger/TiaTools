@@ -49,6 +49,20 @@ public sealed class TiaOpcUaTest {
     }
 
     [Test]
+    public void PortUserAuthenticationStandardInterfaceAndSamplingIntervalAreReported() {
+        var server = Filler().Server!;
+
+        server.Port.Should().Be(4841);
+        server.GuestAuthentication.Should().BeFalse();
+        server.PasswordAuthentication.Should().BeTrue();
+        server.StandardServerInterface.Should().BeFalse();
+        server.MinimumSamplingInterval.Should().Be(100);
+        Markdown(Report()).Should().Contain("| Port | 4841 |").And.Contain("| Guest authentication | no |")
+            .And.Contain("| User name and password authentication | yes |").And.Contain("| Standard SIMATIC server interface | no |")
+            .And.Contain("| Minimum sampling interval | 100 ms |");
+    }
+
+    [Test]
     public void AServerWithoutAnEnableSwitchIsReportedOff() {
         var options = new TiaOpcUaFixture.Options { StoresEnable = false };
 
