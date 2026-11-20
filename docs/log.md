@@ -2,6 +2,7 @@
 
 ## 2026-11-20
 
+* **Update**: [research note](research/2026-11-20-tia-opc-ua-server-settings.md) on the OPC UA address space and its node set export; [spec 0006](../specs/0006-opc-ua-nodes.md), a draft, asks for the node list and export built from it.
 * **Update**: [spec 0005](../specs/0005-viewer-opc-ua.md) is approved as a structured OPC UA view in TIA Portal's layout, and built; its plan says how.
 * **Creation**: [research note](research/2026-11-20-tia-opc-ua-server-settings.md) on how TIA Portal lays out an S7-1500's OPC UA server settings, from Siemens' function manual; [spec 0005](../specs/0005-viewer-opc-ua.md) now asks for a view in that layout instead of the report's text.
 * **Update**: [spec 0005](../specs/0005-viewer-opc-ua.md) and its plan: the viewer shows each PLC's OPC UA report as the first entry under the PLC, made when first shown and kept out of search and export.
