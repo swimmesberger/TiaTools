@@ -22,14 +22,14 @@ public sealed class TiaOpcUaTest {
     private static string Markdown(TiaOpcUaReport report) {
         var output = new StringWriter();
         TiaOpcUaWriter.WriteMarkdown(report, "Filling line", output);
-        return output.ToString();
+        return output.ToString().ReplaceLineEndings("\n");
     }
 
     private static string Inspected(TiaDatabase database, uint type, ulong id) {
         database.TryGetFrame(new TiaObjectKey(type, id), out var frame).Should().BeTrue();
         var output = new StringWriter();
         TiaInspector.Write(database, frame, output);
-        return output.ToString();
+        return output.ToString().ReplaceLineEndings("\n");
     }
 
     // Is the OPC UA server on, and how is it set up ------------------------------------------------------------------
