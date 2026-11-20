@@ -32,6 +32,11 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public bool IsHolder => Node.Item is null;
 
+    /// <summary>A PLC's OPC UA report: shown like a block, but not exported.</summary>
+    public bool CanExport => Node.Item is not { IsReport: true };
+
+    public string CopyLabel => Node.Item is { IsReport: true } ? "Copy report" : "Copy source";
+
     public bool IsClosed => Node.Item?.IsClosed ?? false;
 
     /// <summary>A closed block is there, but there is less to see in it.</summary>
@@ -39,7 +44,7 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public string Number => Node.Item?.Number is { } number ? number.ToString(CultureInfo.InvariantCulture) : "";
 
-    /// <summary>How many blocks and tag tables are below, with what the filter leaves.</summary>
+    /// <summary>How many blocks and tag tables are below, with what the filter leaves; a report is neither.</summary>
     public string Count => IsHolder ? ItemsBelow().ToString(CultureInfo.InvariantCulture) : "";
 
     public Geometry Glyph => Parent is not null ? Glyphs.Folder : Name == LibrariesName ? Glyphs.Library : Glyphs.Plc;
@@ -63,7 +68,7 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
         }
     }
 
-    private int ItemsBelow() => Children.Sum(child => child.IsItem ? 1 : child.ItemsBelow());
+    private int ItemsBelow() => Children.Sum(child => child.IsItem ? (child.CanExport ? 1 : 0) : child.ItemsBelow());
 }
 
 /// <summary>One line of a list that leads to a place in the source.</summary>

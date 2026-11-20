@@ -90,6 +90,49 @@ internal sealed class TiaDumpCommands {
         return 0;
     }
 
+    /// <summary>Reports each PLC's OPC UA server settings, roles, and which data blocks and tags an OPC UA client could reach.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="json">Write JSON instead of the Markdown report.</param>
+    /// <param name="plc">Only this PLC.</param>
+    /// <param name="nodes">Write the nodes of the standard server interface as tab-separated text instead.</param>
+    /// <param name="nodeset">Write the node set file of the PLC (--plc, unless there is one only) instead.</param>
+    [Command("opcua")]
+    public int OpcUa([Argument] string archive, bool json = false, string? plc = null, bool nodes = false, bool nodeset = false) {
+        var program = new TiaProgram(TiaDatabase.Open(archive));
+        if (nodes || nodeset) {
+            var lists = TiaOpcUaNodes.Read(program, plc);
+            if (plc is not null && lists.Count == 0) {
+                Console.Error.WriteLine($"No PLC named {plc}.");
+                return 1;
+            }
+            if (nodeset) {
+                if (lists.Count != 1) {
+                    Console.Error.WriteLine(lists.Count == 0 ? "The project has no PLC." : "The project has more than one PLC; name one with --plc.");
+                    return 1;
+                }
+                using var stdout = Console.OpenStandardOutput();
+                TiaOpcUaNodeSet.Write(lists[0], stdout);
+                stdout.Write("\n"u8);
+            } else {
+                TiaOpcUaNodes.WriteText(lists, Console.Out);
+            }
+            return 0;
+        }
+        var report = TiaOpcUa.Read(program, plc);
+        if (plc is not null && report.Plcs.Count == 0) {
+            Console.Error.WriteLine($"No PLC named {plc}.");
+            return 1;
+        }
+        if (json) {
+            using var stdout = Console.OpenStandardOutput();
+            TiaOpcUaWriter.WriteJson(report, stdout);
+            stdout.Write("\n"u8);
+        } else {
+            TiaOpcUaWriter.WriteMarkdown(report, TiaOpcUaWriter.Title(archive), Console.Out);
+        }
+        return 0;
+    }
+
     /// <summary>Compares a dump with what TIA generated, block by block, and exits with 1 if any text differs.</summary>
     /// <param name="dump">A folder written by the dump command.</param>
     /// <param name="export">A folder written by tools/TiaOpennessExport.</param>

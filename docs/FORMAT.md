@@ -8,7 +8,7 @@ status: stable
 
 Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers). `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -227,7 +227,7 @@ An `AttributeSet` with `expando` holds attributes not in the schema.
 | 18 | `c`×u32 keys |
 | 18+4`c` | `c`×u32 values: inline if the type is fixed and at most 4 bytes; otherwise an offset from 18+8`c` (`0xFFFFFFFF` is missing) |
 
-An out-of-line structure or array sits at that offset without a further ref. A blob or XML value sits there as in section 7.3. **[S]**
+The key table gives each key's value type, a built-in type id of section 6. An out-of-line structure or array sits at that offset without a further ref. A blob or XML value sits there as in section 7.3, a string as in section 7.2, a `xs:dateTime` as 8 bytes of ticks as in section 2. **[S]**
 
 Some of what a source file shows is only here. Names are keys in the object type's table:
 
@@ -236,6 +236,7 @@ Some of what a source file shows is only here. Names are keys in the object type
 | `InterfaceVersionRootData` | `Values` | XML: the start values its members are declared with (section 11) **[S]** |
 | `DataBlockData` | `NonRetain` | Bool: a source file's `NON_RETAIN` **[S]** |
 | `DataBlockData` | `DBAccessibleFromOPCUA`, `DBAccessibleFromWebserver` | Bool: false adds that block attribute. Absent means true. **[S]** |
+| `DeviceItemData`, `OpcUaServerConfigurationData` | the OPC UA settings | Section 18 |
 
 **`expando="simple"`**: names are in the value itself. **[S]** This is where interface comments are.
 
@@ -342,14 +343,14 @@ A section part or struct part holds `<Member ...>` around its members; a DB's or
 | `RID` | Type code, below **[S]** |
 | `Type` | Type text for what `RID` cannot say: `"SomeUdt"`, `Array[1..10] of X`, `String[4]`, also with constants in the bounds. Quotes are `&quot;`. **[S]** |
 | `SubPartIndex` | With `RID` and no `Type`: a struct, the part holds its members. With `Type`: where the type's own interface is. **[S]** |
-| `MFlags` | The member's attributes, see below. **[S]** for the values seen, no meaning per bit |
+| `MFlags` | The member's attributes, bit by bit, see below. **[S]** |
 | `Remanence` | `Retain`: in a retained section. `Classic`: on a static member, in `VAR DB_SPECIFIC`; on an overlay it says nothing. **[S]** |
 | `AtMemberID` | It overlays that sibling: `name AT other : type`. **[S]** |
 | `StdO`, `LID`, `v`, `n`, `ph`, `Hidden`, `SlotNo`, `Depth`, `ParentId` | Offsets and flags. `StdO` looks like a bit offset in standard access **[I]**; the rest **[?]**. |
 
 **Type codes** (`RID`). The file states them itself: an ident's `<TD T="Bool:33554433:Bool"/>` is `name:decimal code:display`. Read the table from there, it is exact for that file. **[S]** Elementary, `0x020000xx`:
 
-`01` Bool, `02` Byte, `03` Char, `04` Word, `05` Int, `06` DWord, `07` DInt, `08` Real, `09` Date, `0A` Time_Of_Day, `0B` Time, `0C` S5Time, `0E` Date_And_Time, `13` String, `16` Any, `1D` Timer, `1F` IEC_Timer, `30` LReal, `31` ULInt, `32` LInt, `33` LWord, `34` USInt, `35` UInt, `36` UDInt, `37` SInt, `3C` ARef, `3E` WString, `3F` Variant, `40` LTime, `41` LTOD, `42` LDT, `43` DTL, `88` TYPE_ID, `90` HW_ANY, `91` HW_IOSYSTEM, `97` HW_SUBMODULE, `9B` HW_INTERFACE, `AA` CONN_OUC, `D0` DB_ANY. `02000000` never appears in such a table; it is on `Ret_Val` of an FC without a return value, so Void **[I]**. `A0` is in none either: only an OB's `Csg_OBNr` input uses it, and `D0` its `DBNr`. TIA's export of such an OB calls them OB_ANY and DB_ANY. **[S]**
+`01` Bool, `02` Byte, `03` Char, `04` Word, `05` Int, `06` DWord, `07` DInt, `08` Real, `09` Date, `0A` Time_Of_Day, `0B` Time, `0C` S5Time, `0E` Date_And_Time, `13` String, `16` Any, `1D` Timer, `1F` IEC_Timer, `30` LReal, `31` ULInt, `32` LInt, `33` LWord, `34` USInt, `35` UInt, `36` UDInt, `37` SInt, `3C` ARef, `3D` WChar, `3E` WString, `3F` Variant, `40` LTime, `41` LTOD, `42` LDT, `43` DTL, `88` TYPE_ID, `90` HW_ANY, `91` HW_IOSYSTEM, `97` HW_SUBMODULE, `9B` HW_INTERFACE, `AA` CONN_OUC, `D0` DB_ANY. A file names only the types its identifiers use, so the reader falls back on the elementary codes of this list, which a test block with a member of each type confirms against TIA's source; `3D` WChar is from there. **[S]** `02000000` never appears in such a table; it is on `Ret_Val` of an FC without a return value, so Void **[I]**. `A0` is in none either: only an OB's `Csg_OBNr` input uses it, and `D0` its `DBNr`. TIA's export of such an OB calls them OB_ANY and DB_ANY. **[S]**
 
 Others: `0x0201xxxx` array of elementary or system type `xxxx`; `0x020002xx` system data types (`20B` TCON_IP_v4, with `Type`); `0x91` UDT, `0x92` DB, `0x93` FB, `0x94` FC, `0x95` OB. `0x9N01xxxx` in the `0x91` to `0x94` ranges is a struct inside that block. **[S]**
 
@@ -377,12 +378,13 @@ Array bounds that are constants resolve through `<Constants><Constant Display Va
 | `MFlags` | Written |
 |---|---|
 | none | As the parent struct: the access attributes pass down |
-| `14`, `76`, `77`, `526`, `588` | `ExternalAccessible`, `ExternalVisible`, `ExternalWritable` all `'False'` |
-| `79` | `ExternalWritable := 'False'` |
-| `527` | As the parent struct |
-| with `512` set | Also `S7_SetPoint`: `'True'` if bit 0 is set and the member is elementary or an array of it, else `'False'`. Not on a parameter or a plain struct |
+| without both `4` and `8` (`0`, `3`, `7`, `32`, `39`, `512`, ...) | Nothing about access: as the parent struct |
+| `4` and `8`, `1` clear (`14`, `76`, `526`, `588`) | `ExternalAccessible`, `ExternalVisible`, `ExternalWritable` all `'False'` |
+| `4` and `8`, `1` set and `2` clear (`13`, `77`, `525`, `589`) | `ExternalVisible := 'False'` |
+| `4` and `8`, `1` and `64` set (`77`, `79`, `589`, `591`) | `ExternalWritable := 'False'` |
+| with `512` set | Also `S7_SetPoint`: `'True'` if the member is elementary or an array of it and not an instruction, else `'False'`. Not on a parameter or a plain struct |
 
-An overlay with no `MFlags` of its own takes those of the member it overlays. **[S]** This table is what the values seen do, and comes from one project, so it may not be complete. **[I]** What a struct or a UDT's `S7_SetPoint` depends on is not fully known: on two blocks a member of a fail-safe UDT has `527` and TIA writes nothing. **[?]**
+So the value `1` is Accessible, `2` Visible, `64` not Writable and `512` the set point, read only when `4` and `8` say the access bits are stored. Under a closed member every member is closed, whatever its own flags: TIA writes all three `'False'`. An overlay with no `MFlags` of its own takes those of the member it overlays. **[S]** The bits were read off three test data blocks generated in TIA Portal V21 on a copy of the demo project, one member for each combination of the four attributes, alone, together and inside a struct and an array: the reader's source is TIA's generated source byte for byte. A's dump does not change with this table, so the comparison of section 17 still holds. TIA ties the attributes as in the tag table: a member that is not accessible is neither visible nor writable. What a struct or a UDT's `S7_SetPoint` depends on is not fully known: on two blocks a member of a fail-safe UDT has `527` and TIA writes nothing. **[?]**
 
 A member whose part (`SubPartIndex`) has `IInterfaceLibraryData` is of a system type: `InstructionName` is its type's name, `LibVersion` the first two numbers of `IInterfaceLibraryData.Version`. **[S]**
 
@@ -551,24 +553,91 @@ The text is the same after compiling. TIA exports SimaticML only for a compiled 
 
 **How far the format is version-bound**: the same reader reads V15.1, V20 and V21 unchanged. A, upgraded from V20 to V21, gives byte-identical source for all 963 block files and 14 tag files; only the system instruction list and object ids changed; frame layout, blobs and relations did not move. On V15.1 kind 4 blobs do not occur and per-relation lists occur once, so those two rest on V20. Versions before 1400 use other headers (section 3), and none was tried.
 
+## 18. OPC UA
+
+Where a PLC's OPC UA configuration lives. Found by walking every object of C, D and E, then checked in TIA Portal V21 on a copy of the demo project (CPU 1516-3 PN/DP, firmware V2.9): through Openness each setting of the CPU's OPC UA item, and each access column of a tag, was changed, the copy archived, and what it stored read with `tiadump inspect`. A key marked **[S]** below appeared, or changed, with its setting. `tiadump opcua` reports it all. This section names types and keys only, never what a sample stores in them.
+
+**The server's settings** are dictionary expando values (section 7.7) of the CPU's OPC UA device item: a `Siemens.Simatic.HwConfiguration.Model.DeviceItemData` whose `ICoreAttributes.Subtype` is `S71500.CPU.OPC_UA` and whose `IConfigBaseData.ConfigObjectTypeName` is `S71500\Submodules\CPU\OPC_UA\MDD_OpcUa_<version>`. `CoreObject.Target` leads to its PLC. Every PLC of the samples has one. **[S]**
+
+| Key | Type | TIA's setting (Openness attribute) | Default |
+|---|---|---|---|
+| `OpcUaEnableServer` | bool | Activate OPC UA server (`OpcUaServer`). Absent counts as off. **[S]** | off |
+| `ApplicationName` | string | Application name (`OpcUaApplicationName`). **[S]** | `SIMATIC.S7-1500.OPC-UA.Application:<PLC>` |
+| `OpcUaPortNumber` | uint | Port (`OpcUaPort`). **[S]** | 4840 |
+| `EnableStandardAddressSpace` | bool | Enable standard SIMATIC server interface (`OpcUaStandardServerInterface`). **[S]** | on |
+| `MinimumPublishingInterval` | uint | Minimum publishing interval, ms (`OpcUaMinimumPublishingInterval`). **[S]** | 1000 |
+| `MaxSessions`, `MaxSessionTimeout`, `MaxMonitoredItems`, `MaxRegisteredNodes` | uint | Maximum number of sessions, session timeout in s, monitored items, registered nodes (`OpcUaMaxSessions`, ...). **[S]** | 15, 30, 2000, 10000 |
+| `OpcUaEnableGuestAuthentication` | bool | Enable guest authentication (`OpcUaGuestAuthentication`). **[S]** | on |
+| `OpcUaEnablePasswordAuthentication` | bool | Enable user name and password authentication (`OpcUaPasswordAuthentication`). A switch, not a password, though named like one. **[S]** | off |
+| `EnableSecurityPolicies_<suffix>` | bool | One per security policy, below (`OpcUaSecurityPolicies`). **[S]** | below |
+| `AutoAcceptClient` | bool | Automatically accept client certificates during runtime (`OpcUaAutoAcceptAllClientCertificates`). **[S]** | on |
+| `OpcUaEnableAlarmsAndConditions` | bool | Alarms and conditions (`OpcUaAlarmsAndConditionsEnable`). **[S]** | off |
+| `SupportDeprecatedTypeDictionary` | bool | `OpcUaDeprecatedTypeDictionary`. **[S]** | on |
+| `OpcUaEnableServerGlobalDiscoveryPush` | bool | `OpcUaServerGDSPushActive`. **[S]** | off |
+| `OpcUaEnableDiagnosisClientRequests` | bool | One of the diagnostics switches (`OpcUaDiagnosticsClientRequestsFailedActive`); the others were not changed. **[S]** | off |
+| `OpcUaSummarizeDiagnositcsInterval` | uint | `OpcUaDiagnosticsSummarizeInterval`, stored in ms where Openness gives s. Spelled so. **[S]** | 20 s |
+| `ExportArrayMembers` | bool | Export all array elements as separate nodes (`OpcUaExportArrayMembers`). **[S]** | on |
+| `ServerCertificateId`, `TrustedClientCertificatesIds`, `OpcUaServerManagedCertificatesGroupName` | string | References into the certificate manager, not certificates. The report says only whether one is assigned, and counts the trusted ones. | |
+
+The minimum sampling interval (`OpcUaMinimumSamplingInterval`, default 1000 ms) is not on this item: it is the expando key `MinimumSamplingInterval` (uint, ms) of the PLC, the `S7ControllerTargetData`. **[S]**
+
+**A key is stored only once its setting is changed.** A new CPU stores none of the keys above; switching the server on stores only `OpcUaEnableServer`, and every other setting still has its default. Changing the security policies stores the switch of every policy the firmware offers at once. So an absent key means TIA's default. The defaults in the table are what TIA Portal V21 sets for firmware V2.9, read through Openness; other firmware may differ. **[S]**
+
+**Security policies.** Each suffix is the name of an Openness `OpcUaSecurityPolicies` flag without its prefix: setting exactly one flag stored that suffix as 1 and every other as 0. **[S]** The default flags are `None`, `256SHA_S` and `256SHA_SE`.
+
+| Suffix | Openness flag | Policy |
+|---|---|---|
+| `None` | `OpcUaSecurityPoliciesNone` | No security |
+| `128RSA_S`, `128RSA_SE` | `...128RSAS`, `...128RSASE` | Basic128Rsa15, sign; sign and encrypt |
+| `256_S`, `256_SE` | `...256S`, `...256SE` | Basic256 |
+| `256SHA_S`, `256SHA_SE` | `...256SHAS`, `...256SHASE` | Basic256Sha256 |
+| `256RSA_OAEP_S`, `256RSA_OAEP_SE` | `...256RSAOAEPS`, `...256RSAOAEPSE` | Aes128Sha256RsaOaep |
+| `256RSA_PSS_S`, `256RSA_PSS_SE` | `...256RSAPSSS`, `...256RSAPSSSE` | Aes256Sha256RsaPss |
+
+Firmware V2.9 refuses the RSA-OAEP and RSA-PSS flags; they were set one by one on an S7-1500 with firmware V4.1 added to the copy. **[S]** The policy names follow the flags' names, and for the last two TIA's own messages, which call them Aes128Sha256RsaOaep and Aes256Sha256RsaPss. A sample that stores policy keys had its policies changed at some point, even if it now holds the defaults.
+
+**The server storage** is a `Siemens.Simatic.OpcUa.Model.OpcUaServerConfigurationData`, subtype `OpcUa.ServerStorage`, with `Target` to its PLC. The V20 samples have one per PLC, the V18 sample none. Its expando values: **[S]**
+
+| Key | Type | |
+|---|---|---|
+| `LastCompiled`, `LastDownloaded` | dateTime | Of the server interfaces. |
+| `OPCUA.Expando.StructureJournalChanges`, `OPCUA.Expando.MappingJournalChanges` | string | A JSON-like list, `[]` when empty. That a user-defined server interface or companion specification would fill them is **[I]**; their filled form is **[?]**. |
+| `UsersAndRolesStorage` | blob | The OPC UA roles, below. |
+| `CompiledInterfaceBlob` | blob | A serialized `Siemens.Simatic.OpcUa.BusinessLogic.Services.CompiledServerInterface`: `LastCompiled`, `LastDownloaded`, `NextDownloadForced`, `RID`, `ASMBinary`, `DataMapping`, `ESData`, `RolesMap`, `Thumbprint`, `IsPrimaryInterface`. Not decoded further. |
+
+The schema also has `OpcUaInterfaceData`, `OpcUaNodeData`, `OpcUaListData` and `OpcUaListContainerData`, presumably the objects of a server interface; no sample holds any. **[U]**
+
+**Roles.** `UsersAndRolesStorage` is a 5 byte head (`01`, u32 0) and a .NET binary serialization stream ([MS-NRBF](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/)) of a `Siemens.Simatic.OpcUa.BusinessLogic.UsersAndRolesStorageContainer`: `Roles`, a list of `UaRoleMappingInfo` (`RoleId`, `ProjectRoleName`, `RoleName`, `RoleComment`, `RolePermissions` as a list of `UaNamespacePermissionInfo` with `NamespaceIndex`, `NamespaceUri` and `Permissions`, `IsImportedRole`); `RolesMap`, from an id of the project's user management to node ids; `NodePermissions`; `AccessRestrictions` per namespace; `AccessRestrictionsMap`; `Version`. **[S]** `Permissions` are OPC UA's `PermissionType` bits (Browse 1, ReadRolePermissions 2, ..., Read 32, Write 64, ReceiveEvents 2048). **[I]** The stream holds no users and no passwords; users are in the project's user management (`Siemens.Automation.Umac...`), which this reader does not read.
+
+**What a client may reach.** A data block is open to OPC UA unless `DBAccessibleFromOPCUA` is false (section 7.7). A member's access comes from the `MFlags` of section 11: a member that is not accessible is closed, one that is not writable is read-only, and a member under a closed or read-only one is the same; whether it is visible does not matter to OPC UA. **[S]**: TIA's node set export of the test data blocks has no node for a closed member or one under it, a read-only member's node has no write access, and a member that is not visible has a node like any other. A PLC tag (`EAMTZTagData`) has three flags in `Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem`, TIA's tag table columns: **[S]**
+
+| Attribute | Read as |
+|---|---|
+| `HmiStructureTypeRelevant` | Accessible from HMI/OPC UA/Web API (Openness `ExternalAccessible`) |
+| `HmiReadOnly` | not Writable from HMI/OPC UA/Web API (not `ExternalWritable`) |
+| `HmiVisible` | Visible in HMI engineering (`ExternalVisible`) |
+
+Four tags of the demo, set through Openness to not accessible, not writable, not visible, and visible again after not accessible, stored what this table says, and `tiadump opcua` reported each as TIA showed it. TIA ties the columns together: clearing Accessible clears Writable and Visible, and setting Visible sets Accessible again. So the tags of the samples with `HmiStructureTypeRelevant` clear and `HmiVisible` set hold a combination TIA V21 does not make; the reader reports them not accessible, and what TIA shows for them is **[?]**. A tag without an `IStructureItem` segment stores none of the three.
+
 ## Open questions
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
 
-1. **A second project.** Most of sections 11 and 12 was worked out from A alone, `MFlags` above all, and A's V20 archive is the same program. B has not been compared with TIA. A rule that overfits shows there first.
+1. **A second project.** Most of sections 11 and 12 was worked out from A alone, and A's V20 archive is the same program; `MFlags` has since been checked bit by bit on test blocks. B has not been compared with TIA. A rule that overfits shows there first.
 2. **FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles, as the comparison page says. Then compare parts, wires and negated pins as data with what `FlgNetRenderer` reads, not as text, since our FBD text is our own layout. That would also settle whether a network stores `Time` under `TON`, as TIA shows it, where we print `TON`.
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, plain FBD, STL and GRAPH.** No sample has any unprotected. A small new project in TIA with one block of each would close that, and being invented, like the demo project, it can go into the tests as a fixture. It would also test the rules on something new.
 5. **Hardware, optional.** The reader lists no devices. A `tiadump devices` command (name, type, address, network) could be checked against TIA's Network overview.
+6. **OPC UA.** The server's settings, all security policies, the tags' access columns and the members' access are checked (sections 11 and 18), and the node ids of TIA's node set export are in the [research note](research/2026-11-20-tia-opc-ua-server-settings.md). Left: what TIA shows for a sample's tag stored as not accessible but visible, a combination TIA does not let a person make; and a project with a user-defined server interface, for what the journals and `OpcUaInterfaceData` hold.
 
 ## This repository's reader
 
-`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and booleans and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them.
+`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and the booleans, integers, strings, dates and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them. For the OPC UA roles (section 18) it has a reader of the .NET binary serialization format that only reads values and creates no type the stream names.
 
 ```bash
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `dump --raw` adds each network as stored. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.

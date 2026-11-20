@@ -67,12 +67,12 @@
                             <StackPanel Orientation="Horizontal" Spacing="6" Background="Transparent">
                                 <StackPanel.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="{Binding ExportLabel}" Click="OnExportRow">
+                                        <MenuItem Header="{Binding ExportLabel}" IsVisible="{Binding CanExport}" Click="OnExportRow">
                                             <MenuItem.Icon>
                                                 <Path Classes="icon" Data="{x:Static local:Glyphs.Export}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="Copy source" IsVisible="{Binding IsItem}" Click="OnCopyRow">
+                                        <MenuItem Header="{Binding CopyLabel}" IsVisible="{Binding IsItem}" Click="OnCopyRow">
                                             <MenuItem.Icon>
                                                 <Path Classes="icon" Data="{x:Static local:Glyphs.Copy}" />
                                             </MenuItem.Icon>
@@ -99,7 +99,7 @@
             <Border Grid.Column="1" Background="{DynamicResource Viewer.Line}" />
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" Margin="-3,0" MinWidth="0" Background="Transparent" ZIndex="1" />
 
-            <Grid Grid.Column="2" RowDefinitions="Auto,*,1,230">
+            <Grid x:Name="SourceArea" Grid.Column="2" RowDefinitions="Auto,*,1,230">
                 <Border x:Name="HeadingBar" BorderBrush="{DynamicResource Viewer.Line}" BorderThickness="0,0,0,1" Padding="12,8" IsVisible="False">
                     <!-- The name and its chips in one panel: a wider path below must not spread them apart. -->
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
@@ -138,8 +138,11 @@
                                  FontFamily="Cascadia Mono,Consolas,Menlo,Monaco,monospace"
                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
 
-                <Border Grid.Row="2" Background="{DynamicResource Viewer.Line}" />
-                <GridSplitter Grid.Row="2" ResizeDirection="Rows" Margin="0,-3" MinHeight="0" Background="Transparent" ZIndex="1" />
+                <!-- A PLC's OPC UA configuration, shown in the editor's place. -->
+                <local:OpcUaView x:Name="OpcUaPanel" Grid.Row="1" IsVisible="False" Background="{DynamicResource Viewer.Source}" />
+
+                <Border x:Name="PanelsLine" Grid.Row="2" Background="{DynamicResource Viewer.Line}" />
+                <GridSplitter x:Name="PanelsSplitter" Grid.Row="2" ResizeDirection="Rows" Margin="0,-3" MinHeight="0" Background="Transparent" ZIndex="1" />
 
                 <TabControl x:Name="Panels" Grid.Row="3" Padding="0">
                     <TabControl.Styles>

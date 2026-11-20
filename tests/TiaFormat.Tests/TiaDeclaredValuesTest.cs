@@ -94,6 +94,39 @@ public sealed class TiaMemberFlagsTest {
         TiaMemberFlags.Attributes(14, TiaMemberFlags.IsHidden(14, false), "Static", "Int", null).Should().Be("{ " + Closed + "}");
 
     [Test]
+    public void AMemberNotVisibleStaysOpenToOutsideAccess() {
+        TiaMemberFlags.IsHidden(13, false).Should().BeFalse();
+        TiaMemberFlags.IsReadOnly(13).Should().BeFalse();
+        TiaMemberFlags.Attributes(13, false, "Static", "Int", null).Should().Be("{ ExternalVisible := 'False'}");
+    }
+
+    [Test]
+    public void AMemberNotVisibleAndNotWritableIsReadOnly() {
+        TiaMemberFlags.IsReadOnly(77).Should().BeTrue();
+        TiaMemberFlags.Attributes(77, false, "Static", "Int", null).Should().Be("{ ExternalVisible := 'False'; ExternalWritable := 'False'}");
+    }
+
+    [Test]
+    public void UnderAClosedParentAMemberIsClosedWhateverItsOwnFlags() =>
+        TiaMemberFlags.Attributes(77, TiaMemberFlags.IsHidden(77, true), "Static", "Int", null).Should().Be("{ " + Closed + "}");
+
+    [Test]
+    [Arguments(0)]
+    [Arguments(3)]
+    [Arguments(7)]
+    [Arguments(32)]
+    public void FlagsWithoutTheStoredBitsSayNothingAboutAccess(int flags) {
+        TiaMemberFlags.IsHidden(flags, false).Should().BeFalse();
+        TiaMemberFlags.Attributes(flags, false, "Static", "Int", null).Should().BeNull();
+    }
+
+    [Test]
+    public void ASetPointIsTrueWhateverTheAccess() {
+        TiaMemberFlags.Attributes(525, false, "Static", "Int", null).Should().Be("{ ExternalVisible := 'False'; S7_SetPoint := 'True'}");
+        TiaMemberFlags.Attributes(526, TiaMemberFlags.IsHidden(526, false), "Static", "Int", null).Should().Be("{ " + Closed + "; S7_SetPoint := 'True'}");
+    }
+
+    [Test]
     public void AMemberWithoutFlagsIsAsItsParent() {
         TiaMemberFlags.IsHidden(null, hiddenFromParent: true).Should().BeTrue();
         TiaMemberFlags.IsHidden(null, hiddenFromParent: false).Should().BeFalse();

@@ -11,7 +11,7 @@ TiaTools reads a TIA Portal project's own database file and turns its PLC progra
 
 ## Shape
 
-- `src/TiaFormat`: the library. It depends on the base class library only. Its layers build on each other: `Storage` reads the container, frames, values, blobs and relations; `Schema` reads the type descriptions the file carries; `Xml` is a UTF-8 reader for the XML parts; `Program` turns objects into blocks, interfaces, SCL and FBD text and tag tables, writes them as files (`TiaSourceExport`) and holds the viewer's model (`TiaProject`: tree, tokens, references, search).
+- `src/TiaFormat`: the library. It depends on the base class library only. Its layers build on each other: `Storage` reads the container, frames, values, blobs and relations; `Schema` reads the type descriptions the file carries; `Xml` is a UTF-8 reader for the XML parts; `Program` turns objects into blocks, interfaces, SCL and FBD text and tag tables, reports the OPC UA configuration (`TiaOpcUa`), writes them as files (`TiaSourceExport`) and holds the viewer's model (`TiaProject`: tree, tokens, references, search).
 - `src/TiaDump`: the `tiadump` command line tool, on `TiaFormat` and ConsoleAppFramework.
 - `src/TiaViewer`: the viewer, on `TiaFormat` and Avalonia, published through Native AOT.
 - `tests/TiaFormat.Tests`: tests of the library, on TUnit. They build small files with `TiaFileBuilder` instead of reading real archives.

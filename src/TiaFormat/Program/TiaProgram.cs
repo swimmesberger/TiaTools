@@ -18,11 +18,12 @@ public sealed class TiaProgram {
     private const string DataBlockLoad = "Siemens.Simatic.Lang.Model.Blocks.ILoadablePlusDataBlockData";
     private const string UserTypeName = "Siemens.Simatic.Lang.Model.Blocks.UserTypeData";
     private const string InterfaceLibrary = "Siemens.Simatic.Lang.Model.Structures.IInterfaceLibraryData";
+    private const string StructureItem = "Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem";
 
     private readonly TiaDatabase _db;
     private readonly TiaAttributeHandle _name, _comment, _subtype, _protected, _blockType, _number, _language;
     private readonly TiaAttributeHandle _unitData, _unitRef, _unitLanguage, _partPayload, _partKind, _identPayload, _text, _image, _libraryVersion;
-    private readonly TiaAttributeHandle _tagAddress, _tagType, _tagValue;
+    private readonly TiaAttributeHandle _tagAddress, _tagType, _tagValue, _tagAccessible, _tagVisible, _tagReadOnly;
     private readonly TiaAttributeHandle _author, _family, _headerName, _version, _optimized;
     private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _isGeneratedFrom, _tagContent;
     private readonly Lazy<Dictionary<int, string>> _typeCodes;
@@ -52,8 +53,11 @@ public sealed class TiaProgram {
         _image = s.Attribute(DataBlockLoad, "VolatileBuffer");
         _libraryVersion = s.Attribute(InterfaceLibrary, "Version");
         _tagAddress = s.Attribute("Siemens.Automation.DomainModel.ITagAddress", "LogicalAddress");
-        _tagType = s.Attribute("Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem", "DisplayTypeName");
+        _tagType = s.Attribute(StructureItem, "DisplayTypeName");
         _tagValue = s.Attribute("Siemens.Automation.DomainServices.CommonTypeSystem.IDefaultStrategyData", "DefaultValue");
+        _tagAccessible = s.Attribute(StructureItem, "HmiStructureTypeRelevant");
+        _tagVisible = s.Attribute(StructureItem, "HmiVisible");
+        _tagReadOnly = s.Attribute(StructureItem, "HmiReadOnly");
         _sources = s.Relation("Sources");
         _currentInterface = s.Relation("CurrentInterface");
         _usedParts = s.Relation("UsedParts");
@@ -334,12 +338,21 @@ public sealed class TiaProgram {
             var tags = new List<TiaTag>();
             foreach (var relation in _db.EnumerateRelations(frame)) {
                 if (_tagContent.Matches(relation.RelationId) && _db.TryGetFrame(relation.Target, out var tag)) {
+                    var value = _db.ReadString(tag, _tagValue);
+                    var accessible = value is null ? _db.ReadOptionalBoolean(tag, _tagAccessible) : null;
                     tags.Add(new TiaTag(
                         _db.ReadString(tag, _name) ?? "",
                         _db.ReadString(tag, _tagType),
                         _db.ReadString(tag, _tagAddress),
-                        _db.ReadString(tag, _tagValue),
-                        _db.ReadCoreText(tag, _comment)));
+                        value,
+                        _db.ReadCoreText(tag, _comment)) {
+                        ExternalAccess = accessible switch {
+                            null => null,
+                            false => TiaExternalAccess.None,
+                            true => _db.ReadBoolean(tag, _tagReadOnly) ? TiaExternalAccess.ReadOnly : TiaExternalAccess.ReadWrite,
+                        },
+                        ExternalVisible = accessible is null ? null : _db.ReadOptionalBoolean(tag, _tagVisible),
+                    });
                 }
             }
             result.Add(new TiaTagTable(frame, _db.ReadString(frame, _name) ?? "", tags));
@@ -677,7 +690,7 @@ public sealed class TiaProgram {
             return "";
         }
         var code = unchecked((int)uint.Parse(rid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
-        if (_typeCodes.Value.TryGetValue(code, out var name)) {
+        if (_typeCodes.Value.TryGetValue(code, out var name) || ElementaryTypeCodes.TryGetValue(code, out name)) {
             return name == "LTOD" ? "LTime_Of_Day" : name;
         }
         // Only an OB's inputs use these two, and no identifier states their names.
@@ -691,6 +704,19 @@ public sealed class TiaProgram {
         }
         return code >> 24 != 2 && subPart is not null ? "Struct" : "RID " + rid;
     }
+
+    /// <summary>
+    /// The elementary type codes, for a type that no identifier of the file names: what the files seen state, and what
+    /// TIA writes for a member of each type (the format page, section 11).
+    /// </summary>
+    private static readonly Dictionary<int, string> ElementaryTypeCodes = new() {
+        [0x02000001] = "Bool", [0x02000002] = "Byte", [0x02000003] = "Char", [0x02000004] = "Word", [0x02000005] = "Int",
+        [0x02000006] = "DWord", [0x02000007] = "DInt", [0x02000008] = "Real", [0x02000009] = "Date", [0x0200000A] = "Time_Of_Day",
+        [0x0200000B] = "Time", [0x0200000C] = "S5Time", [0x0200000E] = "Date_And_Time", [0x02000013] = "String",
+        [0x02000030] = "LReal", [0x02000031] = "ULInt", [0x02000032] = "LInt", [0x02000033] = "LWord", [0x02000034] = "USInt",
+        [0x02000035] = "UInt", [0x02000036] = "UDInt", [0x02000037] = "SInt", [0x0200003D] = "WChar", [0x0200003E] = "WString",
+        [0x02000040] = "LTime", [0x02000041] = "LTime_Of_Day", [0x02000042] = "LDT", [0x02000043] = "DTL",
+    };
 
     /// <summary>The file states its own type codes: <c>T="Bool:33554433:Bool"</c> in every identifier part.</summary>
     private Dictionary<int, string> HarvestTypeCodes() {
@@ -726,7 +752,7 @@ public sealed class TiaProgram {
         return codes;
     }
 
-    private static List<TiaMember> Freeze(List<TiaMemberNode> nodes, bool hasAccessFlags, TiaDeclaredValues values, string indexedParent = "", bool hiddenFromParent = false) {
+    private static List<TiaMember> Freeze(List<TiaMemberNode> nodes, bool hasAccessFlags, TiaDeclaredValues values, string indexedParent = "", bool hiddenFromParent = false, bool readOnlyFromParent = false) {
         var result = new List<TiaMember>(nodes.Count);
         foreach (var n in nodes) {
             var overlaid = n.AtMemberId is null ? null : nodes.Find(other => other.Id == n.AtMemberId);
@@ -734,12 +760,14 @@ public sealed class TiaProgram {
             var showsAccess = hasAccessFlags && n.Section is not ("Temp" or "Constant" or "Return");
             var indexed = indexedParent + n.Id;
             var declared = values.Text(n, indexed);
-            var children = n.Children.Count == 0 ? [] : Freeze(n.Children, hasAccessFlags, values, TiaDeclaredValues.FirstElement(n, indexed) + ":", hidden);
+            var readOnly = readOnlyFromParent || TiaMemberFlags.IsReadOnly(n.Flags ?? overlaid?.Flags);
+            var children = n.Children.Count == 0 ? [] : Freeze(n.Children, hasAccessFlags, values, TiaDeclaredValues.FirstElement(n, indexed) + ":", hidden, readOnly);
             result.Add(new TiaMember(n.Name, n.Type, n.Path, n.Section, n.Comment, n.StartValue ?? declared, children, n.IsRetain) {
                 IsDbSpecific = n.IsDbSpecific,
                 Declared = declared,
                 AtMember = overlaid?.Name,
                 Attributes = TiaMemberFlags.Attributes(showsAccess ? n.Flags : null, showsAccess && hidden, n.Section, n.Type, n.InstructionVersion),
+                ExternalAccess = !showsAccess ? null : hidden ? TiaExternalAccess.None : readOnly ? TiaExternalAccess.ReadOnly : TiaExternalAccess.ReadWrite,
             });
         }
         return result;

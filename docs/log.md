@@ -1,5 +1,16 @@
 # Update log
 
+## 2026-11-20
+
+* **Update**: [spec 0006](../specs/0006-opc-ua-nodes.md) is approved and built with its plan: `tiadump opcua --nodes` and `--nodeset` and the viewer's Nodes tab list a PLC's OPC UA nodes and export them as a node set file, matching TIA V21's own export node for node; the [research note](research/2026-11-20-tia-opc-ua-server-settings.md) gives the rules and the comparison, and [the format](FORMAT.md) the fallback for type codes no identifier names.
+* **Update**: [the format](FORMAT.md) reads a member's `MFlags` bit by bit, checked on test data blocks TIA V21 generated, and confirms the RSA-OAEP and RSA-PSS policy keys on firmware V4.1; the [research note](research/2026-11-20-tia-opc-ua-server-settings.md) adds the node ids of TIA's OPC UA node set export; [spec 0004](../specs/0004-opc-ua-report.md) marks less as unconfirmed.
+* **Update**: [the format](FORMAT.md), section 18, is checked in TIA V21 through Openness on a copy of the demo project: every server setting's key and default, the security policy keys, the minimum sampling interval on the PLC, and the tags' access columns; [spec 0004](../specs/0004-opc-ua-report.md) and [spec 0005](../specs/0005-viewer-opc-ua.md) report the port, user authentication, standard interface and sampling interval and mark less as inferred.
+* **Update**: [research note](research/2026-11-20-tia-opc-ua-server-settings.md) on the OPC UA address space and its node set export; [spec 0006](../specs/0006-opc-ua-nodes.md), a draft, asks for the node list and export built from it.
+* **Update**: [spec 0005](../specs/0005-viewer-opc-ua.md) is approved as a structured OPC UA view in TIA Portal's layout, and built; its plan says how.
+* **Creation**: [research note](research/2026-11-20-tia-opc-ua-server-settings.md) on how TIA Portal lays out an S7-1500's OPC UA server settings, from Siemens' function manual; [spec 0005](../specs/0005-viewer-opc-ua.md) now asks for a view in that layout instead of the report's text.
+* **Update**: [spec 0005](../specs/0005-viewer-opc-ua.md) and its plan: the viewer shows each PLC's OPC UA report as the first entry under the PLC, made when first shown and kept out of search and export.
+* **Update**: [the format](FORMAT.md) gains section 18, where a PLC's OPC UA settings, server storage and roles are stored and how tags and members carry external access, checked on three more samples (C, D, E); [spec 0004](../specs/0004-opc-ua-report.md) and its plan describe `tiadump opcua`, which reports them.
+
 ## 2026-11-18
 
 * **Update**: [releasing](releasing.md): the release workflow builds the Mac zips too, on a Mac runner with `tools/release_macos.sh`, and attaches them with the Windows ones in one last job.

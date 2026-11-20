@@ -43,3 +43,6 @@ public readonly record struct TiaFrame(
 public readonly record struct TiaRelation(uint RelationId, TiaObjectKey Target) {
     public bool IsEmptyPlace => Target.TypeId == 0 && Target.ObjectId == 0;
 }
+
+/// <summary>A key of a dictionary expando: its name, and the type id of its value (section 6 of the format page).</summary>
+public readonly record struct TiaExpandoKey(string Name, uint ValueTypeId);

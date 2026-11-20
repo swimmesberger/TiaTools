@@ -133,7 +133,7 @@ public sealed class TiaExpandoTest {
         ]);
         file.WriteObject(UserType, 3, [Core("Udt", "UDT"), TiaFileBuilder.Slots((UdtInterface, Root, 5))]);
 
-        Written(file, UserType).Should().Contain("      A : RID 0x02000001 := TRUE;\n      B : RID 0x02000001;\n");
+        Written(file, UserType).Should().Contain("      A : Bool := TRUE;\n      B : Bool;\n");
     }
 
     private static string DataBlockWith(params (uint Key, uint? Value, byte[]? Blob)[] settings) {

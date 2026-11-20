@@ -40,6 +40,7 @@ public sealed partial class MainWindow : Window {
     private readonly Dictionary<TiaItem, string> _paths = [];
     private TiaProject? _project;
     private TiaItem? _current;
+    private GridLength _panelsHeight = new(230);
     private bool _selectingFromCode;
     private string? _pending;
     private string? _exported;
@@ -111,6 +112,12 @@ public sealed partial class MainWindow : Window {
             }
         };
 
+        OpcUaPanel.Open += OpenFromOpcUa;
+        OpcUaPanel.Said += text => {
+            Status.Text = text;
+            ShowFolderButton.IsVisible = false;
+        };
+
         var text = Editor.TextArea;
         text.AddHandler(PointerPressedEvent, OnEditorPressed, RoutingStrategies.Tunnel);
         text.AddHandler(PointerMovedEvent, OnEditorMoved, RoutingStrategies.Tunnel);
@@ -148,6 +155,8 @@ public sealed partial class MainWindow : Window {
             FillTree();
             HeadingBar.IsVisible = false;
             Editor.IsVisible = false;
+            OpcUaPanel.IsVisible = false;
+            ShowPanels(true);
             Editor.Document = new TextDocument();
             ShowWelcome(project.Root.Name, $"Choose a block on the left.\n{Command} + click a name in the source to follow it.", canOpen: false);
             var closed = project.Items.Count(item => item.IsClosed);
@@ -185,6 +194,31 @@ public sealed partial class MainWindow : Window {
         Show(item, line, keepLists);
     }
 
+    /// <summary>
+    /// Shows or hides the lists below the source. The OPC UA view refers to nothing and nothing to it, so it takes their
+    /// room; the height they had comes back with the next block.
+    /// </summary>
+    private void ShowPanels(bool show) {
+        var row = SourceArea.RowDefinitions[3];
+        if (show == Panels.IsVisible) {
+            return;
+        }
+        if (!show) {
+            _panelsHeight = row.Height;
+        }
+        row.Height = show ? _panelsHeight : new GridLength(0);
+        Panels.IsVisible = show;
+        PanelsLine.IsVisible = show;
+        PanelsSplitter.IsVisible = show;
+    }
+
+    /// <summary>Opens a data block or tag the OPC UA view names, as following it in the source would.</summary>
+    private void OpenFromOpcUa(string name) {
+        if (_project is { } project && _current is { } current && project.Resolve(current, name) is { } location) {
+            Navigate(location.Item, location.Line);
+        }
+    }
+
     /// <summary>Follows the name at a position in the text, if it leads somewhere.</summary>
     public bool FollowAt(int offset) {
         if (_project is not { } project || _current is not { } current) {
@@ -212,12 +246,18 @@ public sealed partial class MainWindow : Window {
             _colorizer.Show(document);
             Editor.Document = new TextDocument(document.Text);
             _current = item;
+            if (project.OpcUa(item) is { } opcUa) {
+                OpcUaPanel.Show(opcUa, () => project.OpcUaNodes(item)!);
+            }
             if (!keepLists) {
                 ShowPlaces(item);
             }
         }
         Welcome.IsVisible = false;
-        Editor.IsVisible = true;
+        // A PLC's OPC UA configuration has a view of its own; its text stays in the editor for copying.
+        Editor.IsVisible = !item.IsReport;
+        OpcUaPanel.IsVisible = item.IsReport;
+        ShowPanels(!item.IsReport);
         ShowHeading(item);
         var clamped = Math.Clamp(line, 0, document.LineCount - 1);
         Editor.CaretOffset = document.LineStart(clamped);
@@ -263,6 +303,8 @@ public sealed partial class MainWindow : Window {
         LanguageText.Text = item.Language;
         LanguageChip.IsVisible = item.Language is not null;
         ClosedChip.IsVisible = item.IsClosed;
+        ExportBlockButton.IsVisible = !item.IsReport;
+        ToolTip.SetTip(CopyButton, item.IsReport ? "Copy this report" : "Copy this block's source");
         Breadcrumb.Text = _paths.GetValueOrDefault(item, "");
     }
 

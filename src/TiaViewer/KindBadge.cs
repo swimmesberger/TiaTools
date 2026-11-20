@@ -33,7 +33,11 @@ public sealed class KindBadge : Border {
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change) {
         base.OnPropertyChanged(change);
         if (change.Property == KindProperty) {
-            _label.Text = Kind == "Tags" ? "TAG" : Kind;
+            _label.Text = Kind switch {
+                "Tags" => "TAG",
+                TiaFormat.Program.TiaItem.OpcUaReportKind => "OPC",
+                _ => Kind,
+            };
             Background = Glyphs.KindBrush(Kind);
         }
     }

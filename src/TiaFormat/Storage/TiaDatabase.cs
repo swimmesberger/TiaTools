@@ -25,11 +25,23 @@ public sealed class TiaDatabase {
     private const int KindSmall = 0;
     private const int KindCompressedSmall = 1;
     private const int KindLarge = 4;
+    private const uint BooleanType = 0x80000001;
+    private const uint UInt8Type = 0x80000002;
+    private const uint Int16Type = 0x80000004;
+    private const uint Int32Type = 0x80000005;
+    private const uint Int64Type = 0x80000006;
+    private const uint DateTimeType = 0x8000000A;
+    private const uint StringType = 0x8000000B;
+    private const uint BlobType = 0x8000000D;
+    private const uint XmlType = 0x8000000E;
+    private const uint UInt16Type = 0x80000012;
+    private const uint UInt32Type = 0x80000013;
+    private const uint UInt64Type = 0x80000014;
 
     private readonly byte[] _data;
     private readonly TiaFrame[] _frames;
     private readonly Dictionary<TiaObjectKey, int> _index;
-    private readonly Lazy<Dictionary<uint, Dictionary<uint, string>>> _expandoKeys;
+    private readonly Lazy<Dictionary<uint, Dictionary<uint, TiaExpandoKey>>> _expandoKeys;
 
     private TiaDatabase(byte[] data, TiaFrame[] frames, Dictionary<TiaObjectKey, int> index, int allFrameCount, TiaSchema schema) {
         _data = data;
@@ -37,7 +49,7 @@ public sealed class TiaDatabase {
         _index = index;
         AllFrameCount = allFrameCount;
         Schema = schema;
-        _expandoKeys = new Lazy<Dictionary<uint, Dictionary<uint, string>>>(ReadExpandoKeys);
+        _expandoKeys = new Lazy<Dictionary<uint, Dictionary<uint, TiaExpandoKey>>>(ReadExpandoKeys);
     }
 
     public TiaSchema Schema { get; }
@@ -168,6 +180,10 @@ public sealed class TiaDatabase {
     public bool ReadBoolean(in TiaFrame frame, TiaAttributeHandle attribute) =>
         TryLocate(frame, attribute, out var at, out _, out _) && _data[at] != 0;
 
+    /// <summary>A boolean attribute, or null if the object does not store it: unlike <see cref="ReadBoolean"/>, absent is not false.</summary>
+    public bool? ReadOptionalBoolean(in TiaFrame frame, TiaAttributeHandle attribute) =>
+        TryLocate(frame, attribute, out var at, out _, out _) ? _data[at] != 0 : null;
+
     /// <summary>An integer or enumeration attribute, or null if absent.</summary>
     public long? ReadInteger(in TiaFrame frame, TiaAttributeHandle attribute) {
         if (!TryLocate(frame, attribute, out var at, out _, out var slot)) {
@@ -254,16 +270,86 @@ public sealed class TiaDatabase {
     /// The names come from the object type's key table, reached through the mapping table.
     /// </summary>
     public PooledBytes ReadExpandoBlob(in TiaFrame frame, string name) =>
-        TryFindExpandoValue(frame, name, out var value, out var heap) && value != uint.MaxValue ? DecodeBlob(heap + (int)value) : default;
+        TryFindExpandoValue(frame, name, out var value, out var heap, out var key) && key.ValueTypeId is BlobType or XmlType && value != uint.MaxValue
+            ? DecodeBlob(heap + (int)value)
+            : default;
 
     /// <summary>A boolean value of a dictionary expando interface, by the name of its key; null if the object has none.</summary>
     public bool? ReadExpandoBoolean(in TiaFrame frame, string name) =>
-        TryFindExpandoValue(frame, name, out var value, out _) ? value != 0 : null;
+        TryFindExpandoValue(frame, name, out var value, out _, out _) ? value != 0 : null;
+
+    /// <summary>
+    /// An integer value of a dictionary expando interface, by the name of its key; null if the object has none, or the
+    /// value is not an integer or boolean. A <c>xs:ulong</c> above the range of a long is null too.
+    /// </summary>
+    public long? ReadExpandoInteger(in TiaFrame frame, string name) {
+        if (!TryFindExpandoValue(frame, name, out var value, out var heap, out var key)) {
+            return null;
+        }
+        return key.ValueTypeId switch {
+            BooleanType or UInt8Type => value & 0xFF,
+            Int16Type => (short)value,
+            UInt16Type => (ushort)value,
+            Int32Type => (int)value,
+            UInt32Type => value,
+            Int64Type when value != uint.MaxValue => BinaryPrimitives.ReadInt64LittleEndian(_data.AsSpan(heap + (int)value)),
+            UInt64Type when value != uint.MaxValue && BinaryPrimitives.ReadUInt64LittleEndian(_data.AsSpan(heap + (int)value)) is var wide && wide <= long.MaxValue => (long)wide,
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// A date and time value of a dictionary expando interface, by the name of its key, in UTC; null if the object has
+    /// none or it is zero.
+    /// </summary>
+    public DateTime? ReadExpandoDateTime(in TiaFrame frame, string name) {
+        if (!TryFindExpandoValue(frame, name, out var value, out var heap, out var key) || key.ValueTypeId != DateTimeType || value == uint.MaxValue) {
+            return null;
+        }
+        var ticks = BinaryPrimitives.ReadInt64LittleEndian(_data.AsSpan(heap + (int)value)) & 0x3FFFFFFFFFFFFFFF;
+        return ticks is 0 or > 3155378975999999999 ? null : new DateTime(ticks, DateTimeKind.Utc);
+    }
+
+    /// <summary>A string value of a dictionary expando interface, by the name of its key; null if the object has none.</summary>
+    public string? ReadExpandoString(in TiaFrame frame, string name) {
+        if (!TryFindExpandoValue(frame, name, out var value, out var heap, out var key) || key.ValueTypeId != StringType || value == uint.MaxValue) {
+            return null;
+        }
+        var start = heap + (int)value;
+        var length = ReadVarInt(_data, start, out var body);
+        var bytes = length - (body - start);
+        return bytes < 0 || body + bytes > frame.Offset + frame.Size ? null : Encoding.UTF8.GetString(_data, body, bytes);
+    }
+
+    /// <summary>
+    /// The keys of the values an object holds in its dictionary expando interfaces, in stored order, with each value's
+    /// type id (section 6 of the format page). For finding where a fact lives; read a value with the typed reads.
+    /// </summary>
+    public IReadOnlyList<TiaExpandoKey> ReadExpandoKeys(in TiaFrame frame) {
+        var result = new List<TiaExpandoKey>();
+        var type = Schema.FindObjectType(frame.TypeId);
+        if (type is null || !_expandoKeys.Value.TryGetValue(frame.TypeId, out var keys)) {
+            return result;
+        }
+        for (var i = 0; i < type.Interfaces.Length; i++) {
+            if (type.Interfaces[i].Set.Expando != TiaExpandoMode.Dictionary || !TryGetSegment(frame, i, out var segment, out var size) || size < ExpandoEntries) {
+                continue;
+            }
+            var count = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(segment + 8));
+            for (var entry = 0; entry < count; entry++) {
+                if (keys.TryGetValue(BinaryPrimitives.ReadUInt32LittleEndian(_data.AsSpan(segment + ExpandoEntries + (4 * entry))), out var key)) {
+                    result.Add(key);
+                }
+            }
+        }
+        return result;
+    }
 
     /// <summary>The value's slot: the value itself if it fits, else its offset from the returned heap.</summary>
-    private bool TryFindExpandoValue(in TiaFrame frame, string name, out uint value, out int heap) {
+    private bool TryFindExpandoValue(in TiaFrame frame, string name, out uint value, out int heap, out TiaExpandoKey found) {
         value = 0;
         heap = 0;
+        found = default;
         var type = Schema.FindObjectType(frame.TypeId);
         if (type is null || !_expandoKeys.Value.TryGetValue(frame.TypeId, out var keys)) {
             return false;
@@ -276,19 +362,20 @@ public sealed class TiaDatabase {
             var keysAt = segment + ExpandoEntries;
             var valuesAt = keysAt + (4 * count);
             for (var entry = 0; entry < count; entry++) {
-                if (!keys.TryGetValue(BinaryPrimitives.ReadUInt32LittleEndian(_data.AsSpan(keysAt + (4 * entry))), out var key) || key != name) {
+                if (!keys.TryGetValue(BinaryPrimitives.ReadUInt32LittleEndian(_data.AsSpan(keysAt + (4 * entry))), out var key) || key.Name != name) {
                     continue;
                 }
                 value = BinaryPrimitives.ReadUInt32LittleEndian(_data.AsSpan(valuesAt + (4 * entry)));
                 heap = valuesAt + (4 * count);
+                found = key;
                 return true;
             }
         }
         return false;
     }
 
-    private Dictionary<uint, Dictionary<uint, string>> ReadExpandoKeys() {
-        var result = new Dictionary<uint, Dictionary<uint, string>>();
+    private Dictionary<uint, Dictionary<uint, TiaExpandoKey>> ReadExpandoKeys() {
+        var result = new Dictionary<uint, Dictionary<uint, TiaExpandoKey>>();
         foreach (ref readonly var frame in _frames.AsSpan()) {
             if (frame.TypeId != ExpandoMappingType) {
                 continue;
@@ -307,15 +394,15 @@ public sealed class TiaDatabase {
     }
 
     /// <summary>12 bytes, u32 count, then each key: u32 key, varint length of the name alone, name, u32 value type.</summary>
-    private Dictionary<uint, string> ReadKeyTable(in TiaFrame frame) {
-        var result = new Dictionary<uint, string>();
+    private Dictionary<uint, TiaExpandoKey> ReadKeyTable(in TiaFrame frame) {
+        var result = new Dictionary<uint, TiaExpandoKey>();
         var at = frame.Offset + FrameHeadSize + SystemPayloadHead + 12;
         var count = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(at));
         at += 4;
         for (var i = 0; i < count; i++) {
             var key = BinaryPrimitives.ReadUInt32LittleEndian(_data.AsSpan(at));
             var length = ReadVarInt(_data, at + 4, out var name);
-            result[key] = Encoding.UTF8.GetString(_data, name, length);
+            result[key] = new TiaExpandoKey(Encoding.UTF8.GetString(_data, name, length), BinaryPrimitives.ReadUInt32LittleEndian(_data.AsSpan(name + length)));
             at = name + length + 4;
         }
         return result;
