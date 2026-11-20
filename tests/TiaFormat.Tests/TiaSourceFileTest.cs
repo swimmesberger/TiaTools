@@ -201,22 +201,27 @@ public sealed class TiaSourceFileTest {
     [Test]
     public void AMemberThatIsRetainedGetsASectionOfItsOwnAndTheBlockStaysNonRetain() =>
         SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000001" Remanence="Retain" /><Member ID="52" Name="B" RID="0x02000001" /></Root>""")
-            .Should().Contain("NON_RETAIN\n   VAR RETAIN\n      A : RID 0x02000001;\n   END_VAR\n   VAR \n      B : RID 0x02000001;\n   END_VAR\n\n\nBEGIN\n");
+            .Should().Contain("NON_RETAIN\n   VAR RETAIN\n      A : Bool;\n   END_VAR\n   VAR \n      B : Bool;\n   END_VAR\n\n\nBEGIN\n");
 
     [Test]
     public void ASharedDataBlockListsItsValuesInItsBody() =>
         SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000001" /><Values><V p="51" v="TRUE" /></Values></Root>""")
-            .Should().Contain("A : RID 0x02000001;\n   END_VAR\n\n\nBEGIN\n   A := TRUE;\n\nEND_DATA_BLOCK\n\n");
+            .Should().Contain("A : Bool;\n   END_VAR\n\n\nBEGIN\n   A := TRUE;\n\nEND_DATA_BLOCK\n\n");
 
     [Test]
     public void ASharedDataBlockWithStandardAccessHoldsItsMembersInAStruct() =>
         SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000001" /></Root>""", optimized: false)
-            .Should().Contain("   STRUCT \n      A : RID 0x02000001;\n   END_STRUCT;\n\n\nBEGIN\n");
+            .Should().Contain("   STRUCT \n      A : Bool;\n   END_STRUCT;\n\n\nBEGIN\n");
+
+    [Test]
+    public void AnElementaryTypeThatNoIdentifierNamesIsWrittenByName_AndAnUnknownCodeAsStored() =>
+        SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000002" /><Member ID="52" Name="B" RID="0x0200003D" /><Member ID="53" Name="C" RID="0x020000EE" /></Root>""")
+            .Should().Contain("A : Byte;\n      B : WChar;\n      C : RID 0x020000EE;");
 
     [Test]
     public void AnOverlayNamesTheMemberItLiesOn() =>
         SharedDataBlock("""<Root><Member ID="51" Name="A" RID="0x02000005" /><Member ID="52" Name="B" RID="0x02000005" AtMemberID="51" Remanence="Classic" /></Root>""")
-            .Should().Contain("B AT A : RID 0x02000005;");
+            .Should().Contain("B AT A : Int;");
 
     [Test]
     public void AnArrayOfStructsListsItsMembers() {
@@ -229,7 +234,7 @@ public sealed class TiaSourceFileTest {
         ], info: 1);
         file.WriteObject(DataBlock, 1, [Core("Db", "DB"), General("DB", "DB"), NoHeader(), TiaFileBuilder.Slots((DbInterface, Root, 4))]);
 
-        Written(file, DataBlock).Should().Contain("      A : Array[1..2] of Struct\n         x : RID 0x02000001;\n      END_STRUCT;\n");
+        Written(file, DataBlock).Should().Contain("      A : Array[1..2] of Struct\n         x : Bool;\n      END_STRUCT;\n");
     }
 
     [Test]

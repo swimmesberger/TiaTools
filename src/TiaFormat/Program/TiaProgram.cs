@@ -690,7 +690,7 @@ public sealed class TiaProgram {
             return "";
         }
         var code = unchecked((int)uint.Parse(rid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
-        if (_typeCodes.Value.TryGetValue(code, out var name)) {
+        if (_typeCodes.Value.TryGetValue(code, out var name) || ElementaryTypeCodes.TryGetValue(code, out name)) {
             return name == "LTOD" ? "LTime_Of_Day" : name;
         }
         // Only an OB's inputs use these two, and no identifier states their names.
@@ -704,6 +704,19 @@ public sealed class TiaProgram {
         }
         return code >> 24 != 2 && subPart is not null ? "Struct" : "RID " + rid;
     }
+
+    /// <summary>
+    /// The elementary type codes, for a type that no identifier of the file names: what the files seen state, and what
+    /// TIA writes for a member of each type (the format page, section 11).
+    /// </summary>
+    private static readonly Dictionary<int, string> ElementaryTypeCodes = new() {
+        [0x02000001] = "Bool", [0x02000002] = "Byte", [0x02000003] = "Char", [0x02000004] = "Word", [0x02000005] = "Int",
+        [0x02000006] = "DWord", [0x02000007] = "DInt", [0x02000008] = "Real", [0x02000009] = "Date", [0x0200000A] = "Time_Of_Day",
+        [0x0200000B] = "Time", [0x0200000C] = "S5Time", [0x0200000E] = "Date_And_Time", [0x02000013] = "String",
+        [0x02000030] = "LReal", [0x02000031] = "ULInt", [0x02000032] = "LInt", [0x02000033] = "LWord", [0x02000034] = "USInt",
+        [0x02000035] = "UInt", [0x02000036] = "UDInt", [0x02000037] = "SInt", [0x0200003D] = "WChar", [0x0200003E] = "WString",
+        [0x02000040] = "LTime", [0x02000041] = "LTime_Of_Day", [0x02000042] = "LDT", [0x02000043] = "DTL",
+    };
 
     /// <summary>The file states its own type codes: <c>T="Bool:33554433:Bool"</c> in every identifier part.</summary>
     private Dictionary<int, string> HarvestTypeCodes() {
