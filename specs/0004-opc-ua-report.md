@@ -60,7 +60,7 @@ Someone who wants to read a PLC over OPC UA, and has only the project's archive,
 - FR-007: The report MUST give, per data block of the PLC, whether it is open to OPC UA, a missing setting counting as open, and whether it is know-how protected.
 - FR-008: The report MUST name each member of an open data block that is closed to outside access or read-only, and MUST NOT name again a member under one already named.
 - FR-009: The report MUST give, per tag of the PLC's tag tables, whether it is accessible and writable, and MUST leave out constants.
-- FR-010: The report MUST say which of its readings are not yet confirmed against TIA: the names of the RSA-PSS and RSA-OAEP policy keys, and what TIA makes of a tag stored as not accessible but visible.
+- FR-010: The report MUST say which of its readings are not yet confirmed against TIA: what TIA makes of a tag stored as not accessible but visible.
 - FR-011: `tiadump opcua --json` MUST write the same report as JSON.
 - FR-012: The report and `tiadump inspect` MUST NOT show a value whose name holds password, secret, private, credential, encrypt, hash, salt, certificate, thumbprint, pki or key, or any value of a user management or certificate object.
 - FR-013: Certificates MUST be reported only as assigned or not, and as a count.

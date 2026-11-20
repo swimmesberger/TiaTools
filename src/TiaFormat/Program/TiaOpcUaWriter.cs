@@ -74,7 +74,7 @@ public static class TiaOpcUaWriter {
         Row(output, "Trusted client certificates", server.TrustedClientCertificates.ToString(CultureInfo.InvariantCulture));
         Row(output, "Other stored settings", server.OtherSettings.Count == 0 ? "none" : string.Join(", ", server.OtherSettings.Select(setting => "`" + setting.Name + "` = " + Cell(setting.Value))));
         output.WriteLine();
-        output.WriteLine("A setting that is not stored has TIA's default. " + Defaults + " The policy names of the RSA-OAEP and RSA-PSS keys are not confirmed (see the format page).");
+        output.WriteLine("A setting that is not stored has TIA's default. " + Defaults);
     }
 
     private static void WriteStorage(TiaOpcUaStorage storage, TextWriter output) {

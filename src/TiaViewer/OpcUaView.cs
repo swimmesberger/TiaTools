@@ -99,7 +99,7 @@ public sealed class OpcUaView : UserControl {
             var stored = Muted(policy.IsEnabled is null ? "not stored" : "", 12);
             stored.VerticalAlignment = VerticalAlignment.Center;
             line.Children.Add(stored);
-            ToolTip.SetTip(line, "Stored key EnableSecurityPolicies_" + policy.Key + (policy.Key.StartsWith("256RSA", StringComparison.Ordinal) || policy.Name == policy.Key ? "; the policy name is " + Inferred + "." : "; checked in TIA."));
+            ToolTip.SetTip(line, "Stored key EnableSecurityPolicies_" + policy.Key + (policy.Name == policy.Key ? "; the policy name is " + Inferred + "." : "; checked in TIA."));
             list.Children.Add(line);
         }
         list.Children.Add(Muted(policies.All(policy => policy.IsEnabled is null)

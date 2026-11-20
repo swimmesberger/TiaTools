@@ -591,9 +591,10 @@ The minimum sampling interval (`OpcUaMinimumSamplingInterval`, default 1000 ms) 
 | `128RSA_S`, `128RSA_SE` | `...128RSAS`, `...128RSASE` | Basic128Rsa15, sign; sign and encrypt |
 | `256_S`, `256_SE` | `...256S`, `...256SE` | Basic256 |
 | `256SHA_S`, `256SHA_SE` | `...256SHAS`, `...256SHASE` | Basic256Sha256 |
-| `256RSA_PSS_SE`, and presumably `256RSA_PSS_S`, `256RSA_OAEP_S`, `256RSA_OAEP_SE` | `...256RSAPSSSE`, `...256RSAPSSS`, `...256RSAOAEPS`, `...256RSAOAEPSE` | Aes256Sha256RsaPss, Aes128Sha256RsaOaep **[I]** |
+| `256RSA_OAEP_S`, `256RSA_OAEP_SE` | `...256RSAOAEPS`, `...256RSAOAEPSE` | Aes128Sha256RsaOaep |
+| `256RSA_PSS_S`, `256RSA_PSS_SE` | `...256RSAPSSS`, `...256RSAPSSSE` | Aes256Sha256RsaPss |
 
-The policy names follow the flags' names. Firmware V2.9 refuses the RSA-PSS and RSA-OAEP flags, and a CPU with newer firmware could not be added without a STEP 7 Professional licence, so those keys and names stay **[I]**. A sample that stores policy keys had its policies changed at some point, even if it now holds the defaults.
+Firmware V2.9 refuses the RSA-OAEP and RSA-PSS flags; they were set one by one on an S7-1500 with firmware V4.1 added to the copy. **[S]** The policy names follow the flags' names, and for the last two TIA's own messages, which call them Aes128Sha256RsaOaep and Aes256Sha256RsaPss. A sample that stores policy keys had its policies changed at some point, even if it now holds the defaults.
 
 **The server storage** is a `Siemens.Simatic.OpcUa.Model.OpcUaServerConfigurationData`, subtype `OpcUa.ServerStorage`, with `Target` to its PLC. The V20 samples have one per PLC, the V18 sample none. Its expando values: **[S]**
 

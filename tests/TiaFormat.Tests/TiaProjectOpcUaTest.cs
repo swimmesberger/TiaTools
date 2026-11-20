@@ -45,7 +45,8 @@ public sealed class TiaProjectOpcUaTest {
 
         project.OpcUa(Report(project, "Filler"))!.Server!.SecurityPolicies.Select(policy => (policy.Name, policy.Key)).Should().Equal(
             ("No security", "None"), ("Basic128Rsa15 - Sign", "128RSA_S"), ("Basic128Rsa15 - Sign & Encrypt", "128RSA_SE"), ("Basic256 - Sign", "256_S"), ("Basic256 - Sign & Encrypt", "256_SE"), ("Basic256Sha256 - Sign", "256SHA_S"),
-            ("Basic256Sha256 - Sign & Encrypt", "256SHA_SE"), ("Aes256Sha256RsaPss - Sign & Encrypt", "256RSA_PSS_SE"));
+            ("Basic256Sha256 - Sign & Encrypt", "256SHA_SE"), ("Aes128Sha256RsaOaep - Sign", "256RSA_OAEP_S"), ("Aes128Sha256RsaOaep - Sign & Encrypt", "256RSA_OAEP_SE"),
+            ("Aes256Sha256RsaPss - Sign", "256RSA_PSS_S"), ("Aes256Sha256RsaPss - Sign & Encrypt", "256RSA_PSS_SE"));
     }
 
     [Test]

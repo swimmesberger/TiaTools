@@ -68,6 +68,9 @@ public readonly record struct TiaOpcUaSecurityPolicy(string Key, bool? IsEnabled
         "256_SE" => "Basic256 - Sign & Encrypt",
         "256SHA_S" => "Basic256Sha256 - Sign",
         "256SHA_SE" => "Basic256Sha256 - Sign & Encrypt",
+        "256RSA_OAEP_S" => "Aes128Sha256RsaOaep - Sign",
+        "256RSA_OAEP_SE" => "Aes128Sha256RsaOaep - Sign & Encrypt",
+        "256RSA_PSS_S" => "Aes256Sha256RsaPss - Sign",
         "256RSA_PSS_SE" => "Aes256Sha256RsaPss - Sign & Encrypt",
         _ => Key,
     };
@@ -147,7 +150,7 @@ public static class TiaOpcUa {
     private const string Core = "Siemens.Automation.ObjectFrame.ICoreAttributes";
     private const string ConfigBase = "Siemens.Simatic.HwConfiguration.Model.IConfigBaseData";
     private const string PolicyPrefix = "EnableSecurityPolicies_";
-    private static readonly string[] Policies = ["None", "128RSA_S", "128RSA_SE", "256_S", "256_SE", "256SHA_S", "256SHA_SE", "256RSA_PSS_SE"];
+    private static readonly string[] Policies = ["None", "128RSA_S", "128RSA_SE", "256_S", "256_SE", "256SHA_S", "256SHA_SE", "256RSA_OAEP_S", "256RSA_OAEP_SE", "256RSA_PSS_S", "256RSA_PSS_SE"];
 
     private static readonly HashSet<string> Named = [
         "OpcUaEnableServer", "ApplicationName", "AutoAcceptClient", "MinimumPublishingInterval", "ServerCertificateId", "TrustedClientCertificatesIds",
