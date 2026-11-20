@@ -343,7 +343,7 @@ A section part or struct part holds `<Member ...>` around its members; a DB's or
 | `RID` | Type code, below **[S]** |
 | `Type` | Type text for what `RID` cannot say: `"SomeUdt"`, `Array[1..10] of X`, `String[4]`, also with constants in the bounds. Quotes are `&quot;`. **[S]** |
 | `SubPartIndex` | With `RID` and no `Type`: a struct, the part holds its members. With `Type`: where the type's own interface is. **[S]** |
-| `MFlags` | The member's attributes, see below. **[S]** for the values seen, no meaning per bit |
+| `MFlags` | The member's attributes, bit by bit, see below. **[S]** |
 | `Remanence` | `Retain`: in a retained section. `Classic`: on a static member, in `VAR DB_SPECIFIC`; on an overlay it says nothing. **[S]** |
 | `AtMemberID` | It overlays that sibling: `name AT other : type`. **[S]** |
 | `StdO`, `LID`, `v`, `n`, `ph`, `Hidden`, `SlotNo`, `Depth`, `ParentId` | Offsets and flags. `StdO` looks like a bit offset in standard access **[I]**; the rest **[?]**. |
@@ -378,12 +378,13 @@ Array bounds that are constants resolve through `<Constants><Constant Display Va
 | `MFlags` | Written |
 |---|---|
 | none | As the parent struct: the access attributes pass down |
-| `14`, `76`, `77`, `526`, `588` | `ExternalAccessible`, `ExternalVisible`, `ExternalWritable` all `'False'` |
-| `79` | `ExternalWritable := 'False'` |
-| `527` | As the parent struct |
-| with `512` set | Also `S7_SetPoint`: `'True'` if bit 0 is set and the member is elementary or an array of it, else `'False'`. Not on a parameter or a plain struct |
+| without both `4` and `8` (`0`, `3`, `7`, `32`, `39`, `512`, ...) | Nothing about access: as the parent struct |
+| `4` and `8`, `1` clear (`14`, `76`, `526`, `588`) | `ExternalAccessible`, `ExternalVisible`, `ExternalWritable` all `'False'` |
+| `4` and `8`, `1` set and `2` clear (`13`, `77`, `525`, `589`) | `ExternalVisible := 'False'` |
+| `4` and `8`, `1` and `64` set (`77`, `79`, `589`, `591`) | `ExternalWritable := 'False'` |
+| with `512` set | Also `S7_SetPoint`: `'True'` if the member is elementary or an array of it and not an instruction, else `'False'`. Not on a parameter or a plain struct |
 
-An overlay with no `MFlags` of its own takes those of the member it overlays. **[S]** This table is what the values seen do, and comes from one project, so it may not be complete. **[I]** What a struct or a UDT's `S7_SetPoint` depends on is not fully known: on two blocks a member of a fail-safe UDT has `527` and TIA writes nothing. **[?]**
+So the value `1` is Accessible, `2` Visible, `64` not Writable and `512` the set point, read only when `4` and `8` say the access bits are stored. Under a closed member every member is closed, whatever its own flags: TIA writes all three `'False'`. An overlay with no `MFlags` of its own takes those of the member it overlays. **[S]** The bits were read off three test data blocks generated in TIA Portal V21 on a copy of the demo project, one member for each combination of the four attributes, alone, together and inside a struct and an array: the reader's source is TIA's generated source byte for byte. A's dump does not change with this table, so the comparison of section 17 still holds. TIA ties the attributes as in the tag table: a member that is not accessible is neither visible nor writable. What a struct or a UDT's `S7_SetPoint` depends on is not fully known: on two blocks a member of a fail-safe UDT has `527` and TIA writes nothing. **[?]**
 
 A member whose part (`SubPartIndex`) has `IInterfaceLibraryData` is of a system type: `InstructionName` is its type's name, `LibVersion` the first two numbers of `IInterfaceLibraryData.Version`. **[S]**
 
@@ -607,7 +608,7 @@ The schema also has `OpcUaInterfaceData`, `OpcUaNodeData`, `OpcUaListData` and `
 
 **Roles.** `UsersAndRolesStorage` is a 5 byte head (`01`, u32 0) and a .NET binary serialization stream ([MS-NRBF](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/)) of a `Siemens.Simatic.OpcUa.BusinessLogic.UsersAndRolesStorageContainer`: `Roles`, a list of `UaRoleMappingInfo` (`RoleId`, `ProjectRoleName`, `RoleName`, `RoleComment`, `RolePermissions` as a list of `UaNamespacePermissionInfo` with `NamespaceIndex`, `NamespaceUri` and `Permissions`, `IsImportedRole`); `RolesMap`, from an id of the project's user management to node ids; `NodePermissions`; `AccessRestrictions` per namespace; `AccessRestrictionsMap`; `Version`. **[S]** `Permissions` are OPC UA's `PermissionType` bits (Browse 1, ReadRolePermissions 2, ..., Read 32, Write 64, ReceiveEvents 2048). **[I]** The stream holds no users and no passwords; users are in the project's user management (`Siemens.Automation.Umac...`), which this reader does not read.
 
-**What a client may reach.** A data block is open to OPC UA unless `DBAccessibleFromOPCUA` is false (section 7.7). A member's access comes from the `MFlags` of section 11: the flags that write `ExternalAccessible := 'False'` close it, `79` makes it read-only, and a member under a closed or read-only one is taken to be the same. **[I]** A PLC tag (`EAMTZTagData`) has three flags in `Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem`, TIA's tag table columns: **[S]**
+**What a client may reach.** A data block is open to OPC UA unless `DBAccessibleFromOPCUA` is false (section 7.7). A member's access comes from the `MFlags` of section 11: a member that is not accessible is closed, one that is not writable is read-only, and a member under a closed or read-only one is the same; whether it is visible does not matter to OPC UA. **[S]**: TIA's node set export of the test data blocks has no node for a closed member or one under it, a read-only member's node has no write access, and a member that is not visible has a node like any other. A PLC tag (`EAMTZTagData`) has three flags in `Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem`, TIA's tag table columns: **[S]**
 
 | Attribute | Read as |
 |---|---|
@@ -621,7 +622,7 @@ Four tags of the demo, set through Openness to not accessible, not writable, not
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
 
-1. **A second project.** Most of sections 11 and 12 was worked out from A alone, `MFlags` above all, and A's V20 archive is the same program. B has not been compared with TIA. A rule that overfits shows there first.
+1. **A second project.** Most of sections 11 and 12 was worked out from A alone, and A's V20 archive is the same program; `MFlags` has since been checked bit by bit on test blocks. B has not been compared with TIA. A rule that overfits shows there first.
 2. **FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles, as the comparison page says. Then compare parts, wires and negated pins as data with what `FlgNetRenderer` reads, not as text, since our FBD text is our own layout. That would also settle whether a network stores `Time` under `TON`, as TIA shows it, where we print `TON`.
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, plain FBD, STL and GRAPH.** No sample has any unprotected. A small new project in TIA with one block of each would close that, and being invented, like the demo project, it can go into the tests as a fixture. It would also test the rules on something new.

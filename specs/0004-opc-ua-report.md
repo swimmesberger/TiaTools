@@ -25,6 +25,7 @@ Someone who wants to read a PLC over OPC UA, and has only the project's archive,
 
 - Given a data block closed to OPC UA and one that stores no such setting, when the report is made, then the first is reported closed and the second open.
 - Given a data block with a member closed to outside access, one read-only, and a closed struct with members, when the report is made, then the closed and the read-only member are named, and the struct's members are not named again.
+- Given a member stored as not visible but accessible, and one not visible and not writable, when the report is made, then the first is not named and the second is named read-only.
 - Given a tag table with a tag that is accessible, one read-only, one not accessible and a constant, when the report is made, then the three tags are reported with that access and the constant is left out.
 - Given the server is off, when the report is made, then it says that no client reaches the PLC through its own server, and still says what would be open.
 

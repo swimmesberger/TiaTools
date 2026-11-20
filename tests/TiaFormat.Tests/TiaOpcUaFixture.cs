@@ -348,6 +348,8 @@ internal static class TiaOpcUaFixture {
               <Member ID="52" Name="Internal" RID="0x02000001" MFlags="14" />
               <Member ID="53" Name="Limit" RID="0x02000001" MFlags="79" />
               <Member ID="54" Name="Hidden" MFlags="14"><Member ID="55" Name="Inside" RID="0x02000001" /></Member>
+              <Member ID="56" Name="Display" RID="0x02000001" MFlags="77" />
+              <Member ID="57" Name="Unlisted" RID="0x02000001" MFlags="13" />
             </Member></Root>
             """);
         if (options.HasMasterCopy) {

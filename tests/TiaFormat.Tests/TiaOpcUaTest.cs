@@ -97,8 +97,8 @@ public sealed class TiaOpcUaTest {
         var recipe = Filler().DataBlocks.Single(block => block.Name == "Recipe");
 
         recipe.HiddenMembers.Should().Equal("Internal", "Hidden");
-        recipe.ReadOnlyMembers.Should().Equal("Limit");
-        recipe.Members.Should().Be(5);
+        recipe.ReadOnlyMembers.Should().Equal("Limit", "Display");
+        recipe.Members.Should().Be(7);
         Markdown(Report()).Should().Contain("- Recipe.Hidden: closed\n").And.Contain("- Recipe.Limit: read-only\n").And.NotContain("Inside");
     }
 
