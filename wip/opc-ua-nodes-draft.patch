@@ -1,0 +1,141 @@
+diff --git a/docs/index.md b/docs/index.md
+index e139cc6..7cfe873 100644
+--- a/docs/index.md
++++ b/docs/index.md
+@@ -8,7 +8,7 @@ okf_version: "0.2"
+ * [The TIA Portal project database format](FORMAT.md) - the file format, enough to write a reader in any language, with how far real archives confirm each claim, the comparison numbers and the open questions.
+ * [Comparing with TIA Portal](comparing-with-tia.md) - checking the reader against the source TIA generates, through Openness, and building the demo project.
+ * [Architecture](architecture.md) - how the library, the tool and the viewer are shaped and why.
+-* [How TIA Portal shows an S7-1500's OPC UA server settings](research/2026-11-20-tia-opc-ua-server-settings.md) - research note: the pages, labels and defaults the viewer's OPC UA view follows.
++* [How TIA Portal shows an S7-1500's OPC UA server settings](research/2026-11-20-tia-opc-ua-server-settings.md) - research note: the pages, labels and defaults the viewer's OPC UA view follows, and how the server names and exports its nodes.
+ * [Releasing](releasing.md) - how a version is released: the tag, the workflow that builds the Windows programs, and what the zips hold.
+ 
+ ## How we work
+diff --git a/docs/research/2026-11-20-tia-opc-ua-server-settings.md b/docs/research/2026-11-20-tia-opc-ua-server-settings.md
+index f44e17b..e5f1f4f 100644
+--- a/docs/research/2026-11-20-tia-opc-ua-server-settings.md
++++ b/docs/research/2026-11-20-tia-opc-ua-server-settings.md
+@@ -1,7 +1,7 @@
+ ---
+ type: Research note
+-title: "How TIA Portal shows an S7-1500's OPC UA server settings"
+-description: "The pages, labels and defaults TIA Portal uses for a CPU's OPC UA server, and where it shows OPC UA access of data blocks and tags, for laying out the viewer's OPC UA view."
++title: "How TIA Portal shows an S7-1500's OPC UA server settings and address space"
++description: "The pages, labels and defaults TIA Portal uses for a CPU's OPC UA server, where it shows OPC UA access of data blocks and tags, and how the server names its nodes and exports them."
+ generated: { by: claude-code/claude-opus-5-5, at: 2026-11-20T12:00:00Z }
+ status: draft
+ sources:
+@@ -14,6 +14,11 @@ sources:
+   - https://www.manualslib.com/manual/1971486/Siemens-Simatic-S7-1500.html?page=194
+   - https://www.manualslib.com/manual/1971486/Siemens-Simatic-S7-1500.html?page=198
+   - https://epics-modules.github.io/opcua/how-to/plc_configuration.html
++  - https://www.manualslib.com/manual/1971486/Siemens-Simatic-S7-1500.html?page=136
++  - https://www.manualslib.com/manual/1971486/Siemens-Simatic-S7-1500.html?page=137
++  - https://www.manualslib.com/manual/1971486/Siemens-Simatic-S7-1500.html?page=143
++  - https://www.manualslib.com/manual/1971486/Siemens-Simatic-S7-1500.html?page=175
++  - https://support.industry.siemens.com/cs/attachments/109737901/109737901_OPC_UA_Client_S7-1500_DOKU_V1_5_en.pdf
+ ---
+ # How TIA Portal shows an S7-1500's OPC UA server settings
+ 
+@@ -48,6 +53,20 @@ The EPICS guide shows the same tree as *General › OPC UA › Server › Genera
+ - A data block's properties, area *Attributes*, hold the check box "DB accessible from OPC UA"; data blocks are open by default, and the program blocks overview has a column "Data block accessible via OPC UA" (p. 167-168).
+ - A PLC tag or data block member has the check box "Accessible from HMI/OPC UA", on by default (p. 165). TIA's tag table and block editors show it as a column. The writable and visible settings that a TIA source file writes as `ExternalWritable` and `ExternalVisible` are columns there too, but this edition of the manual does not name them, so their labels here are not confirmed.
+ 
++## The address space and its export
++
++What a client of the standard SIMATIC server interface sees, from the same manual and Siemens' application example "OPC UA .NET Client for the SIMATIC S7-1500 OPC UA Server" (entry 109737901, V1.5, 09/2022):
++
++- All CPU tags and methods are in the namespace `http://www.siemens.com/simatic-s7-opcua`, index 3 by default, but the index can change, so a client asks for it (manual p. 135; example p. 55).
++- A node's identifier is the tag's name in quotation marks, with its components joined by dots: `ns=3;s="DataStatic"."myBool"` (manual p. 136-137; example p. 55, figure 3-2).
++- The browse tree in the example (p. 41): *Objects › Server*, *DeviceSet*, and the PLC's object named after the PLC (`PLC_1`) with device properties and the folders *Counters*, *DataBlocksGlobal* and further ones cut off in the picture; a data block is an object in *DataBlocksGlobal*, its members are variables below it. The member `myBool` there has browse name `3:myBool`, data type Boolean, access level 3 (read and write) and minimum sampling interval -1.
++- A structure or UDT member is a node of its own, read as a whole or by its members (example p. 49).
++- Data types map as in the manual's table 9-1 (p. 142-143): `Bool` to Boolean, `Byte` to Byte, `Word` to UInt16, `DWord` to UInt32, `LWord` to UInt64, `SInt` to SByte, `Int` to Int16, `DInt` to Int32, `LInt` to Int64, `USInt` to Byte, `UInt` to UInt16, `UDInt` to UInt32, `ULInt` to UInt64, `Real` to Float, `LReal` to Double, `S5Time` to UInt16, `Time` to Int32, `LTime` to Int64, `Date` to UInt16, `TOD` to UInt32, `LTOD` to UInt64, `DT` to Byte[8], `DTL` to DateTime.
++- A data block closed to OPC UA has no nodes, its instance data blocks included; a data block whose members are all closed is not in the address space either (p. 168).
++- *OPC UA › Server › Export* writes the server's address space as an XML "nodeset file", "structured according to the OPC UA specification", with all tags and methods enabled for OPC UA, for configuring a client offline; each tag's `Value`, `DataType`, `AccessLevel` and `MinimumSamplingInterval` can be set in it, and the option "Export all array elements as separate nodes" adds a node per array element (p. 174-175).
++
++Not found in the sources: the names of the folders cut off in the picture (presumably for instance data blocks, inputs, outputs, memory and timers), the node ids of the PLC object and the folders, and how array elements and multi-instances are written.
++
+ ## What it means for TiaTools
+ 
+ - The stored key suffixes of section 18 of the [format](../FORMAT.md) line up with this list: `None`, `256_S`/`256_SE` for Basic256, `256SHA_S`/`256SHA_SE` for Basic256Sha256, and `256RSA_PSS_SE` for the later policy with RSA-PSS. That is still inferred from names, not checked in TIA.
+diff --git a/specs/0006-opc-ua-nodes.md b/specs/0006-opc-ua-nodes.md
+new file mode 100644
+index 0000000..b714be1
+--- /dev/null
++++ b/specs/0006-opc-ua-nodes.md
+@@ -0,0 +1,75 @@
++---
++type: Specification
++title: "Spec 0006: OPC UA nodes and node set export"
++description: "Which nodes a PLC's standard SIMATIC OPC UA server interface offers, derived from the program, listed in the viewer and tiadump and exported as a node set file."
++generated: { by: claude-code/claude-opus-5-5, at: 2026-11-20T12:00:00Z }
++status: draft
++---
++# Spec 0006: OPC UA nodes and node set export
++
++## Intent
++
++Someone who wants to read a PLC over OPC UA learns from the archive alone which node ids to ask for: every data block, member and PLC tag the standard SIMATIC server interface offers, with its node id, browse path, data type and whether it can be written. They see the list in the viewer's OPC UA view and in `tiadump`, and can export it as a node set file for configuring a client offline, the way TIA Portal's *OPC UA › Server › Export* does. The list is derived from the program by the rules in the [research note](../docs/research/2026-11-20-tia-opc-ua-server-settings.md), not read from TIA, and says so.
++
++## User scenarios
++
++### See which nodes a PLC offers (P1)
++
++- Given a data block open to OPC UA with members open to outside access, when the nodes are listed, then the data block and each member are a node, with node id `ns=3;s="Block"."Member"`, browse path, SIMATIC and OPC UA data type, and read-write or read-only.
++- Given a member closed to outside access, or under a closed one, when the nodes are listed, then it has no node.
++- Given a data block closed to OPC UA, or one whose members are all closed, when the nodes are listed, then it has no node.
++- Given a global and an instance data block, when the nodes are listed, then they are under *DataBlocksGlobal* and *DataBlocksInstance*.
++- Given PLC tags that are accessible, when the nodes are listed, then each is a node `ns=3;s="Tag"` under a folder by its address area; a tag that is not accessible has none.
++- Given a know-how protected data block open to OPC UA, when the nodes are listed, then the data block is a node, marked as having members that are not known.
++- Given the list, when it is shown, then it says that it is derived from the program, that the namespace index 3 is the default and may differ, and that the server's real list comes from TIA's export.
++
++### Use it from the viewer (P1)
++
++- Given the OPC UA view, when the Nodes tab is shown, then it lists the nodes with node id, browse path, data type and access.
++- Given a node row, when it is opened, then the viewer shows its data block or tag table, as the other lists do.
++- Given a node row, when Copy node id is chosen, then its node id is copied.
++- Given the Nodes tab, when Export node set is chosen and a file is picked, then the node set file is written there.
++
++### Use it from the command line (P1)
++
++- Given an archive, when `tiadump opcua --nodes` runs, then it writes one line per node as tab-separated text.
++- Given an archive and a PLC, when `tiadump opcua --plc <PLC> --nodeset` runs, then it writes the PLC's node set file to standard output.
++- Given an archive with several PLCs, when `--nodeset` runs without `--plc`, then it exits with 1 and says to name a PLC.
++
++### Use the export in a client (P2)
++
++- Given the node set file, when it is read as an OPC UA node set, then it is valid UANodeSet XML with the namespace `http://www.siemens.com/simatic-s7-opcua`, an object per data block, and a variable per member and tag with its data type and access level.
++- Given the file, when it is read, then its nodes whose id TiaTools does not know, the PLC object and its folders, are in a namespace of TiaTools' own, so no id is invented in Siemens' namespace.
++
++## Requirements
++
++- FR-001: The node list MUST hold, per PLC of the project, a node for each data block open to OPC UA that has at least one member open to outside access, and for each such member and its open members below it.
++- FR-002: A member's node id MUST be `ns=3;s=` followed by the quoted names of the data block and the member path, joined by dots; a tag's MUST be `ns=3;s=` followed by its quoted name.
++- FR-003: A node MUST state its browse path under the PLC's object, its SIMATIC data type, its OPC UA data type where the research note's table maps it, and whether it is read-write or read-only.
++- FR-004: Global data blocks MUST be under *DataBlocksGlobal*, instance data blocks under *DataBlocksInstance*, and tags under *Inputs*, *Outputs*, *Memory*, *Timers* or *Counters* by their address area.
++- FR-005: An array MUST be one node; its elements and the members of its elements MUST NOT be listed.
++- FR-006: A know-how protected data block open to OPC UA MUST be listed, marked as having members that are not known, with no member nodes.
++- FR-007: Every list and export MUST say it is derived from the program, not read from TIA, and that the namespace index is the default.
++- FR-008: The viewer's OPC UA view MUST have a Nodes tab with the list; opening a row MUST show its data block or tag table; Copy node id MUST copy the node id.
++- FR-009: The Nodes tab MUST offer Export node set, which writes the node set file of the PLC to a file the person picks.
++- FR-010: `tiadump opcua --nodes` MUST write the nodes as tab-separated text with a header line; `--nodeset` MUST write the node set file of the one PLC that `--plc` names, and exit with 1 if the archive has more than one PLC and none is named.
++- FR-011: The node set file MUST be UANodeSet XML (OPC UA Part 6), with `http://www.siemens.com/simatic-s7-opcua` for the data block objects, member and tag variables, and a namespace of TiaTools' own for the PLC object and folders.
++- FR-012: A variable in the node set MUST carry its data type where mapped, its access level (3 read-write, 1 read-only), and its browse and display name.
++- FR-013: The node list MUST be made when first asked for, in the viewer as in `tiadump`.
++
++## Success criteria
++
++- SC-001: A person can configure an OPC UA client for a PLC's data from the archive alone, needing TIA or the live PLC only to confirm.
++- SC-002: Node ids in the list match what a client browses on the PLC, for the data blocks and tags it lists; open question 6 of the format page says how to confirm it.
++
++## Out of scope
++
++- Server interfaces and companion specifications: none of the samples has one, and their compiled form is not decoded.
++- Methods, timers and counters' own folders' content beyond PLC tags, technology objects, the device properties under the PLC's object.
++- Array elements as nodes (TIA's option "Export all array elements as separate nodes"), and the members of a tag of a UDT type.
++- The data type nodes of UDTs and structures in the node set: a structured variable gets no `DataType` there.
++- The node ids of the PLC object and its folders in Siemens' namespace, which the sources do not give.
++
++## Decisions
++
++None new. The rules come from the research note; the node set is written with the XML writer of the base class library.

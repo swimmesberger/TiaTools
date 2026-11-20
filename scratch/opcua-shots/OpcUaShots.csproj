@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- Scratch: pictures of the OPC UA entry for a pull request, from the invented test project. Not in the solution. -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <IsPackable>false</IsPackable>
+        <NoWarn>$(NoWarn);CA1305;CA1307;CA1310;CA1852</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Avalonia.Headless" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="../../src/TiaViewer/TiaViewer.csproj" />
+        <Compile Include="../../tests/TiaFormat.Tests/TiaFileBuilder.cs" />
+        <Compile Include="../../tests/TiaFormat.Tests/TiaOpcUaFixture.cs" />
+    </ItemGroup>
+</Project>
