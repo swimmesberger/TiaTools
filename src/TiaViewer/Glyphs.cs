@@ -26,6 +26,9 @@ public static class Glyphs {
 
     public static Geometry Export { get; } = Geometry.Parse("M8 10V2.5M5 5.5L8 2.5L11 5.5M2.5 9.5V12.5C2.5 13.1 2.9 13.5 3.5 13.5H12.5C13.1 13.5 13.5 13.1 13.5 12.5V9.5");
 
+    /// <summary>Where the program's cycle starts: a filled triangle, as a start button has.</summary>
+    public static Geometry Start { get; } = Geometry.Parse("M4.5 2.8L13 8L4.5 13.2Z");
+
     public static Geometry UsedBy { get; } = Geometry.Parse("M14 8H5M8.5 4.5L5 8L8.5 11.5M2 3V13");
 
     public static Geometry Uses { get; } = Geometry.Parse("M2 8H11M7.5 4.5L11 8L7.5 11.5M14 3V13");

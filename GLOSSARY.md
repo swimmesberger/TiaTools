@@ -47,6 +47,14 @@ _Avoid_: CPU, device, station
 A unit of the PLC program: an OB, FB, FC, DB or UDT, its kind.
 _Avoid_: routine, POU, module
 
+**Event class**:
+What starts an OB: the program cycle, startup, a cyclic interrupt, an error and so on. TIA stores it as the OB's subtype.
+_Avoid_: OB type, secondary type
+
+**Program cycle OB**:
+An OB whose event class is the program cycle: where the program's cycle starts, OB 1 `Main` in most programs. The viewer marks it in the tree.
+_Avoid_: main OB, entry point, OB1 (as a name for the class)
+
 **Tag table**:
 A table of a PLC's tags and constants with their types, addresses and values.
 _Avoid_: symbol table, variable list

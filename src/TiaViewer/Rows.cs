@@ -16,6 +16,9 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
     private static readonly IBrush PlcLine = Brush.Parse("#3B7BF0");
     private static readonly IBrush LibraryLine = Brush.Parse("#6B7280");
 
+    /// <summary>The colour of the program cycle mark, a start button's green, readable in light and dark.</summary>
+    public static IBrush StartFill { get; } = Brush.Parse("#16A34A");
+
     private bool _isExpanded;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -39,12 +42,15 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public bool IsClosed => Node.Item?.IsClosed ?? false;
 
+    /// <summary>An OB where the program's cycle starts (spec 0007).</summary>
+    public bool IsProgramCycle => Node.Item?.IsProgramCycle ?? false;
+
     /// <summary>A closed block is there, but there is less to see in it.</summary>
     public double NameOpacity => IsClosed ? 0.6 : 1;
 
     public string Number => Node.Item?.Number is { } number ? number.ToString(CultureInfo.InvariantCulture) : "";
 
-    /// <summary>How many blocks and tag tables are below, with what the filter leaves; a report is neither.</summary>
+    /// <summary>How many blocks and tag tables are below, with what the filters leave; a report is neither.</summary>
     public string Count => IsHolder ? ItemsBelow().ToString(CultureInfo.InvariantCulture) : "";
 
     public Geometry Glyph => Parent is not null ? Glyphs.Folder : Name == LibrariesName ? Glyphs.Library : Glyphs.Plc;

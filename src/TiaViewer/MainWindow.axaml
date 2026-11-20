@@ -61,6 +61,8 @@
                         <Path Classes="icon" Margin="8,0,0,0" Stroke="{DynamicResource Viewer.Muted}" Data="{x:Static local:Glyphs.Filter}" />
                     </TextBox.InnerLeftContent>
                 </TextBox>
+                <!-- One switch per kind the tree holds, made when an archive opens: with none on, every kind is shown. -->
+                <WrapPanel x:Name="KindSwitches" DockPanel.Dock="Top" Margin="6,-2,6,6" />
                 <TreeView x:Name="Tree">
                     <TreeView.ItemTemplate>
                         <TreeDataTemplate x:DataType="local:TreeRow" ItemsSource="{Binding Children}">
@@ -83,6 +85,9 @@
                                 <local:KindBadge IsVisible="{Binding IsItem}" Kind="{Binding Kind}" Opacity="{Binding NameOpacity}" />
                                 <TextBlock Text="{Binding Name}" Opacity="{Binding NameOpacity}" VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding Number}" Classes="muted" FontSize="11" VerticalAlignment="Center" />
+                                <Path Classes="icon small" IsVisible="{Binding IsProgramCycle}" Data="{x:Static local:Glyphs.Start}"
+                                      Fill="{x:Static local:TreeRow.StartFill}" Stroke="{x:Static local:TreeRow.StartFill}" StrokeThickness="1"
+                                      StrokeJoin="Round" ToolTip.Tip="Program cycle: the program starts here" />
                                 <TextBlock Text="{Binding Count}" Classes="muted" FontSize="11" VerticalAlignment="Center" />
                                 <Path Classes="icon small" IsVisible="{Binding IsClosed}" Data="{x:Static local:Glyphs.Lock}" ToolTip.Tip="Closed: know-how protected" />
                             </StackPanel>

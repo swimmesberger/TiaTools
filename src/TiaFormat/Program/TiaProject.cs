@@ -45,6 +45,19 @@ public sealed class TiaItem {
     /// <summary>A PLC's OPC UA report: not searched, referenced, counted or exported.</summary>
     public bool IsReport => Kind == OpcUaReportKind;
 
+    /// <summary>
+    /// An OB of the project itself where the program's cycle starts: its stored event class is <c>ProgramCycle</c>, or,
+    /// if it stores none, its number is 1. An OB in a master copy is not the project's program.
+    /// </summary>
+    public bool IsProgramCycle => Kind == "OB" && IsProject && (Block?.EventClass is { } eventClass ? eventClass == "ProgramCycle" : Number == 1);
+
+    /// <summary>
+    /// Whether a filtered tree shows this item: its name holds the text, whatever its case, and its kind is one of those
+    /// chosen. An empty text, or no kind chosen, leaves everything in.
+    /// </summary>
+    public bool Matches(string name, IReadOnlyCollection<string> kinds) =>
+        (kinds.Count == 0 || kinds.Contains(Kind)) && (name.Length == 0 || Name.Contains(name, StringComparison.OrdinalIgnoreCase));
+
     /// <summary>For a report, the PLC it is about; else null.</summary>
     public string? ReportPlc { get; internal init; }
 }
@@ -81,6 +94,9 @@ public readonly record struct TiaSearchResult(TiaItem Item, int Line, string Tex
 /// References come from source text only, so a closed block's calls are not among them. Safe for parallel reads.
 /// </summary>
 public sealed class TiaProject {
+    /// <summary>The order kinds are offered in: the blocks as TIA lists them, then tag tables and the OPC UA report.</summary>
+    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", TiaItem.OpcUaReportKind];
+
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaNodeList> _opcUaNodes = new();
@@ -96,6 +112,9 @@ public sealed class TiaProject {
         var root = new TiaTreeNode(System.IO.Path.GetFileNameWithoutExtension(path));
         Root = root;
         BuildTree(root);
+        Kinds = [.. Items.Concat(Reports).Select(item => item.Kind).Distinct()
+            .OrderBy(kind => Array.IndexOf(KindOrder, kind) is var at and >= 0 ? at : KindOrder.Length)
+            .ThenBy(kind => kind, StringComparer.Ordinal)];
     }
 
     public string Path { get; }
@@ -109,6 +128,9 @@ public sealed class TiaProject {
 
     /// <summary>One OPC UA report per PLC of the project, in the tree beside the PLC's folders.</summary>
     public List<TiaItem> Reports { get; } = [];
+
+    /// <summary>The kinds of the items and reports in the tree, each once: OB, FB, FC, DB, UDT, Tags, OPC UA, then others by name.</summary>
+    public IReadOnlyList<string> Kinds { get; }
 
     /// <summary>Opens a <c>.zap*</c> archive, a project or library file or folder, or a <c>PEData.plf</c>.</summary>
     public static TiaProject Open(string path) => new(path, new TiaProgram(TiaDatabase.Open(path)));
