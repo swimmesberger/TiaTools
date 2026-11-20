@@ -48,7 +48,7 @@ dotnet run --project src/TiaViewer -c Release -- Project.zap21
 - **Who uses this:** the tabs below the source. Walking through a list keeps the list.
 - **Search:** the box at the top for all source (Ctrl or Cmd + Shift + F), Ctrl or Cmd + F within a block, the box on the left for block names. Both are in the *Edit* menu too.
 - **Export:** *Export all…* in the toolbar, *Export…* above a block, or right-click a PLC or folder in the tree. It writes the same files as `tiadump dump`, with an `index.tsv` of what it wrote, into a new folder inside the one you choose, so nothing there is overwritten.
-- **OPC UA:** the first entry under each PLC of the project shows that PLC's OPC UA report, the text `tiadump opcua --plc <PLC>` writes: its server, roles, and which data blocks and tags an OPC UA client could reach. It is made when first shown, is not searched, and is left out of an export.
+- **OPC UA:** the first entry under each PLC of the project shows its OPC UA configuration the way TIA Portal lays it out: the server's General, Options and Security settings, its server interfaces and roles, and its data blocks and tags with TIA's access columns. Double-click a data block or tag to open it. What is inferred and not confirmed against TIA says so. *Copy* copies the text `tiadump opcua --plc <PLC>` writes. It is read when first shown, is not searched, and is left out of an export.
 - **Copy:** *Copy* above a block puts its source on the clipboard; so does right-clicking it in the tree, or *Edit › Copy* while the tree has the focus.
 - **Menus:** on a Mac in the menu bar, with *About TIA Viewer* in the app menu; on Windows in the window, with *About* under *Help*.
 

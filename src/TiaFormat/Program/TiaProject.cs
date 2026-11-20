@@ -82,6 +82,7 @@ public readonly record struct TiaSearchResult(TiaItem Item, int Line, string Tex
 /// </summary>
 public sealed class TiaProject {
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
+    private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
     private readonly Dictionary<(string Scope, string Name), TiaLocation> _names = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _to = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _from = [];
@@ -113,14 +114,18 @@ public sealed class TiaProject {
 
     /// <summary>The item's text, made once, when it is first asked for.</summary>
     public TiaDocument Document(TiaItem item) => _documents.GetOrAdd(item, static (key, project) =>
-        key.ReportPlc is { } plc ? project.Report(plc)
+        key.ReportPlc is not null ? project.Report(key)
         : key.Table is { } table ? TiaDocumentBuilder.Build(table)
         : TiaDocumentBuilder.Build(project.Program, key.Block!), this);
 
-    /// <summary>The report <c>tiadump opcua --plc</c> writes for the PLC, as plain text.</summary>
-    private TiaDocument Report(string plc) {
+    /// <summary>A report's OPC UA configuration of its PLC, read once, when it is first asked for; null for any other item.</summary>
+    public TiaOpcUaPlc? OpcUa(TiaItem item) => item.ReportPlc is null ? null : _opcUa.GetOrAdd(item, static (key, program) =>
+        TiaOpcUa.Read(program, key.ReportPlc).Plcs.SingleOrDefault() ?? new TiaOpcUaPlc(key.ReportPlc!, null, null, [], []), Program);
+
+    /// <summary>The report <c>tiadump opcua --plc</c> writes for a report's PLC, as plain text.</summary>
+    private TiaDocument Report(TiaItem item) {
         var output = new StringWriter { NewLine = "\n" };
-        TiaOpcUaWriter.WriteMarkdown(TiaOpcUa.Read(Program, plc), TiaOpcUaWriter.Title(Path), output);
+        TiaOpcUaWriter.WriteMarkdown(new TiaOpcUaReport([OpcUa(item)!]), TiaOpcUaWriter.Title(Path), output);
         return new TiaDocument(output.ToString(), []);
     }
 

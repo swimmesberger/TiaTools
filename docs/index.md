@@ -8,6 +8,7 @@ okf_version: "0.2"
 * [The TIA Portal project database format](FORMAT.md) - the file format, enough to write a reader in any language, with how far real archives confirm each claim, the comparison numbers and the open questions.
 * [Comparing with TIA Portal](comparing-with-tia.md) - checking the reader against the source TIA generates, through Openness, and building the demo project.
 * [Architecture](architecture.md) - how the library, the tool and the viewer are shaped and why.
+* [How TIA Portal shows an S7-1500's OPC UA server settings](research/2026-11-20-tia-opc-ua-server-settings.md) - research note: the pages, labels and defaults the viewer's OPC UA view follows.
 * [Releasing](releasing.md) - how a version is released: the tag, the workflow that builds the Windows programs, and what the zips hold.
 
 ## How we work

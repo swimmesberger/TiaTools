@@ -38,7 +38,21 @@ public sealed record TiaOpcUaServer(
 /// One security policy switch, by the suffix of its stored key (<c>None</c>, <c>256_S</c>, <c>256SHA_SE</c>, ...);
 /// null when the key is not stored. Which OPC UA policy a suffix means is not confirmed; see the format page.
 /// </summary>
-public readonly record struct TiaOpcUaSecurityPolicy(string Key, bool? IsEnabled);
+public readonly record struct TiaOpcUaSecurityPolicy(string Key, bool? IsEnabled) {
+    /// <summary>
+    /// The policy as TIA's list names it, inferred from the key and Siemens' manual (see the format page); the key
+    /// itself for a key not seen.
+    /// </summary>
+    public string Name => Key switch {
+        "None" => "No security",
+        "256_S" => "Basic256 - Sign",
+        "256_SE" => "Basic256 - Sign & Encrypt",
+        "256SHA_S" => "Basic256Sha256 - Sign",
+        "256SHA_SE" => "Basic256Sha256 - Sign & Encrypt",
+        "256RSA_PSS_SE" => "Aes256Sha256RsaPss - Sign & Encrypt",
+        _ => Key,
+    };
+}
 
 /// <summary>A stored setting this reader does not name, as text.</summary>
 public readonly record struct TiaOpcUaSetting(string Name, string Value);

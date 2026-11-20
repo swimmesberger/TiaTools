@@ -3,7 +3,7 @@ using TiaFormat.Program;
 
 namespace TiaFormat.Tests;
 
-/// <summary>Spec 0005: a PLC's OPC UA report as the viewer's project holds it, beside the PLC's blocks.</summary>
+/// <summary>Spec 0005: a PLC's OPC UA configuration as the viewer's project holds it, beside the PLC's blocks.</summary>
 public sealed class TiaProjectOpcUaTest {
     private static TiaProject Opened(TiaOpcUaFixture.Options? options = null) => TiaProjectTest.Opened(TiaOpcUaFixture.NewFile(options));
 
@@ -26,7 +26,43 @@ public sealed class TiaProjectOpcUaTest {
     }
 
     [Test]
-    public void TheEntryShowsTheReportTiadumpWritesForThatPlc() {
+    public void TheEntryShowsThePlcsOpcUaConfiguration_ReadWhenFirstShown() {
+        var project = Opened();
+        var report = Report(project, "Filler");
+
+        var opcUa = project.OpcUa(report)!;
+
+        opcUa.Name.Should().Be("Filler");
+        opcUa.Server!.IsEnabled.Should().BeTrue();
+        opcUa.DataBlocks.Select(block => block.Name).Should().Equal("Recipe", "Service");
+        project.OpcUa(report).Should().BeSameAs(opcUa);
+        project.OpcUa(project.Items[0]).Should().BeNull();
+    }
+
+    [Test]
+    public void SecurityPoliciesCarryTiasNamesInTiasOrder() {
+        var project = Opened();
+
+        project.OpcUa(Report(project, "Filler"))!.Server!.SecurityPolicies.Select(policy => (policy.Name, policy.Key)).Should().Equal(
+            ("No security", "None"), ("Basic256 - Sign", "256_S"), ("Basic256 - Sign & Encrypt", "256_SE"), ("Basic256Sha256 - Sign", "256SHA_S"),
+            ("Basic256Sha256 - Sign & Encrypt", "256SHA_SE"), ("Aes256Sha256RsaPss - Sign & Encrypt", "256RSA_PSS_SE"));
+    }
+
+    [Test]
+    public void ADataBlockOrTagRowLeadsToItsSource() {
+        var project = Opened();
+        var report = Report(project, "Filler");
+
+        project.Resolve(report, "Recipe")!.Value.Item.Name.Should().Be("Recipe");
+        var tag = project.Resolve(report, "Level")!.Value;
+        tag.Item.Name.Should().Be("Line tags");
+        project.Document(tag.Item).LineText(tag.Line).Should().Contain("Level");
+    }
+
+    // Copy it as text -------------------------------------------------------------------------------------------------
+
+    [Test]
+    public void CopyGivesTheTextTiadumpWritesForThatPlc() {
         var project = Opened();
         var expected = new StringWriter { NewLine = "\n" };
         TiaOpcUaWriter.WriteMarkdown(TiaOpcUa.Read(project.Program, "Filler"), "Project.ap21", expected);
@@ -35,9 +71,10 @@ public sealed class TiaProjectOpcUaTest {
     }
 
     [Test]
-    public void APlcWithoutAnOpcUaDeviceItemSaysSoInItsReport() {
+    public void APlcWithoutAnOpcUaDeviceItemSaysSo() {
         var project = Opened(new TiaOpcUaFixture.Options { HasItem = false });
 
+        project.OpcUa(Report(project, "Filler"))!.Server.Should().BeNull();
         project.Document(Report(project, "Filler")).Text.Should().Contain("**Server: no OPC UA device item.**");
     }
 
@@ -47,15 +84,6 @@ public sealed class TiaProjectOpcUaTest {
 
         project.Reports.Select(report => report.ReportPlc).Should().Equal("Filler");
         project.Items.Should().Contain(item => item.Name == "Template");
-    }
-
-    // Copy it -------------------------------------------------------------------------------------------------------
-
-    [Test]
-    public void TheReportsTextIsWhatIsCopied() {
-        var project = Opened();
-
-        project.Document(Report(project, "Filler")).Text.Should().StartWith("# OPC UA: Project.ap21\n\n## PLC Filler\n");
     }
 
     // Keep it apart from the source -------------------------------------------------------------------------------
@@ -86,3 +114,4 @@ public sealed class TiaProjectOpcUaTest {
         project.Items.Select(item => item.Name).Should().BeEquivalentTo(["Recipe", "Service", "Line tags"]);
     }
 }
+

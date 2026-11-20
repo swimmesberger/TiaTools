@@ -1,18 +1,19 @@
 ---
 type: Plan
-title: "Plan 0005: OPC UA report in the viewer"
+title: "Plan 0005: OPC UA view in the viewer"
 description: "How spec 0005 is built in src/TiaFormat and src/TiaViewer, and where it is tested."
 generated: { by: claude-code/claude-opus-5-5, at: 2026-11-20T12:00:00Z }
 status: draft
 ---
-# Plan 0005: OPC UA report in the viewer
+# Plan 0005: OPC UA view in the viewer
 
 ## Modules
 
-- `Program/TiaProject`: while the tree is built, every PLC holder of the project itself gets a `TiaItem` of kind `OPC UA` (`TiaItem.OpcUaReportKind`, `IsReport`, `ReportPlc`). It sorts before the PLC's folders. These items are kept in `Reports`, not in `Items`, so search, references, the status count and export never see them (FR-005). `Document` makes a report's text the first time it is asked for, with `TiaOpcUa.Read(program, plc)` and `TiaOpcUaWriter.WriteMarkdown` under the title `tiadump` uses (`TiaOpcUaWriter.Title`), as a document without tokens (FR-002, FR-003). `ClosedBlocksAround` is 0 for a report.
-- `Program/TiaOpcUa`: `Read` takes an optional PLC name, which `tiadump opcua --plc` now uses too.
-- `src/TiaViewer`: `KindBadge` and `Glyphs` give the kind the badge `OPC` and a colour of its own (FR-007). `TreeRow.CanExport` hides the export of a report in the context menu, and its copy item reads "Copy report". The heading hides *Export…* for a report, and *File › Export Block…* is disabled (FR-006). The PLC's count leaves the report out.
+- `Program/TiaProject`: while the tree is built, every PLC holder of the project itself gets a `TiaItem` of kind `OPC UA` (`TiaItem.OpcUaReportKind`, `IsReport`, `ReportPlc`), sorted before the PLC's folders. These items are kept in `Reports`, not in `Items`, so search, references, the status count and export never see them (FR-011). `OpcUa(item)` reads the PLC's `TiaOpcUaPlc` once, when first asked (FR-002); `Document(item)` writes it as `tiadump opcua --plc` does, for Copy (FR-010). `ClosedBlocksAround` is 0 for it. A data block or tag of the view resolves through `Resolve(item, name)`, as a name in the source does (FR-007).
+- `Program/TiaOpcUa`: `Read` takes an optional PLC name, which `tiadump opcua --plc` uses too. `TiaOpcUaSecurityPolicy.Name` gives TIA's name of a policy key, inferred from the research note (FR-005).
+- `src/TiaViewer/OpcUaView`: the view, built in code from Avalonia's controls without bindings (FR-013). Tabs: *Server* with the sections General, Options, Security › Secure channel and Security › User authentication (FR-003, FR-004); *Server interfaces and roles* (FR-009); *Data blocks* and *Tags* as virtualised lists with a header row, opened by double-click or Enter (FR-006, FR-007). Settings are read-only check boxes; one not stored is dimmed and indeterminate. Inferred readings say so beside them or in a footnote (FR-008).
+- `MainWindow`: a report shows `OpcUaView` in the editor's place and hides the Used by and Uses lists, giving their room to the view and back to the next block. `KindBadge` and `Glyphs` give the kind the badge `OPC`; `TreeRow.CanExport` and the heading hide any export of it (FR-011).
 
 ## Tests
 
-`tests/TiaFormat.Tests/TiaProjectOpcUaTest.cs`, one per acceptance scenario, on the invented project of `TiaOpcUaFixture` (shared with `TiaOpcUaTest`) opened as a `TiaProject`. The viewer's own changes (badge, hidden export, heading) need a window. They were checked by rendering the viewer headless on that invented project, in light and dark, with a scratch program like `tools/ReadmePictures`. FR-003 holds by construction: the report is made in `Document`, which opening never calls for it.
+`tests/TiaFormat.Tests/TiaProjectOpcUaTest.cs`, one per acceptance scenario that the library carries, on the invented project of `TiaOpcUaFixture` (shared with `TiaOpcUaTest`) opened as a `TiaProject`. The view itself needs a window: it was checked by rendering the viewer headless on that invented project, every tab in light and the server page in dark, with a scratch program like `tools/ReadmePictures`; the pictures are on the pull request. FR-012 rests on spec 0004's reader, which the view only shows.
