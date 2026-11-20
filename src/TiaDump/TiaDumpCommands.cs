@@ -90,6 +90,30 @@ internal sealed class TiaDumpCommands {
         return 0;
     }
 
+    /// <summary>Reports each PLC's OPC UA server settings, roles, and which data blocks and tags an OPC UA client could reach.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="json">Write JSON instead of the Markdown report.</param>
+    /// <param name="plc">Only this PLC.</param>
+    [Command("opcua")]
+    public int OpcUa([Argument] string archive, bool json = false, string? plc = null) {
+        var report = TiaOpcUa.Read(new TiaProgram(TiaDatabase.Open(archive)));
+        if (plc is not null) {
+            report = new TiaOpcUaReport([.. report.Plcs.Where(entry => entry.Name == plc)]);
+            if (report.Plcs.Count == 0) {
+                Console.Error.WriteLine($"No PLC named {plc}.");
+                return 1;
+            }
+        }
+        if (json) {
+            using var stdout = Console.OpenStandardOutput();
+            TiaOpcUaWriter.WriteJson(report, stdout);
+            stdout.Write("\n"u8);
+        } else {
+            TiaOpcUaWriter.WriteMarkdown(report, Path.GetFileName(Path.TrimEndingDirectorySeparator(archive)), Console.Out);
+        }
+        return 0;
+    }
+
     /// <summary>Compares a dump with what TIA generated, block by block, and exits with 1 if any text differs.</summary>
     /// <param name="dump">A folder written by the dump command.</param>
     /// <param name="export">A folder written by tools/TiaOpennessExport.</param>

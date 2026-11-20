@@ -63,6 +63,14 @@ _Avoid_: scope, context
 A block object with no number, source or interface that refers to a block held elsewhere; left out when listing blocks.
 _Avoid_: placeholder, dummy block
 
+**External access**:
+What an outside client (HMI, OPC UA, Web API) may do with a data block member or a PLC tag: read and write, read only, or nothing. TIA's settings `ExternalAccessible`, `ExternalWritable` and `ExternalVisible` taken together.
+_Avoid_: exposed, public, visibility
+
+**OPC UA report**:
+What `tiadump opcua` writes per PLC: its OPC UA server's settings, roles and server interfaces, and the external access of its data blocks and tags.
+_Avoid_: OPC UA export, address space dump
+
 **Closed**:
 What a know-how protected block or an encrypted value is to TiaTools: reported, never opened.
 _Avoid_: locked, hidden, unreadable

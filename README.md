@@ -96,8 +96,9 @@ The tool is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on 
 |---|---|---|
 | `tiadump list <archive>` | One line per block: PLC, environment, kind, number, `KHP` if protected, `STUB` if held elsewhere, language, name and folder. The block count goes to stderr | `--grep <regex>` on the name, `--stubs` to include references to blocks held elsewhere |
 | `tiadump show <archive> <name>` | Prints every block of exactly that name as source. Exits with 1 if there is none | `--plc <name>` for one PLC only |
-| `tiadump inspect <archive> <name or id>` | Prints what is stored for a block or object: attributes and relations, for finding where a fact lives. Encrypted values stay closed | `--plc <name>` for one PLC, `--full` to print long values whole |
+| `tiadump inspect <archive> <name or id>` | Prints what is stored for a block or object: attributes, dictionary expando values (marked `~`) and relations, for finding where a fact lives. Encrypted values stay closed, and values named like a password, key, hash or certificate are not shown | `--plc <name>` for one PLC, `--full` to print long values whole |
 | `tiadump dump <archive> <folder>` | Writes all blocks and tag tables as files, and creates the folder if needed. Takes about a second for a 60 MB archive. Exits with 1 if a block failed; the rest are still written | `--grep <regex>` on the name (no tag tables then), `--raw` to add each network as stored, `--verify` to check every frame's hash |
+| `tiadump opcua <archive>` | Reports each PLC's OPC UA server as Markdown: whether it is on, its application name, security policies and other settings, its roles and server interfaces, and which data blocks, members and tags an OPC UA client could read or write. Never shows passwords, keys, hashes or certificates. Some readings are not yet confirmed against TIA, and the report says which | `--json` for every data block and tag as JSON, `--plc <name>` for one PLC only |
 | `tiadump compare <dump> <export>` | Compares a dump with what TIA generated, block by block: counts per block kind, then each block's first differing line. Exits with 1 if any text differs. See [comparing with TIA Portal](docs/comparing-with-tia.md) | |
 
 ### What a dump holds
@@ -125,7 +126,7 @@ A dump is the program owner's code: keep it outside any repository.
 
 ## For coding agents
 
-A coding agent can answer questions about a PLC program from its archive alone: which blocks exist, a block's interface and start values, SCL source, FBD networks as calls and wires, and tag tables. The procedure is the [`read-tia-project`](.agents/skills/read-tia-project/SKILL.md) skill, in the Agent Skills format: how to dump, search and follow calls, how far to trust the result, and the rules, above all that know-how protected blocks stay closed. Copy it into your own repository's `.agents/skills/`, or point your agent at it.
+A coding agent can answer questions about a PLC program from its archive alone: which blocks exist, a block's interface and start values, SCL source, FBD networks as calls and wires, tag tables, and what each PLC's OPC UA server offers. The procedure is the [`read-tia-project`](.agents/skills/read-tia-project/SKILL.md) skill, in the Agent Skills format: how to dump, search and follow calls, how far to trust the result, and the rules, above all that know-how protected blocks stay closed. Copy it into your own repository's `.agents/skills/`, or point your agent at it.
 
 ## How far to trust the output
 
@@ -133,6 +134,7 @@ A coding agent can answer questions about a PLC program from its archive alone: 
 - **FBD text is ours.** Every part, wire and inversion of two FBD blocks was checked by eye against TIA's networks. That is a sample, not the whole archive.
 - **It is the code as written.** It says nothing about what a running PLC does, or about changes made on site.
 - **Tested on** two V20 archives, one project upgraded to V21 and one V15.1 global library. **Untested,** because no sample has any unprotected: LAD, plain FBD, STL and GRAPH. Versions before V14 use other file headers and have not been tried.
+- **The OPC UA report reads stored names, not TIA.** It was checked on three archives by walking their objects, not against TIA. Which security policy a stored key means, and whether a tag's stored flag is its OPC UA access, are inferred; the report says so, and section 18 of [the format](docs/FORMAT.md) gives the evidence. Port, guest access and user authentication are not reported: none of the three stores them.
 - **Start values in a `.db`'s trailing comment are partial.** The source text before it matches TIA's and lists what TIA lists. The comment adds values from the compiled image, and the reader takes those only for optimized data blocks generated from a UDT, and only for `Bool` and integer types. So a member with no start value there may still have one on the PLC, above all in an instance data block.
 
 ## The library

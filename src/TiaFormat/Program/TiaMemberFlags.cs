@@ -16,6 +16,9 @@ internal static class TiaMemberFlags {
         _ => hiddenFromParent,
     };
 
+    /// <summary>Whether the member is open to outside access but not writable: <c>ExternalWritable := 'False'</c>.</summary>
+    public static bool IsReadOnly(int? flags) => flags == 79;
+
     /// <summary>The attributes in braces, or null. A set point is a value to keep, so a parameter and a plain struct show none.</summary>
     public static string? Attributes(int? flags, bool hidden, string section, string type, string? instructionVersion) {
         // An instruction's own attributes come first, and only they start right after the brace.
@@ -23,7 +26,7 @@ internal static class TiaMemberFlags {
         if (instructionVersion is not null) {
             text.Append("InstructionName := '").Append(ElementType(type)).Append("'; LibVersion := '").Append(instructionVersion).Append('\'');
         }
-        if (flags == 79) {
+        if (IsReadOnly(flags)) {
             Separate(text);
             text.Append("ExternalWritable := 'False'");
         } else if (hidden) {

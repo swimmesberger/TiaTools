@@ -39,13 +39,40 @@ public sealed record TiaMember(string Name, string Type, string Path, string Sec
 
     /// <summary>Its attributes as a source file writes them, braces included; null if it has none.</summary>
     public string? Attributes { get; init; }
+
+    /// <summary>
+    /// What an HMI, OPC UA or Web API client may do with it, as its own flags or its parent's say; null where access
+    /// does not apply: temporary and constant members, and members of a function or organization block.
+    /// </summary>
+    public TiaExternalAccess? ExternalAccess { get; init; }
+}
+
+/// <summary>
+/// What an outside client (HMI, OPC UA, Web API) may do with a data block member or a PLC tag: TIA's settings
+/// <c>ExternalAccessible</c>, <c>ExternalWritable</c> and <c>ExternalVisible</c> taken together.
+/// </summary>
+public enum TiaExternalAccess : byte {
+    /// <summary>Accessible and writable.</summary>
+    ReadWrite,
+
+    /// <summary>Accessible, not writable.</summary>
+    ReadOnly,
+
+    /// <summary>Not accessible, so neither writable nor visible.</summary>
+    None,
 }
 
 /// <summary>One compile unit: a network, or an SCL body.</summary>
 public readonly record struct TiaNetwork(int Number, string Language, string? Title, string Form);
 
 /// <summary>One PLC tag, or a global constant when <see cref="Value"/> is set.</summary>
-public sealed record TiaTag(string Name, string? Type, string? Address, string? Value, string? Comment);
+public sealed record TiaTag(string Name, string? Type, string? Address, string? Value, string? Comment) {
+    /// <summary>What an outside client may do with the tag; null for a constant, or a tag that stores no such setting.</summary>
+    public TiaExternalAccess? ExternalAccess { get; init; }
+
+    /// <summary>Whether the tag is offered in HMI engineering (<c>ExternalVisible</c>); null where it stores no such setting.</summary>
+    public bool? ExternalVisible { get; init; }
+}
 
 /// <summary>A tag table with its tags in table order.</summary>
 public sealed record TiaTagTable(TiaFrame Frame, string Name, IReadOnlyList<TiaTag> Tags);

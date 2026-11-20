@@ -1,5 +1,9 @@
 # Update log
 
+## 2026-11-20
+
+* **Update**: [the format](FORMAT.md) gains section 18, where a PLC's OPC UA settings, server storage and roles are stored and how tags and members carry external access, checked on three more samples (C, D, E); [spec 0004](../specs/0004-opc-ua-report.md) and its plan describe `tiadump opcua`, which reports them.
+
 ## 2026-11-18
 
 * **Update**: [releasing](releasing.md): the release workflow builds the Mac zips too, on a Mac runner with `tools/release_macos.sh`, and attaches them with the Windows ones in one last job.

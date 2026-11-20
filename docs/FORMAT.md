@@ -8,7 +8,7 @@ status: stable
 
 Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers). `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -227,7 +227,7 @@ An `AttributeSet` with `expando` holds attributes not in the schema.
 | 18 | `c`×u32 keys |
 | 18+4`c` | `c`×u32 values: inline if the type is fixed and at most 4 bytes; otherwise an offset from 18+8`c` (`0xFFFFFFFF` is missing) |
 
-An out-of-line structure or array sits at that offset without a further ref. A blob or XML value sits there as in section 7.3. **[S]**
+The key table gives each key's value type, a built-in type id of section 6. An out-of-line structure or array sits at that offset without a further ref. A blob or XML value sits there as in section 7.3, a string as in section 7.2, a `xs:dateTime` as 8 bytes of ticks as in section 2. **[S]**
 
 Some of what a source file shows is only here. Names are keys in the object type's table:
 
@@ -236,6 +236,7 @@ Some of what a source file shows is only here. Names are keys in the object type
 | `InterfaceVersionRootData` | `Values` | XML: the start values its members are declared with (section 11) **[S]** |
 | `DataBlockData` | `NonRetain` | Bool: a source file's `NON_RETAIN` **[S]** |
 | `DataBlockData` | `DBAccessibleFromOPCUA`, `DBAccessibleFromWebserver` | Bool: false adds that block attribute. Absent means true. **[S]** |
+| `DeviceItemData`, `OpcUaServerConfigurationData` | the OPC UA settings | Section 18 |
 
 **`expando="simple"`**: names are in the value itself. **[S]** This is where interface comments are.
 
@@ -551,6 +552,46 @@ The text is the same after compiling. TIA exports SimaticML only for a compiled 
 
 **How far the format is version-bound**: the same reader reads V15.1, V20 and V21 unchanged. A, upgraded from V20 to V21, gives byte-identical source for all 963 block files and 14 tag files; only the system instruction list and object ids changed; frame layout, blobs and relations did not move. On V15.1 kind 4 blobs do not occur and per-relation lists occur once, so those two rest on V20. Versions before 1400 use other headers (section 3), and none was tried.
 
+## 18. OPC UA
+
+Where a PLC's OPC UA configuration lives. Found by walking every object of C, D and E; nothing here has been compared with TIA, so a meaning beyond the stored name is **[I]** at best. `tiadump opcua` reports it. This section names types and keys only, never what a sample stores in them.
+
+**The server's settings** are dictionary expando values (section 7.7) of the CPU's OPC UA device item: a `Siemens.Simatic.HwConfiguration.Model.DeviceItemData` whose `ICoreAttributes.Subtype` is `S71500.CPU.OPC_UA` and whose `IConfigBaseData.ConfigObjectTypeName` is `S71500\Submodules\CPU\OPC_UA\MDD_OpcUa_<version>`. `CoreObject.Target` leads to its PLC. Every PLC of the samples has one. **[S]**
+
+| Key | Type | |
+|---|---|---|
+| `OpcUaEnableServer` | bool | The server switch. Absent counts as off, TIA's default. **[I]** |
+| `ApplicationName` | string | The server's application name. |
+| `EnableSecurityPolicies_None`, `_256_S`, `_256_SE`, `_256SHA_S`, `_256SHA_SE`, `_256RSA_PSS_SE` | bool | Security policy switches. Which OPC UA policy each suffix means is **[?]**: the natural reading is Basic256 for `256`, Basic256Sha256 for `256SHA`, sign for `S` and sign and encrypt for `SE`, but what a never edited item stores does not fit TIA's defaults for a new CPU by that reading. Check in TIA before relying on one. |
+| `AutoAcceptClient` | bool | Accept client certificates automatically. |
+| `MinimumPublishingInterval` | uint | In ms. **[I]** |
+| `ServerCertificateId`, `TrustedClientCertificatesIds`, `OpcUaServerManagedCertificatesGroupName` | string | References into the certificate manager, not certificates. The report says only whether one is assigned, and counts the trusted ones. |
+
+Most keys are stored only once set. No key table of C, D or E names a port, guest access or user authentication setting, so where TIA keeps a changed one is **[?]**.
+
+**The server storage** is a `Siemens.Simatic.OpcUa.Model.OpcUaServerConfigurationData`, subtype `OpcUa.ServerStorage`, with `Target` to its PLC. The V20 samples have one per PLC, the V18 sample none. Its expando values: **[S]**
+
+| Key | Type | |
+|---|---|---|
+| `LastCompiled`, `LastDownloaded` | dateTime | Of the server interfaces. |
+| `OPCUA.Expando.StructureJournalChanges`, `OPCUA.Expando.MappingJournalChanges` | string | A JSON-like list, `[]` when empty. That a user-defined server interface or companion specification would fill them is **[I]**; their filled form is **[?]**. |
+| `UsersAndRolesStorage` | blob | The OPC UA roles, below. |
+| `CompiledInterfaceBlob` | blob | A serialized `Siemens.Simatic.OpcUa.BusinessLogic.Services.CompiledServerInterface`: `LastCompiled`, `LastDownloaded`, `NextDownloadForced`, `RID`, `ASMBinary`, `DataMapping`, `ESData`, `RolesMap`, `Thumbprint`, `IsPrimaryInterface`. Not decoded further. |
+
+The schema also has `OpcUaInterfaceData`, `OpcUaNodeData`, `OpcUaListData` and `OpcUaListContainerData`, presumably the objects of a server interface; no sample holds any. **[U]**
+
+**Roles.** `UsersAndRolesStorage` is a 5 byte head (`01`, u32 0) and a .NET binary serialization stream ([MS-NRBF](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/)) of a `Siemens.Simatic.OpcUa.BusinessLogic.UsersAndRolesStorageContainer`: `Roles`, a list of `UaRoleMappingInfo` (`RoleId`, `ProjectRoleName`, `RoleName`, `RoleComment`, `RolePermissions` as a list of `UaNamespacePermissionInfo` with `NamespaceIndex`, `NamespaceUri` and `Permissions`, `IsImportedRole`); `RolesMap`, from an id of the project's user management to node ids; `NodePermissions`; `AccessRestrictions` per namespace; `AccessRestrictionsMap`; `Version`. **[S]** `Permissions` are OPC UA's `PermissionType` bits (Browse 1, ReadRolePermissions 2, ..., Read 32, Write 64, ReceiveEvents 2048). **[I]** The stream holds no users and no passwords; users are in the project's user management (`Siemens.Automation.Umac...`), which this reader does not read.
+
+**What a client may reach.** A data block is open to OPC UA unless `DBAccessibleFromOPCUA` is false (section 7.7). A member's access comes from the `MFlags` of section 11: the flags that write `ExternalAccessible := 'False'` close it, `79` makes it read-only, and a member under a closed or read-only one is taken to be the same. **[I]** A PLC tag (`EAMTZTagData`) has three flags in `Siemens.Automation.DomainServices.CommonTypeSystem.IStructureItem`, read as TIA's tag table columns: **[I]**
+
+| Attribute | Read as |
+|---|---|
+| `HmiStructureTypeRelevant` | Accessible from HMI/OPC UA/Web API |
+| `HmiReadOnly` | not Writable from HMI/OPC UA/Web API |
+| `HmiVisible` | Visible in HMI engineering |
+
+No other boolean of the tag's type could hold them, and most tags of the samples have the first and last set and `HmiReadOnly` clear, which is TIA's default. But some tags have the first clear and the last set, which TIA's tag table does not let a person set by hand. So whether `HmiStructureTypeRelevant` is the access switch is **[?]** until a tag is checked in TIA. A tag without an `IStructureItem` segment stores none of the three.
+
 ## Open questions
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
@@ -560,15 +601,16 @@ What is left of the comparison with TIA Portal, most important first. [Comparing
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, plain FBD, STL and GRAPH.** No sample has any unprotected. A small new project in TIA with one block of each would close that, and being invented, like the demo project, it can go into the tests as a fixture. It would also test the rules on something new.
 5. **Hardware, optional.** The reader lists no devices. A `tiadump devices` command (name, type, address, network) could be checked against TIA's Network overview.
+6. **OPC UA.** Section 18 rests on stored names alone. In TIA, compare a sample's OPC UA server with its stored keys: which security policies it shows, and whether tags with `HmiStructureTypeRelevant` clear and `HmiVisible` set are accessible in the tag table. Then change the port, guest access and user authentication of a server in a copy and see which keys appear. A project with a user-defined server interface would show what the journals and `OpcUaInterfaceData` hold.
 
 ## This repository's reader
 
-`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and booleans and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them.
+`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and the booleans, integers, strings, dates and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them. For the OPC UA roles (section 18) it has a reader of the .NET binary serialization format that only reads values and creates no type the stream names.
 
 ```bash
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `dump --raw` adds each network as stored. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.
