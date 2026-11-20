@@ -60,6 +60,30 @@ public sealed class TiaProjectOpcUaTest {
         project.Document(tag.Item).LineText(tag.Line).Should().Contain("Level");
     }
 
+    // Spec 0006: its nodes ------------------------------------------------------------------------------------------
+
+    [Test]
+    public void TheNodesAreDerivedWhenFirstAskedFor_AndOnlyOnce() {
+        var project = Opened();
+        var report = Report(project, "Filler");
+
+        var nodes = project.OpcUaNodes(report)!;
+
+        nodes.Plc.Should().Be("Filler");
+        project.OpcUaNodes(report).Should().BeSameAs(nodes);
+        project.OpcUaNodes(project.Items[0]).Should().BeNull();
+    }
+
+    [Test]
+    public void ANodeRowLeadsToItsDataBlockOrTagTable() {
+        var project = Opened();
+        var report = Report(project, "Filler");
+        var nodes = project.OpcUaNodes(report)!.Nodes;
+
+        project.Resolve(report, nodes.Single(node => node.NodeId == "ns=3;s=\"Recipe\".\"Limit\"").Source!)!.Value.Item.Name.Should().Be("Recipe");
+        project.Resolve(report, nodes.Single(node => node.NodeId == "ns=3;s=\"Level\"").Source!)!.Value.Item.Name.Should().Be("Line tags");
+    }
+
     // Copy it as text -------------------------------------------------------------------------------------------------
 
     [Test]

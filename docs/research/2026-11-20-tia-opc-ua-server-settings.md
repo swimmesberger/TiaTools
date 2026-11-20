@@ -67,6 +67,22 @@ What a client of the standard SIMATIC server interface sees, from the same manua
 
 Not found in the sources: the names of the folders cut off in the picture (presumably for instance data blocks, inputs, outputs, memory and timers), the node ids of the PLC object and the folders, and how array elements and multi-instances are written.
 
+### What TIA V21's export holds
+
+Not from the sources above but checked here: the node set that TIA Portal V21 exports, through Openness's `OpcUaExportProvider` (the same as *OPC UA › Server › Export*), for a copy of the demo project with its server on and three test data blocks. It answers what the sources leave open:
+
+- The PLC's object is `ns=3;s=PLC`, browse name the PLC's name, under the DI *DeviceSet* (`ns=2;i=5001`). Its folders are `ns=3;s=DataBlocksGlobal`, `ns=3;s=DataBlocksInstance`, `ns=3;s=Inputs`, `ns=3;s=Outputs` and `ns=3;s=Memory`; *Timers* and *Counters* appear only as types in a program without them.
+- A tag is a variable `ns=3;s="Tag"` in the folder of its address area. A data block is an object `ns=3;s="Block"`, a member a variable `ns=3;s="Block"."Member"`, with every name quoted and the path joined by dots, nested structs, UDTs and multi-instances alike.
+- An instance data block has objects `"Block".Inputs`, `.Outputs`, `.Static` (and `.InOuts`) that hold its members, but a member's id leaves the section out: `"Block"."start"`, not `"Block".Inputs."start"`. A multi-instance is an object with the same sections.
+- An array is a variable with `ValueRank` and `ArrayDimensions` (`2,2` for two dimensions) and its own access, and each element a variable `"Block"."list"[0]`, browse name `0`, counted from 0 in each dimension whatever the declared bounds (`[0,1]` for two), with its members below it. TIA's export lists the elements even with *Export all array elements as separate nodes* off: the option, stored as `ExportArrayMembers`, changed nothing in the export through Openness.
+- A struct or UDT member is a variable whose data type is `ns=3;s=DT_"Udt"` or `ns=3;s=DT_"Block"."Struct"`, its members below it; it is read-only when any member below it is. DTL, an IEC timer (`TON_TIME` and its kin are `IEC_TIMER`, the `LTIME` ones `IEC_LTIMER`) and an IEC counter of `Int` (`IEC_COUNTER`) are the same, with their members named without quotes: `"Block"."stamp".YEAR`. A timer's `ET` and `Q` are read-only, so the timer is too; a counter's eight members are writable.
+- A multi-instance is an object `"Block"."member"` of type `OT_"FB"` with the same sections as an instance data block.
+- A writable variable has `AccessLevel="3"`; a read-only one has none, so 1, read only. A closed member has no node, nor has any member under it; a member that is not visible in HMI engineering has a node like any other.
+- The data types are aliases: `BOOL` is `i=1`, `SINT` to `LREAL` are `i=2` to `i=11` (`USINT` is Byte, `INT` Int16, `REAL` Float), `WSTRING` `i=12`, `LDT` `i=13`; `BYTE`, `WORD`, `DWORD`, `LWORD`, `S5TIME`, `TIME`, `LTIME`, `DATE`, `TOD`, `LTOD`, `DT`, `CHAR`, `WCHAR` and `STRING` are Siemens' own, `ns=3;i=3001` to `ns=3;i=3014` in that order. `DT` is a variable of 8 bytes, `ValueRank` 1.
+- The file also holds the data type nodes (`DT_`, `TE_`, `VT_`, `V_`) of each UDT and struct, and the PLC object's device properties.
+
+`tiadump opcua --nodeset` writes the same nodes from the program alone (spec 0006). On the demo copy with four test data blocks covering every elementary type, arrays, structs, DTL, timers, counters and each access combination, all 300 data block, member, element, section and tag nodes of TIA's export are in it with the same id, browse name, parent, references, data type, value rank, dimensions, access level and description, and it has none TIA lacks; only TIA's fixed descriptions of the PLC object and its folders are left out.
+
 ## What it means for TiaTools
 
 - The stored key suffixes of section 18 of the [format](../FORMAT.md) line up with this list: `None`, `128RSA_S`/`128RSA_SE` for Basic128Rsa15, `256_S`/`256_SE` for Basic256, `256SHA_S`/`256SHA_SE` for Basic256Sha256, `256RSA_OAEP_S`/`256RSA_OAEP_SE` for Aes128Sha256RsaOaep and `256RSA_PSS_S`/`256RSA_PSS_SE` for Aes256Sha256RsaPss. Section 18 has since checked them, and the keys of port, guest access and user authentication, in TIA V21 through Openness, with TIA V21's defaults, which differ from this edition's: there only No security and Basic256Sha256 are on by default.

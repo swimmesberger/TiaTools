@@ -169,34 +169,9 @@ public static class TiaOpcUa {
         var s = db.Schema;
         var name = s.Attribute(Core, "Name");
         var target = s.Relation("Target");
-        var plcType = s.FindObjectType("Siemens.Simatic.HwConfiguration.Model.S7ControllerTargetData")?.Id;
-        var itemType = s.FindObjectType("Siemens.Simatic.HwConfiguration.Model.DeviceItemData")?.Id;
-        var storageType = s.FindObjectType("Siemens.Simatic.OpcUa.Model.OpcUaServerConfigurationData")?.Id;
-        var interfaceType = s.FindObjectType("Siemens.Simatic.OpcUa.Model.OpcUaInterfaceData")?.Id;
         var configName = s.Attribute(ConfigBase, "ConfigObjectTypeName");
-        var subtype = s.Attribute(Core, "Subtype");
-
-        var plcs = new List<(TiaFrame Frame, string Name)>();
-        var items = new Dictionary<ulong, TiaFrame>();
-        var storages = new Dictionary<ulong, TiaFrame>();
-        var interfaces = new Dictionary<ulong, List<string>>();
-        foreach (ref readonly var frame in db.Frames) {
-            if (frame.TypeId == plcType) {
-                if (program.Environment(frame).Kind == "ProjectData" && db.ReadString(frame, name) is var plcName && (plc is null || plcName == plc)) {
-                    plcs.Add((frame, plcName ?? ""));
-                }
-            } else if (frame.TypeId == itemType) {
-                if (IsOpcUaItem(db.ReadString(frame, configName), db.ReadString(frame, subtype)) && db.TryGetTarget(frame, target, out var owner)) {
-                    items.TryAdd(owner.ObjectId, frame);
-                }
-            } else if (frame.TypeId == storageType) {
-                if (db.TryGetTarget(frame, target, out var owner)) {
-                    storages.TryAdd(owner.ObjectId, frame);
-                }
-            } else if (frame.TypeId == interfaceType && db.TryGetTarget(frame, target, out var owner)) {
-                (interfaces.TryGetValue(owner.ObjectId, out var list) ? list : interfaces[owner.ObjectId] = []).Add(db.ReadString(frame, name) ?? "");
-            }
-        }
+        var scan = Scan(program, plc);
+        var (plcs, items, storages, interfaces) = (scan.Plcs, scan.Items, scan.Storages, scan.Interfaces);
 
         var blocks = program.Blocks.Where(block => !block.IsStub && block.Kind.StartsWith("DB", StringComparison.Ordinal) && program.Environment(block.Frame).Kind == "ProjectData").ToList();
         var tables = program.ReadTagTables().Where(table => program.Environment(table.Frame).Kind == "ProjectData").ToList();
@@ -214,6 +189,50 @@ public static class TiaOpcUa {
         }
         return new TiaOpcUaReport(result);
     }
+
+    /// <summary>The PLCs of the project itself, and the OPC UA device item, server storage and interfaces of each, by the PLC's object id.</summary>
+    internal sealed record PlcScan(
+        List<(TiaFrame Frame, string Name)> Plcs,
+        Dictionary<ulong, TiaFrame> Items,
+        Dictionary<ulong, TiaFrame> Storages,
+        Dictionary<ulong, List<string>> Interfaces);
+
+    internal static PlcScan Scan(TiaProgram program, string? plc) {
+        var db = program.Database;
+        var s = db.Schema;
+        var name = s.Attribute(Core, "Name");
+        var target = s.Relation("Target");
+        var plcType = s.FindObjectType("Siemens.Simatic.HwConfiguration.Model.S7ControllerTargetData")?.Id;
+        var itemType = s.FindObjectType("Siemens.Simatic.HwConfiguration.Model.DeviceItemData")?.Id;
+        var storageType = s.FindObjectType("Siemens.Simatic.OpcUa.Model.OpcUaServerConfigurationData")?.Id;
+        var interfaceType = s.FindObjectType("Siemens.Simatic.OpcUa.Model.OpcUaInterfaceData")?.Id;
+        var configName = s.Attribute(ConfigBase, "ConfigObjectTypeName");
+        var subtype = s.Attribute(Core, "Subtype");
+
+        var scan = new PlcScan([], [], [], []);
+        foreach (ref readonly var frame in db.Frames) {
+            if (frame.TypeId == plcType) {
+                if (program.Environment(frame).Kind == "ProjectData" && db.ReadString(frame, name) is var plcName && (plc is null || plcName == plc)) {
+                    scan.Plcs.Add((frame, plcName ?? ""));
+                }
+            } else if (frame.TypeId == itemType) {
+                if (IsOpcUaItem(db.ReadString(frame, configName), db.ReadString(frame, subtype)) && db.TryGetTarget(frame, target, out var owner)) {
+                    scan.Items.TryAdd(owner.ObjectId, frame);
+                }
+            } else if (frame.TypeId == storageType) {
+                if (db.TryGetTarget(frame, target, out var owner)) {
+                    scan.Storages.TryAdd(owner.ObjectId, frame);
+                }
+            } else if (frame.TypeId == interfaceType && db.TryGetTarget(frame, target, out var owner)) {
+                (scan.Interfaces.TryGetValue(owner.ObjectId, out var list) ? list : scan.Interfaces[owner.ObjectId] = []).Add(db.ReadString(frame, name) ?? "");
+            }
+        }
+        return scan;
+    }
+
+    /// <summary>Whether the object belongs to the PLC with this object id: its <c>Target</c> is the PLC.</summary>
+    internal static bool Owns(TiaDatabase db, in TiaFrame owned, ulong plc) =>
+        db.TryGetTarget(owned, db.Schema.Relation("Target"), out var owner) && owner.ObjectId == plc;
 
     /// <summary>A CPU's OPC UA submodule: <c>S71500\Submodules\CPU\OPC_UA\MDD_OpcUa_&lt;version&gt;</c>, subtype <c>S71500.CPU.OPC_UA</c>.</summary>
     private static bool IsOpcUaItem(string? configName, string? subtype) =>

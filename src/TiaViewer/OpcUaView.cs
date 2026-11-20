@@ -4,8 +4,10 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using TiaFormat.Program;
 
@@ -23,22 +25,47 @@ public sealed class OpcUaView : UserControl {
     // Column widths as text: a grid owns its definitions, so each row parses its own.
     private const string BlockColumns = "70,*,90,180,80,80,80";
     private const string TagColumns = "160,*,170,110,110,110,110";
+    private const string NodeColumns = "*,190,110";
 
     private readonly TabControl _tabs = new() { Padding = new Thickness(0) };
+    private readonly TabItem _nodesTab = Tab("Nodes", new Panel());
+    private Func<TiaOpcUaNodeList>? _nodes;
 
-    public OpcUaView() => Content = _tabs;
+    public OpcUaView() {
+        Content = _tabs;
+        // The node list is derived when its tab is first shown (spec 0006, FR-014).
+        _tabs.SelectionChanged += (_, _) => {
+            if (_tabs.SelectedItem == _nodesTab && _nodes is { } derive) {
+                _nodes = null;
+                var list = derive();
+                _nodesTab.Header = Count("Nodes", list.Nodes.Count);
+                _nodesTab.Content = Nodes(list);
+            }
+        };
+    }
 
     /// <summary>A data block or tag the person asked to open, by its name.</summary>
     public event Action<string>? Open;
 
-    public void Show(TiaOpcUaPlc plc) {
+    /// <summary>What the view did, for the status bar: a node id copied, a node set exported.</summary>
+    public event Action<string>? Said;
+
+    /// <summary>Shows a PLC's configuration; its nodes are derived by <paramref name="nodes"/> when their tab is first shown.</summary>
+    public void Show(TiaOpcUaPlc plc, Func<TiaOpcUaNodeList>? nodes = null) {
         var tags = plc.TagTables.SelectMany(table => table.Tags.Select(tag => (Table: table.Name, Tag: tag))).ToList();
-        _tabs.ItemsSource = new[] {
+        _nodes = nodes;
+        _nodesTab.Header = "Nodes";
+        _nodesTab.Content = new Panel();
+        var tabs = new List<TabItem> {
             Tab("Server", Scrolled(Server(plc))),
             Tab("Server interfaces and roles", Scrolled(InterfacesAndRoles(plc.Storage))),
             Tab(Count("Data blocks", plc.DataBlocks.Count), DataBlocks(plc.DataBlocks)),
             Tab(Count("Tags", tags.Count), Tags(tags)),
         };
+        if (nodes is not null) {
+            tabs.Add(_nodesTab);
+        }
+        _tabs.ItemsSource = tabs;
         _tabs.SelectedIndex = 0;
     }
 
@@ -154,7 +181,7 @@ public sealed class OpcUaView : UserControl {
             Text(block.HiddenMembers.Count.ToString(CultureInfo.InvariantCulture)), Text(block.ReadOnlyMembers.Count.ToString(CultureInfo.InvariantCulture)),
         ],
         block => block.Name,
-        "Double-click a data block, or press Enter, to open it. Closed and read-only members are marked in its source.");
+        "Double-click a data block, or press Enter, to open it. Closed and read-only members are marked in its source.", out _);
 
     private Control Tags(List<(string Table, TiaTag Tag)> tags) => Table(
         TagColumns,
@@ -167,10 +194,67 @@ public sealed class OpcUaView : UserControl {
             Check(entry.Tag.ExternalVisible),
         ],
         entry => entry.Tag.Name,
-        "¹ From HMI/OPC UA/Web API, and visible in HMI engineering, as TIA's tag table shows them. Double-click a tag, or press Enter, to open its table.");
+        "¹ From HMI/OPC UA/Web API, and visible in HMI engineering, as TIA's tag table shows them. Double-click a tag, or press Enter, to open its table.", out _);
+
+    // Nodes ---------------------------------------------------------------------------------------------------------
+
+    private Control Nodes(TiaOpcUaNodeList nodes) {
+        var table = Table(
+            NodeColumns,
+            [Header("Node id"), Header("Data type"), Header("Access")],
+            nodes.Nodes,
+            node => [Text(node.NodeId), Text(node.DataTypeName ?? (node.NodeClass == TiaOpcUaNodeClass.Object ? "object" : "")), Text(TiaOpcUaNodes.Access(node))],
+            node => node.Source ?? "",
+            TiaOpcUaNodes.Derived + " Double-click a node, or press Enter, to open its data block or tag table; Ctrl+C copies its node id.", out var list);
+        var copy = new Button { Content = "Copy node id", IsEnabled = false };
+        list.SelectionChanged += (_, _) => copy.IsEnabled = list.SelectedItem is TiaOpcUaNode;
+        copy.Click += async (_, _) => await CopyNodeIdAsync(list);
+        list.KeyDown += async (_, e) => {
+            if (e.Key == Key.C && (e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta))) {
+                e.Handled = true;
+                await CopyNodeIdAsync(list);
+            }
+        };
+        var export = new Button { Content = "Export node set…" };
+        ToolTip.SetTip(export, "Write the PLC's nodes as an OPC UA node set file (UANodeSet XML), for configuring a client offline");
+        export.Click += async (_, _) => await ExportAsync(nodes);
+        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(RowInset, 10, 16, 0), Children = { copy, export } };
+        var panel = new DockPanel();
+        DockPanel.SetDock(bar, Dock.Top);
+        panel.Children.Add(bar);
+        panel.Children.Add(table);
+        return panel;
+    }
+
+    private async Task CopyNodeIdAsync(ListBox list) {
+        if (list.SelectedItem is TiaOpcUaNode node && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard) {
+            await clipboard.SetTextAsync(node.NodeId);
+            Said?.Invoke("Copied " + node.NodeId);
+        }
+    }
+
+    private async Task ExportAsync(TiaOpcUaNodeList nodes) {
+        if (TopLevel.GetTopLevel(this)?.StorageProvider is not { } storage) {
+            return;
+        }
+        var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions {
+            Title = "Export node set",
+            SuggestedFileName = nodes.Plc + " nodes.xml",
+            DefaultExtension = "xml",
+            FileTypeChoices = [new FilePickerFileType("OPC UA node set") { Patterns = ["*.xml"] }],
+        });
+        if (file is null) {
+            return;
+        }
+        await using (var stream = await file.OpenWriteAsync()) {
+            stream.SetLength(0);
+            TiaOpcUaNodeSet.Write(nodes, stream);
+        }
+        Said?.Invoke(Invariant($"Exported {nodes.Nodes.Count} nodes to {file.Name}"));
+    }
 
     /// <summary>A list with a header row and a note below; a row is opened by double-click or Enter.</summary>
-    private Control Table<T>(string columns, Control[] header, IReadOnlyList<T> rows, Func<T, Control[]> cells, Func<T, string> name, string note) {
+    private Control Table<T>(string columns, Control[] header, IReadOnlyList<T> rows, Func<T, Control[]> cells, Func<T, string> name, string note, out ListBox rowList) {
         var head = new Grid { ColumnDefinitions = ColumnDefinitions.Parse(columns), Margin = new Thickness(RowInset, 8, 16, 4) };
         AddRow(head, 0, header);
         var list = new ListBox {
@@ -203,6 +287,7 @@ public sealed class OpcUaView : UserControl {
         DockPanel.SetDock(footer, Dock.Bottom);
         panel.Children.Add(footer);
         panel.Children.Add(list);
+        rowList = list;
         return panel;
     }
 

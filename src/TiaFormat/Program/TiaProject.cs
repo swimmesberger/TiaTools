@@ -83,6 +83,7 @@ public readonly record struct TiaSearchResult(TiaItem Item, int Line, string Tex
 public sealed class TiaProject {
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
+    private readonly ConcurrentDictionary<TiaItem, TiaOpcUaNodeList> _opcUaNodes = new();
     private readonly Dictionary<(string Scope, string Name), TiaLocation> _names = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _to = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _from = [];
@@ -121,6 +122,10 @@ public sealed class TiaProject {
     /// <summary>A report's OPC UA configuration of its PLC, read once, when it is first asked for; null for any other item.</summary>
     public TiaOpcUaPlc? OpcUa(TiaItem item) => item.ReportPlc is null ? null : _opcUa.GetOrAdd(item, static (key, program) =>
         TiaOpcUa.Read(program, key.ReportPlc).Plcs.SingleOrDefault() ?? new TiaOpcUaPlc(key.ReportPlc!, null, null, [], []), Program);
+
+    /// <summary>The nodes of a report's PLC (spec 0006), derived once, when first asked for; null for any other item.</summary>
+    public TiaOpcUaNodeList? OpcUaNodes(TiaItem item) => item.ReportPlc is null ? null : _opcUaNodes.GetOrAdd(item, static (key, program) =>
+        TiaOpcUaNodes.Read(program, key.ReportPlc).SingleOrDefault() ?? new TiaOpcUaNodeList(key.ReportPlc!, []), Program);
 
     /// <summary>The report <c>tiadump opcua --plc</c> writes for a report's PLC, as plain text.</summary>
     private TiaDocument Report(TiaItem item) {

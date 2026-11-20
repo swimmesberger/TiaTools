@@ -2,6 +2,7 @@
 
 ## 2026-11-20
 
+* **Update**: [spec 0006](../specs/0006-opc-ua-nodes.md) is approved and built with its plan: `tiadump opcua --nodes` and `--nodeset` and the viewer's Nodes tab list a PLC's OPC UA nodes and export them as a node set file, matching TIA V21's own export node for node; the [research note](research/2026-11-20-tia-opc-ua-server-settings.md) gives the rules and the comparison, and [the format](FORMAT.md) the fallback for type codes no identifier names.
 * **Update**: [the format](FORMAT.md) reads a member's `MFlags` bit by bit, checked on test data blocks TIA V21 generated, and confirms the RSA-OAEP and RSA-PSS policy keys on firmware V4.1; the [research note](research/2026-11-20-tia-opc-ua-server-settings.md) adds the node ids of TIA's OPC UA node set export; [spec 0004](../specs/0004-opc-ua-report.md) marks less as unconfirmed.
 * **Update**: [the format](FORMAT.md), section 18, is checked in TIA V21 through Openness on a copy of the demo project: every server setting's key and default, the security policy keys, the minimum sampling interval on the PLC, and the tags' access columns; [spec 0004](../specs/0004-opc-ua-report.md) and [spec 0005](../specs/0005-viewer-opc-ua.md) report the port, user authentication, standard interface and sampling interval and mark less as inferred.
 * **Update**: [research note](research/2026-11-20-tia-opc-ua-server-settings.md) on the OPC UA address space and its node set export; [spec 0006](../specs/0006-opc-ua-nodes.md), a draft, asks for the node list and export built from it.

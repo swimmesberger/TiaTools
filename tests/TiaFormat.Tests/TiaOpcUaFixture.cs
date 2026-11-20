@@ -31,6 +31,7 @@ internal static class TiaOpcUaFixture {
     internal const uint Content = 0x00232008;
     internal const uint TableTarget = 0x00232009;
     internal const uint TableEnvironment = 0x0023200A;
+    internal const uint IsGeneratedFrom = 0x0023200B;
 
     internal const uint BooleanType = 0x80000001;
     internal const uint DateTimeType = 0x8000000A;
@@ -112,6 +113,7 @@ internal static class TiaOpcUaFixture {
           <Relation name="CurrentInterface" id="0x00232005" cardinality="1"><Target ref="Siemens.Simatic.Lang.Model.Structures.InterfaceVersionRootData"/></Relation>
           <Relation name="Target" id="0x00232006" cardinality="1"><Target ref="Siemens.Simatic.HwConfiguration.Model.S7ControllerTargetData"/></Relation>
           <Relation name="Environment" id="0x00232007" cardinality="1"><Target ref="Siemens.Automation.DomainModel.ProjectData"/></Relation>
+          <Relation name="IsGeneratedFrom" id="0x0023200B" cardinality="1"><Target ref="Siemens.Simatic.Lang.Model.Blocks.DataBlockData"/></Relation>
         </ObjectType>
         </Namespace><Namespace name="N">
         """;
@@ -290,6 +292,13 @@ internal static class TiaOpcUaFixture {
 
         /// <summary>Also a master copy holding the PLC <c>Copied</c> with one data block.</summary>
         public bool HasMasterCopy { get; init; }
+
+        /// <summary>
+        /// Also, for the node list: the UDT <c>Dose</c>, the FBs <c>Valve</c> and <c>Line</c>, the global data blocks
+        /// <c>Doses</c>, <c>Sealed</c> (every member closed) and <c>Locked</c> (know-how protected), and <c>LineData</c>,
+        /// an instance of <c>Line</c>.
+        /// </summary>
+        public bool HasTypes { get; init; }
     }
 
     /// <summary>
@@ -362,6 +371,9 @@ internal static class TiaOpcUaFixture {
             ]);
         }
         DataBlockObject(file, 41, "Service", false, """<Root><Member ID="2" Name="Static"><Member ID="51" Name="Code" RID="0x02000001" /></Member></Root>""");
+        if (options.HasTypes) {
+            Types(file);
+        }
 
         file.WriteObject(Tag, 60, TagObject("Start", "%I0.0", null, accessible: true, visible: true, readOnly: false));
         file.WriteObject(Tag, 61, TagObject("Level", "%IW2", null, accessible: true, visible: true, readOnly: true));
@@ -378,14 +390,57 @@ internal static class TiaOpcUaFixture {
     private static byte[]?[] TagObject(string name, string address, string? value, bool accessible, bool visible, bool readOnly) =>
         [OneString(address), value is null ? null : OneString(value), StructureItem("Bool", accessible, visible, readOnly), Core(name)];
 
-    private static void DataBlockObject(TiaFileBuilder file, ulong id, string name, bool? openToOpcUa, string xml) {
+    private static void DataBlockObject(TiaFileBuilder file, ulong id, string name, bool? openToOpcUa, string xml, string kind = "DB", ulong? generatedFrom = null, bool isProtected = false) {
         file.WriteObject(Root, id + 100, [null, Part(xml)]);
-        var general = TiaFileBuilder.Segment(9, (4, TiaFileBuilder.String("DB")), (8, TiaFileBuilder.String("DB")));
+        var general = TiaFileBuilder.Segment(9, (4, TiaFileBuilder.String(kind)), (8, TiaFileBuilder.String(kind)));
+        var slots = new List<(uint, uint, ulong)> { (DbInterface, Root, id + 100), (DbTarget, Plc, 10), (DbEnvironment, Project, 1) };
+        if (generatedFrom is { } type) {
+            slots.Add((IsGeneratedFrom, DataBlock, type));
+        }
         file.WriteObject(DataBlock, id, [
-            Core(name, "DB"),
+            Core(name, kind, isProtected),
             openToOpcUa is { } open ? Expando(Flag(1, open)) : null,
             general,
-            TiaFileBuilder.Slots((DbInterface, Root, id + 100), (DbTarget, Plc, 10), (DbEnvironment, Project, 1)),
+            TiaFileBuilder.Slots([.. slots]),
         ]);
+    }
+
+    /// <summary>The blocks of <see cref="Options.HasTypes"/>.</summary>
+    private static void Types(TiaFileBuilder file) {
+        DataBlockObject(file, 43, "Dose", null, """
+            <Root>
+              <Member ID="51" Name="volume" RID="0x02000008" />
+              <Member ID="52" Name="code" RID="0x02000002" />
+            </Root>
+            """, kind: "UDT");
+        DataBlockObject(file, 44, "Valve", null, """
+            <Root>
+              <Member ID="2" Name="Input"><Member ID="51" Name="open" RID="0x02000001" /></Member>
+              <Member ID="3" Name="Output"><Member ID="52" Name="opened" RID="0x02000001" /></Member>
+              <Member ID="4" Name="Static"><Member ID="53" Name="moveTimer" Type="TON_TIME" /></Member>
+              <Member ID="5" Name="Temp"><Member ID="54" Name="scratch" RID="0x02000001" /></Member>
+            </Root>
+            """, kind: "FB");
+        DataBlockObject(file, 45, "Line", null, """
+            <Root>
+              <Member ID="2" Name="Input"><Member ID="51" Name="start" RID="0x02000001" /></Member>
+              <Member ID="4" Name="Static"><Member ID="52" Name="valve" Type="&quot;Valve&quot;" /></Member>
+            </Root>
+            """, kind: "FB");
+        DataBlockObject(file, 46, "Doses", null, """
+            <Root><Member ID="2" Name="Static">
+              <Member ID="51" Name="active" Type="&quot;Dose&quot;" />
+              <Member ID="52" Name="list" Type="Array[1..2] of &quot;Dose&quot;" />
+              <Member ID="53" Name="stamp" RID="0x02000043" />
+              <Member ID="54" Name="limits" RID="0x91010000" SubPartIndex="9">
+                <Member ID="55" Name="low" RID="0x02000005" />
+                <Member ID="56" Name="high" RID="0x02000005" MFlags="79" />
+              </Member>
+              <Member ID="57" Name="grid" Type="Array[1..2, 0..1] of Int" />
+            </Member></Root>
+            """);
+        DataBlockObject(file, 47, "Sealed", null, """<Root><Member ID="2" Name="Static"><Member ID="51" Name="Secret" RID="0x02000001" MFlags="14" /></Member></Root>""");
+        DataBlockObject(file, 48, "Locked", null, """<Root><Member ID="2" Name="Static"><Member ID="51" Name="Inside" RID="0x02000001" /></Member></Root>""", isProtected: true);
+        DataBlockObject(file, 49, "LineData", null, """<Root><Member ID="2" Name="Static" /></Root>""", generatedFrom: 45);
     }
 }

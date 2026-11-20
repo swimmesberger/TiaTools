@@ -113,6 +113,10 @@ public sealed partial class MainWindow : Window {
         };
 
         OpcUaPanel.Open += OpenFromOpcUa;
+        OpcUaPanel.Said += text => {
+            Status.Text = text;
+            ShowFolderButton.IsVisible = false;
+        };
 
         var text = Editor.TextArea;
         text.AddHandler(PointerPressedEvent, OnEditorPressed, RoutingStrategies.Tunnel);
@@ -243,7 +247,7 @@ public sealed partial class MainWindow : Window {
             Editor.Document = new TextDocument(document.Text);
             _current = item;
             if (project.OpcUa(item) is { } opcUa) {
-                OpcUaPanel.Show(opcUa);
+                OpcUaPanel.Show(opcUa, () => project.OpcUaNodes(item)!);
             }
             if (!keepLists) {
                 ShowPlaces(item);
