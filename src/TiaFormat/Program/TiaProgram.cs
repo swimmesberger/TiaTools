@@ -371,16 +371,30 @@ public sealed class TiaProgram {
             }
             var subtype = _db.ReadString(frame, _subtype);
             var kind = _db.ReadString(frame, _blockType) ?? subtype ?? (frame.TypeId == user ? "UDT" : "?");
+            kind = kind == "None" ? subtype ?? kind : kind;
             result.Add(new TiaBlock(
                 frame,
                 _db.ReadString(frame, _name) ?? "",
-                kind == "None" ? subtype ?? kind : kind,
+                kind,
                 _db.ReadInteger(frame, _number),
                 _db.ReadString(frame, _language),
                 _db.ReadBoolean(frame, _protected),
-                _db.ReadCoreText(frame, _comment)));
+                _db.ReadCoreText(frame, _comment)) {
+                EventClass = kind == "OB" ? EventClassOf(subtype) : null,
+            });
         }
         return result;
+    }
+
+    /// <summary>An OB's subtype is <c>OB.</c> and its event class, with <c>.Safety</c> after it on a fail-safe one.</summary>
+    private static string? EventClassOf(string? subtype) {
+        if (subtype is null || !subtype.StartsWith("OB.", StringComparison.Ordinal)) {
+            return null;
+        }
+        var name = subtype[3..];
+        var dot = name.IndexOf('.', StringComparison.Ordinal);
+        name = dot < 0 ? name : name[..dot];
+        return name.Length == 0 ? null : name;
     }
 
     private List<TiaFrame> CompileUnits(TiaBlock block) {

@@ -13,6 +13,12 @@ public sealed record TiaBlock(
     string? Title) {
     /// <summary>A reference to a block held elsewhere: no number, interface or source of its own.</summary>
     public bool IsStub => (Frame.States & TiaFrameStates.Reference) != 0;
+
+    /// <summary>
+    /// An OB's event class, such as <c>ProgramCycle</c>, <c>Startup</c> or <c>CyclicInterrupt</c>: the part of its stored
+    /// subtype after <c>OB.</c>. Null for any other block, and for an OB that stores none.
+    /// </summary>
+    public string? EventClass { get; init; }
 }
 
 /// <summary>A block's header: the fields of its properties page, and whether it has optimized access.</summary>

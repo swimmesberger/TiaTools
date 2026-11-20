@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
@@ -151,6 +152,7 @@ public sealed partial class MainWindow : Window {
             Title = $"{project.Root.Name} - TIA Viewer";
             _paths.Clear();
             RememberPaths(project.Root, "");
+            ShowKindSwitches(project.Kinds);
             TreeFilter.Text = "";
             FillTree();
             HeadingBar.IsVisible = false;
@@ -353,34 +355,81 @@ public sealed partial class MainWindow : Window {
         ForwardButton.IsEnabled = _forward.Count != 0;
     }
 
+    /// <summary>One switch per kind of the project, all off (spec 0007, FR-001 and FR-006).</summary>
+    private void ShowKindSwitches(IReadOnlyList<string> kinds) {
+        KindSwitches.Children.Clear();
+        foreach (var kind in kinds) {
+            var toggle = new ToggleButton {
+                Classes = { "kind" },
+                Tag = kind,
+                Content = new KindBadge { Kind = kind },
+                Margin = new Thickness(0, 0, 2, 0),
+            };
+            ToolTip.SetTip(toggle, $"Show only {KindName(kind)}; with other kinds on, any of them");
+            toggle.IsCheckedChanged += (_, _) => {
+                ShowChosenKinds();
+                FillTree();
+            };
+            KindSwitches.Children.Add(toggle);
+        }
+        KindSwitches.IsVisible = kinds.Count > 1;
+        ShowChosenKinds();
+    }
+
+    /// <summary>What a kind's items are called in a tip.</summary>
+    private static string KindName(string kind) => kind switch {
+        "OB" => "organization blocks",
+        "FB" => "function blocks",
+        "FC" => "functions",
+        "DB" => "data blocks",
+        "UDT" => "PLC data types",
+        "Tags" => "tag tables",
+        TiaItem.OpcUaReportKind => "the OPC UA entries",
+        _ => kind + " blocks",
+    };
+
+    /// <summary>The kinds whose switch is on: an empty set leaves every kind in.</summary>
+    private HashSet<string> ChosenKinds() =>
+        [.. KindSwitches.Children.OfType<ToggleButton>().Where(toggle => toggle.IsChecked == true).Select(toggle => (string)toggle.Tag!)];
+
+    /// <summary>While some kinds are chosen, the badges of the others are dimmed: they are left out of the tree.</summary>
+    private void ShowChosenKinds() {
+        var any = KindSwitches.Children.OfType<ToggleButton>().Any(toggle => toggle.IsChecked == true);
+        foreach (var toggle in KindSwitches.Children.OfType<ToggleButton>()) {
+            toggle.Opacity = !any || toggle.IsChecked == true ? 1 : 0.45;
+        }
+    }
+
     private void FillTree() {
         _roots.Clear();
         _rows.Clear();
         if (_project is not { } project) {
             return;
         }
-        var filter = TreeFilter.Text?.Trim() ?? "";
+        var name = TreeFilter.Text?.Trim() ?? "";
+        var kinds = ChosenKinds();
+        var filtering = name.Length != 0 || kinds.Count != 0;
         foreach (var child in project.Root.Children) {
-            if (Row(child, null, filter) is { } row) {
-                row.IsExpanded = filter.Length != 0 || child.Name != TreeRow.LibrariesName;
+            if (Row(child, null, name, kinds, filtering) is { } row) {
+                row.IsExpanded = filtering || child.Name != TreeRow.LibrariesName;
                 _roots.Add(row);
             }
         }
     }
 
-    /// <summary>The node as a row, with only what the filter leaves; null if that is nothing.</summary>
-    private TreeRow? Row(TiaTreeNode node, TreeRow? parent, string filter) {
+    /// <summary>The node as a row, with only what the filters leave; null if that is nothing.</summary>
+    private TreeRow? Row(TiaTreeNode node, TreeRow? parent, string name, HashSet<string> kinds, bool filtering) {
         var row = new TreeRow(node, parent);
         foreach (var child in node.Children) {
-            if (Row(child, row, filter) is { } childRow) {
+            if (Row(child, row, name, kinds, filtering) is { } childRow) {
                 row.Children.Add(childRow);
             }
         }
-        var matches = filter.Length == 0 || (node.Item is not null && node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase));
+        var matches = node.Item is { } shown ? shown.Matches(name, kinds) : !filtering;
         if (!matches && row.Children.Count == 0) {
             return null;
         }
-        row.IsExpanded = filter.Length != 0 && row.Children.Count != 0;
+        row.IsExpanded = filtering && row.Children.Count != 0;
         if (node.Item is { } item) {
             _rows[item] = row;
         }

@@ -316,6 +316,8 @@ Relations from a block **[S]**:
 | `CoreObject.Target` | `S7ControllerTargetData` | The PLC. |
 | `CoreObject.Environment` | `ProjectData` or `LibraryMasterCopyData`, ... | Project, or the library copy it lives in. **A master copy can hold a whole other program**, so one name can occur several times for one PLC. |
 
+An OB's **event class**, what starts it, is in its `Subtype`: `OB.` and the class, such as `OB.ProgramCycle`, `OB.Startup`, `OB.CyclicInterrupt` or `OB.DiagnosticErrorInterrupt`, with `.Safety` after it on a fail-safe OB (`OB.CyclicInterrupt.Safety`). Its relation `HandledEvent` leads to an object of the matching type (`ProgramCycleEventData`, `StartupEventData`, ...). The two agree on all 37 OBs of the demo project and of a V20 and a V21 archive that hold the same program, nine event classes among them, closed OBs included. **[S]** Every program cycle OB there is OB 1; a reader that finds no event class takes OB 1 as the program cycle OB. **[I]** That the part after `OB.` is TIA's own name of the class, as an export's `SecondaryType` gives it, is **[I]**: the demo project's OB was not compiled, so TIA exported no SimaticML for it.
+
 A **stub** is a block with state `0x20` and no number, source or interface, holding `CoreObject.TRefParent`: a reference to a block held elsewhere (master copy, library type). Leave it out when listing blocks, but know that a count over all block objects includes it (section 17). **[S]**
 
 Do not treat `SWObjectData2TypeOperandIdentContainerData` (id `0x22220c`) as "my identifiers": that is every container whose block references this one.
@@ -480,7 +482,7 @@ Note that **this table repeats names used in the block**, which is why a plain t
 Stays closed, by choice: this reader does not attempt it and does not need it.
 
 - `Data` of a protected block starts `<EncryptedData Type="http://...`: report it and stop.
-- Still in clear on a protected block in the samples: name, kind, number, language, folder and `IsKnowHowProtected`. Some also have an interface and comments in clear: 93 of 607 protected block objects in A, 22 of 447 in B. The rest, Siemens system blocks among them, have none stored.
+- Still in clear on a protected block in the samples: name, kind, number, language, folder, `IsKnowHowProtected`, and an OB's event class (section 10). Some also have an interface and comments in clear: 93 of 607 protected block objects in A, 22 of 447 in B. The rest, Siemens system blocks among them, have none stored.
 - Their identifier parts are in clear (209 in A, 88 in B). The reader takes only type codes from them for its table and never renders them.
 - `ICoreAttributes.Protection` is a separate attribute. Use `IsKnowHowProtected` for the flag.
 
