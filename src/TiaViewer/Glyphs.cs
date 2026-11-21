@@ -43,11 +43,15 @@ public static class Glyphs {
         "Watch" or "Force" => Watch,
         TiaFormat.Program.TiaItem.OpcUaReportKind => OpcUa,
         TiaFormat.Program.TiaItem.HardwareReportKind => Hardware,
+        TiaFormat.Program.TiaItem.SafetyReportKind => Safety,
         _ when kind?.StartsWith("DB", StringComparison.Ordinal) == true => Db,
         _ => Other,
     };
 
     private static readonly IBrush Ob = Brush.Parse("#7C3AED");
+
+    /// <summary>Safety yellow is too light for white text; this amber carries it.</summary>
+    private static readonly IBrush Safety = Brush.Parse("#B45309");
     private static readonly IBrush Fb = Brush.Parse("#2563EB");
     private static readonly IBrush Fc = Brush.Parse("#0B8A7D");
     private static readonly IBrush Db = Brush.Parse("#B45F06");

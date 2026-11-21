@@ -115,6 +115,7 @@ public sealed partial class MainWindow : Window {
 
         OpcUaPanel.Open += OpenFromOpcUa;
         DevicesPanel.Open += OpenConstant;
+        SafetyPanel.Open += OpenFromOpcUa;
         OpcUaPanel.Said += text => {
             Status.Text = text;
             ShowFolderButton.IsVisible = false;
@@ -160,6 +161,7 @@ public sealed partial class MainWindow : Window {
             Editor.IsVisible = false;
             OpcUaPanel.IsVisible = false;
             DevicesPanel.IsVisible = false;
+            SafetyPanel.IsVisible = false;
             ShowPanels(true);
             Editor.Document = new TextDocument();
             ShowWelcome(project.Root.Name, $"Choose a block on the left.\n{Command} + click a name in the source to follow it.", canOpen: false);
@@ -265,14 +267,18 @@ public sealed partial class MainWindow : Window {
             if (project.Hardware(item) is { } hardware) {
                 DevicesPanel.Show(hardware);
             }
+            if (project.Safety(item) is { } safety) {
+                SafetyPanel.Show(safety);
+            }
             if (!keepLists) {
                 ShowPlaces(item);
             }
         }
         Welcome.IsVisible = false;
-        // A PLC's OPC UA configuration and the project's hardware have views of their own; their text stays in the editor for copying.
+        // A PLC's OPC UA configuration and safety program and the project's hardware have views of their own; their text stays in the editor for copying.
         Editor.IsVisible = !item.IsReport;
-        OpcUaPanel.IsVisible = item.IsReport && !item.IsHardware;
+        OpcUaPanel.IsVisible = item.Kind == TiaItem.OpcUaReportKind;
+        SafetyPanel.IsVisible = item.Kind == TiaItem.SafetyReportKind;
         DevicesPanel.IsVisible = item.IsHardware;
         ShowPanels(!item.IsReport);
         ShowHeading(item);
@@ -408,6 +414,7 @@ public sealed partial class MainWindow : Window {
         "Watch" => "watch tables",
         "Force" => "force tables",
         TiaItem.OpcUaReportKind => "the OPC UA entries",
+        TiaItem.SafetyReportKind => "the safety entries",
         _ => kind + " blocks",
     };
 

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21"/>
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Interface>
+        <Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+          <Section Name="Input"/>
+          <Section Name="Output"/>
+          <Section Name="InOut"/>
+          <Section Name="Static">
+            <Member Name="latched" Datatype="Bool"/>
+          </Section>
+          <Section Name="Temp"/>
+          <Section Name="Constant"/>
+        </Sections>
+      </Interface>
+      <MemoryLayout>Optimized</MemoryLayout>
+      <Name>LineSafety</Name>
+      <Namespace/>
+      <Number>1</Number>
+      <ProgrammingLanguage>F_FBD</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="11" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="12" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>Main safety block of the line's F-runtime group.</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="2" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource>
+            <FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+              <Parts>
+                <Access Scope="GlobalVariable" UId="21"><Symbol><Component Name="FI_Start"/></Symbol></Access>
+                <Access Scope="GlobalVariable" UId="22"><Symbol><Component Name="FI_DoorClosed"/></Symbol></Access>
+                <Access Scope="GlobalVariable" UId="23"><Symbol><Component Name="SafetyData"/><Component Name="released"/></Symbol></Access>
+                <Call UId="24"><CallInfo Name="Enable" BlockType="FC"><Parameter Name="a" Section="Input" Type="Bool"/><Parameter Name="b" Section="Input" Type="Bool"/><Parameter Name="Ret_Val" Section="Return" Type="Bool"/></CallInfo></Call>
+              </Parts>
+              <Wires>
+                <Wire UId="25"><OpenCon UId="26"/><NameCon UId="24" Name="en"/></Wire>
+                <Wire UId="27"><IdentCon UId="21"/><NameCon UId="24" Name="a"/></Wire>
+                <Wire UId="28"><IdentCon UId="22"/><NameCon UId="24" Name="b"/></Wire>
+                <Wire UId="29"><NameCon UId="24" Name="Ret_Val"/><IdentCon UId="23"/></Wire>
+              </Wires>
+            </FlgNet>
+          </NetworkSource>
+          <ProgrammingLanguage>F_FBD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="3" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="4" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Released while start is pressed and the door is closed.</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="5" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="6" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Release</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="7" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource>
+            <FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+              <Parts>
+                <Access Scope="GlobalVariable" UId="21"><Symbol><Component Name="SafetyData"/><Component Name="released"/></Symbol></Access>
+                <Access Scope="GlobalVariable" UId="22"><Symbol><Component Name="FI_Stop"/></Symbol></Access>
+                <Access Scope="LocalVariable" UId="23"><Symbol><Component Name="latched"/></Symbol></Access>
+                <Access Scope="GlobalVariable" UId="24"><Symbol><Component Name="FQ_Motor"/></Symbol></Access>
+                <Part Name="Sr" UId="25"/>
+                <Part Name="Coil" UId="26"/>
+              </Parts>
+              <Wires>
+                <Wire UId="27"><IdentCon UId="21"/><NameCon UId="25" Name="s"/></Wire>
+                <Wire UId="28"><IdentCon UId="22"/><NameCon UId="25" Name="r1"/></Wire>
+                <Wire UId="29"><IdentCon UId="23"/><NameCon UId="25" Name="operand"/></Wire>
+                <Wire UId="30"><NameCon UId="25" Name="q"/><NameCon UId="26" Name="in"/></Wire>
+                <Wire UId="31"><IdentCon UId="24"/><NameCon UId="26" Name="operand"/></Wire>
+              </Wires>
+            </FlgNet>
+          </NetworkSource>
+          <ProgrammingLanguage>F_FBD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="8" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Latched on release, dropped by stop.</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Motor</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="C" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource>
+            <FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+              <Parts>
+                <Access Scope="LocalVariable" UId="21"><Symbol><Component Name="latched"/></Symbol></Access>
+                <Access Scope="GlobalVariable" UId="22"><Symbol><Component Name="FI_Stop"/></Symbol></Access>
+                <Access Scope="GlobalVariable" UId="23"><Symbol><Component Name="FQ_Lamp"/></Symbol></Access>
+                <Part Name="O" UId="24"><TemplateValue Name="Card" Type="Cardinality">2</TemplateValue></Part>
+                <Part Name="Coil" UId="25"/>
+              </Parts>
+              <Wires>
+                <Wire UId="26"><IdentCon UId="21"/><NameCon UId="24" Name="in1"/></Wire>
+                <Wire UId="27"><IdentCon UId="22"/><NameCon UId="24" Name="in2"/></Wire>
+                <Wire UId="28"><NameCon UId="24" Name="out"/><NameCon UId="25" Name="in"/></Wire>
+                <Wire UId="29"><IdentCon UId="23"/><NameCon UId="25" Name="operand"/></Wire>
+              </Wires>
+            </FlgNet>
+          </NetworkSource>
+          <ProgrammingLanguage>F_FBD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="D" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Lit while the motor runs or stop is pressed.</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="F" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Lamp</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="13" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="14" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text></Text>
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

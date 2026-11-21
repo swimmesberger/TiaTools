@@ -1,0 +1,16 @@
+﻿DATA_BLOCK "SafetyData"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+//Fail-safe data shared by the safety program and read by the standard program.
+   VAR 
+      released : Bool;
+      limit : Int;
+   END_VAR
+
+
+BEGIN
+   limit := 12;
+
+END_DATA_BLOCK
+

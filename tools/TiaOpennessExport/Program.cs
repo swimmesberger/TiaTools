@@ -298,6 +298,7 @@ internal static class Program {
             var generated = Path.Combine(work, "generated");
             Export(project, generated, blockXml: false, crossReferences: true);
             HardwareReport.Write(project, Path.Combine(generated, "hardware.tsv"));
+            SafetyReport.Write(project, Path.Combine(generated, "safety"));
 
             File.Copy(Path.Combine(archived, name + ".zap21"), Path.Combine(folder, name + ".zap21"), overwrite: true);
             var target = Path.Combine(folder, "generated");
@@ -429,6 +430,8 @@ internal static class Program {
             }
             source.Delete();
         }
+        // A safety program's F-runtime groups and settings (spec 0012), before compiling, which they change.
+        refused += SafetyBuilder.Configure(plc, sources);
         if (refused == 0) {
             // TIA exports SimaticML only for a compiled block; a compile error counts as a refused source.
             refused += Compile(plc);
@@ -445,10 +448,13 @@ internal static class Program {
             block.GetService<PlcBlockProtectionProvider>().Protect(password);
             Console.WriteLine($"protected {plc.Name}/{blockName}");
         }
+        if (refused == 0) {
+            SafetyBuilder.Lock(plc, sources);
+        }
         return refused;
     }
 
-    private static PlcBlock FindBlock(PlcBlockGroup group, string name) =>
+    internal static PlcBlock FindBlock(PlcBlockGroup group, string name) =>
         group.Blocks.Find(name) ?? group.Groups.Select(child => FindBlock(child, name)).FirstOrDefault(block => block is not null);
 
     private static void Generate(PlcSoftware plc, PlcExternalSource source, string root, List<string> folders) {

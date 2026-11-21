@@ -1,0 +1,7 @@
+# The safety program first, then the standard program that reads its data block.
+Program blocks/Safety/Enable.xml
+Program blocks/Safety/Guard.xml
+Program blocks/Safety/SafetyData.xml
+Program blocks/Safety/LineSafety.xml
+Program blocks/Safety/GuardSafety.xml
+Program blocks/Main.scl

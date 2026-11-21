@@ -1,0 +1,6 @@
+FI_Start	Bool	%I0.0	Start button, fail-safe input
+FI_Stop	Bool	%I0.1	Stop button, fail-safe input
+FI_DoorClosed	Bool	%I0.2	Door switch
+FI_GuardClosed	Bool	%I20.0	Guard door switch on the remote station
+FQ_Motor	Bool	%Q10.0	Motor contactor, fail-safe output
+FQ_Lamp	Bool	%Q10.1	Signal lamp, fail-safe output

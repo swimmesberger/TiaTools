@@ -1,0 +1,388 @@
+kind	name	attribute	value
+block	DB1_C	BlockOfflineSignature	669604342
+block	DB1_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	DB1_C	Kind	InstanceDB
+block	DB1_C	Number	40006
+block	DB1_C	ProgrammingLanguage	F_DB
+block	DB2_C	BlockOfflineSignature	3877201299
+block	DB2_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	DB2_C	Kind	InstanceDB
+block	DB2_C	Number	40007
+block	DB2_C	ProgrammingLanguage	F_DB
+block	DB3_C	BlockOfflineSignature	3610335986
+block	DB3_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	DB3_C	Kind	GlobalDB
+block	DB3_C	Number	40005
+block	DB3_C	ProgrammingLanguage	F_DB
+block	Enable	BlockOfflineSignature	3553583087
+block	Enable	Folder	Safety
+block	Enable	Kind	FC
+block	Enable	Number	2
+block	Enable	ProgrammingLanguage	F_LAD
+block	F00000_F-DI_Main	BlockOfflineSignature	3001564895
+block	F00000_F-DI_Main	Folder	System blocks/STEP 7 Safety/F-I/O data blocks
+block	F00000_F-DI_Main	Kind	InstanceDB
+block	F00000_F-DI_Main	Number	40002
+block	F00000_F-DI_Main	ProgrammingLanguage	F_DB
+block	F00010_F-DQ_Main	BlockOfflineSignature	1454303009
+block	F00010_F-DQ_Main	Folder	System blocks/STEP 7 Safety/F-I/O data blocks
+block	F00010_F-DQ_Main	Kind	InstanceDB
+block	F00010_F-DQ_Main	Number	40003
+block	F00010_F-DQ_Main	ProgrammingLanguage	F_DB
+block	F00020_F-DI_Remote	BlockOfflineSignature	2929654216
+block	F00020_F-DI_Remote	Folder	System blocks/STEP 7 Safety/F-I/O data blocks
+block	F00020_F-DI_Remote	Kind	InstanceDB
+block	F00020_F-DI_Remote	Number	40004
+block	F00020_F-DI_Remote	ProgrammingLanguage	F_DB
+block	FB1_C	BlockOfflineSignature	3979747270
+block	FB1_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB1_C	Kind	FB
+block	FB1_C	Number	32776
+block	FB1_C	ProgrammingLanguage	SCL
+block	FB1_C_GCTX_DB	BlockOfflineSignature	0
+block	FB1_C_GCTX_DB	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB1_C_GCTX_DB	Kind	GlobalDB
+block	FB1_C_GCTX_DB	Number	40020
+block	FB1_C_GCTX_DB	ProgrammingLanguage	F_DB
+block	FB32779_IDB2_C	BlockOfflineSignature	0
+block	FB32779_IDB2_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32779_IDB2_C	Kind	InstanceDB
+block	FB32779_IDB2_C	Number	40018
+block	FB32779_IDB2_C	ProgrammingLanguage	F_DB
+block	FB32779_IDB_C	BlockOfflineSignature	0
+block	FB32779_IDB_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32779_IDB_C	Kind	InstanceDB
+block	FB32779_IDB_C	Number	40017
+block	FB32779_IDB_C	ProgrammingLanguage	F_DB
+block	FB32780_IDB2_C	BlockOfflineSignature	0
+block	FB32780_IDB2_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32780_IDB2_C	Kind	InstanceDB
+block	FB32780_IDB2_C	Number	40010
+block	FB32780_IDB2_C	ProgrammingLanguage	F_DB
+block	FB32780_IDB_C	BlockOfflineSignature	0
+block	FB32780_IDB_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32780_IDB_C	Kind	InstanceDB
+block	FB32780_IDB_C	Number	40009
+block	FB32780_IDB_C	ProgrammingLanguage	F_DB
+block	FB32781_IDB2_C	BlockOfflineSignature	0
+block	FB32781_IDB2_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32781_IDB2_C	Kind	InstanceDB
+block	FB32781_IDB2_C	Number	40012
+block	FB32781_IDB2_C	ProgrammingLanguage	F_DB
+block	FB32781_IDB_C	BlockOfflineSignature	0
+block	FB32781_IDB_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32781_IDB_C	Kind	InstanceDB
+block	FB32781_IDB_C	Number	40011
+block	FB32781_IDB_C	ProgrammingLanguage	F_DB
+block	FB32782_IDB2_C	BlockOfflineSignature	0
+block	FB32782_IDB2_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32782_IDB2_C	Kind	InstanceDB
+block	FB32782_IDB2_C	Number	40014
+block	FB32782_IDB2_C	ProgrammingLanguage	F_DB
+block	FB32782_IDB_C	BlockOfflineSignature	0
+block	FB32782_IDB_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32782_IDB_C	Kind	InstanceDB
+block	FB32782_IDB_C	Number	40013
+block	FB32782_IDB_C	ProgrammingLanguage	F_DB
+block	FB32783_IDB2_C	BlockOfflineSignature	0
+block	FB32783_IDB2_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32783_IDB2_C	Kind	InstanceDB
+block	FB32783_IDB2_C	Number	40016
+block	FB32783_IDB2_C	ProgrammingLanguage	F_DB
+block	FB32783_IDB_C	BlockOfflineSignature	0
+block	FB32783_IDB_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB32783_IDB_C	Kind	InstanceDB
+block	FB32783_IDB_C	Number	40015
+block	FB32783_IDB_C	ProgrammingLanguage	F_DB
+block	FB4_C	BlockOfflineSignature	1693561451
+block	FB4_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB4_C	Kind	FB
+block	FB4_C	Number	32778
+block	FB4_C	ProgrammingLanguage	SCL
+block	FB4_C_GCTX_DB	BlockOfflineSignature	0
+block	FB4_C_GCTX_DB	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB4_C_GCTX_DB	Kind	GlobalDB
+block	FB4_C_GCTX_DB	Number	40023
+block	FB4_C_GCTX_DB	ProgrammingLanguage	F_DB
+block	FB5_C	BlockOfflineSignature	2134798026
+block	FB5_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB5_C	Kind	FB
+block	FB5_C	Number	32777
+block	FB5_C	ProgrammingLanguage	SCL
+block	FB5_C_GCTX_DB	BlockOfflineSignature	0
+block	FB5_C_GCTX_DB	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FB5_C_GCTX_DB	Kind	GlobalDB
+block	FB5_C_GCTX_DB	Number	40024
+block	FB5_C_GCTX_DB	ProgrammingLanguage	F_DB
+block	FC2_C	BlockOfflineSignature	3553583087
+block	FC2_C	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FC2_C	Kind	FB
+block	FC2_C	Number	32774
+block	FC2_C	ProgrammingLanguage	SCL
+block	FC2_C_GCTX_DB	BlockOfflineSignature	0
+block	FC2_C_GCTX_DB	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FC2_C_GCTX_DB	Kind	GlobalDB
+block	FC2_C_GCTX_DB	Number	40021
+block	FC2_C_GCTX_DB	ProgrammingLanguage	F_DB
+block	FOB_GLOBAL_1	BlockOfflineSignature	0
+block	FOB_GLOBAL_1	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FOB_GLOBAL_1	Kind	FC
+block	FOB_GLOBAL_1	Number	32767
+block	FOB_GLOBAL_1	ProgrammingLanguage	SCL
+block	FOB_GLOBAL_2	BlockOfflineSignature	0
+block	FOB_GLOBAL_2	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FOB_GLOBAL_2	Kind	FC
+block	FOB_GLOBAL_2	Number	32768
+block	FOB_GLOBAL_2	ProgrammingLanguage	SCL
+block	FOB_RTG1	BlockOfflineSignature	3526618515
+block	FOB_RTG1	Folder	
+block	FOB_RTG1	Kind	OB
+block	FOB_RTG1	Number	123
+block	FOB_RTG1	ProgrammingLanguage	SCL
+block	FOB_RTG1_GCTX_DB	BlockOfflineSignature	0
+block	FOB_RTG1_GCTX_DB	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FOB_RTG1_GCTX_DB	Kind	GlobalDB
+block	FOB_RTG1_GCTX_DB	Number	40019
+block	FOB_RTG1_GCTX_DB	ProgrammingLanguage	F_DB
+block	FOB_RTG2	BlockOfflineSignature	2585875540
+block	FOB_RTG2	Folder	
+block	FOB_RTG2	Kind	OB
+block	FOB_RTG2	Number	124
+block	FOB_RTG2	ProgrammingLanguage	SCL
+block	FOB_RTG2_GCTX_DB	BlockOfflineSignature	0
+block	FOB_RTG2_GCTX_DB	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	FOB_RTG2_GCTX_DB	Kind	GlobalDB
+block	FOB_RTG2_GCTX_DB	Number	40022
+block	FOB_RTG2_GCTX_DB	ProgrammingLanguage	F_DB
+block	F_8BOOL_INPUT_NC	BlockOfflineSignature	0
+block	F_8BOOL_INPUT_NC	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_8BOOL_INPUT_NC	Kind	FB
+block	F_8BOOL_INPUT_NC	Number	32775
+block	F_8BOOL_INPUT_NC	ProgrammingLanguage	SCL
+block	F_8BOOL_OUTPUT_NC	BlockOfflineSignature	0
+block	F_8BOOL_OUTPUT_NC	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_8BOOL_OUTPUT_NC	Kind	FB
+block	F_8BOOL_OUTPUT_NC	Number	32773
+block	F_8BOOL_OUTPUT_NC	ProgrammingLanguage	SCL
+block	F_CTRL_1	BlockOfflineSignature	0
+block	F_CTRL_1	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_CTRL_1	Kind	FB
+block	F_CTRL_1	Number	32767
+block	F_CTRL_1	ProgrammingLanguage	SCL
+block	F_CTRL_2	BlockOfflineSignature	0
+block	F_CTRL_2	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_CTRL_2	Kind	FB
+block	F_CTRL_2	Number	32781
+block	F_CTRL_2	ProgrammingLanguage	SCL
+block	F_CTRL_D	BlockOfflineSignature	0
+block	F_CTRL_D	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_CTRL_D	Kind	FB
+block	F_CTRL_D	Number	32780
+block	F_CTRL_D	ProgrammingLanguage	SCL
+block	F_CTRL_RT	BlockOfflineSignature	0
+block	F_CTRL_RT	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_CTRL_RT	Kind	FB
+block	F_CTRL_RT	Number	32783
+block	F_CTRL_RT	ProgrammingLanguage	SCL
+block	F_CTRL_SM	BlockOfflineSignature	0
+block	F_CTRL_SM	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_CTRL_SM	Kind	FB
+block	F_CTRL_SM	Number	32779
+block	F_CTRL_SM	ProgrammingLanguage	SCL
+block	F_ET_LI	BlockOfflineSignature	0
+block	F_ET_LI	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_ET_LI	Kind	FB
+block	F_ET_LI	Number	32782
+block	F_ET_LI	ProgrammingLanguage	SCL
+block	F_JL_CORR	BlockOfflineSignature	0
+block	F_JL_CORR	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_JL_CORR	Kind	FC
+block	F_JL_CORR	Number	32769
+block	F_JL_CORR	ProgrammingLanguage	SCL
+block	F_PS_IN_1_0_0_0_0_0_0_2_1_0_1_0_28	BlockOfflineSignature	0
+block	F_PS_IN_1_0_0_0_0_0_0_2_1_0_1_0_28	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_PS_IN_1_0_0_0_0_0_0_2_1_0_1_0_28	Kind	FB
+block	F_PS_IN_1_0_0_0_0_0_0_2_1_0_1_0_28	Number	32770
+block	F_PS_IN_1_0_0_0_0_0_0_2_1_0_1_0_28	ProgrammingLanguage	SCL
+block	F_PS_IN_2_0_0_0_0_0_0_2_1_0_1_0_28	BlockOfflineSignature	0
+block	F_PS_IN_2_0_0_0_0_0_0_2_1_0_1_0_28	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_PS_IN_2_0_0_0_0_0_0_2_1_0_1_0_28	Kind	FB
+block	F_PS_IN_2_0_0_0_0_0_0_2_1_0_1_0_28	Number	32768
+block	F_PS_IN_2_0_0_0_0_0_0_2_1_0_1_0_28	ProgrammingLanguage	SCL
+block	F_PS_OUT_1_0_0_0_0_0_1_2_1_0_1_0_28	BlockOfflineSignature	0
+block	F_PS_OUT_1_0_0_0_0_0_1_2_1_0_1_0_28	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_PS_OUT_1_0_0_0_0_0_1_2_1_0_1_0_28	Kind	FB
+block	F_PS_OUT_1_0_0_0_0_0_1_2_1_0_1_0_28	Number	32769
+block	F_PS_OUT_1_0_0_0_0_0_1_2_1_0_1_0_28	ProgrammingLanguage	SCL
+block	F_PS_SEEDPASS_RCV	BlockOfflineSignature	0
+block	F_PS_SEEDPASS_RCV	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_PS_SEEDPASS_RCV	Kind	FB
+block	F_PS_SEEDPASS_RCV	Number	32771
+block	F_PS_SEEDPASS_RCV	ProgrammingLanguage	SCL
+block	F_PS_SEEDPASS_SEND	BlockOfflineSignature	0
+block	F_PS_SEEDPASS_SEND	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	F_PS_SEEDPASS_SEND	Kind	FB
+block	F_PS_SEEDPASS_SEND	Number	32772
+block	F_PS_SEEDPASS_SEND	ProgrammingLanguage	SCL
+block	F_SystemInfo_DB	BlockOfflineSignature	954588947
+block	F_SystemInfo_DB	Folder	System blocks/STEP 7 Safety
+block	F_SystemInfo_DB	Kind	GlobalDB
+block	F_SystemInfo_DB	Number	40008
+block	F_SystemInfo_DB	ProgrammingLanguage	F_DB
+block	Guard	BlockOfflineSignature	2134798026
+block	Guard	Folder	Safety
+block	Guard	Kind	FB
+block	Guard	Number	5
+block	Guard	ProgrammingLanguage	F_FBD
+block	GuardSafety	BlockOfflineSignature	1693561451
+block	GuardSafety	Folder	Safety
+block	GuardSafety	Kind	FB
+block	GuardSafety	Number	4
+block	GuardSafety	ProgrammingLanguage	F_FBD
+block	GuardSafety_DB	BlockOfflineSignature	3877201299
+block	GuardSafety_DB	Folder	Safety
+block	GuardSafety_DB	Kind	InstanceDB
+block	GuardSafety_DB	Number	2
+block	GuardSafety_DB	ProgrammingLanguage	F_DB
+block	LineSafety	BlockOfflineSignature	3979747270
+block	LineSafety	Folder	Safety
+block	LineSafety	Kind	FB
+block	LineSafety	Number	1
+block	LineSafety	ProgrammingLanguage	F_FBD
+block	LineSafety_DB	BlockOfflineSignature	669604342
+block	LineSafety_DB	Folder	Safety
+block	LineSafety_DB	Kind	InstanceDB
+block	LineSafety_DB	Number	1
+block	LineSafety_DB	ProgrammingLanguage	F_DB
+block	RTG1SysInfo	BlockOfflineSignature	0
+block	RTG1SysInfo	Folder	System blocks/STEP 7 Safety
+block	RTG1SysInfo	Kind	InstanceDB
+block	RTG1SysInfo	Number	40000
+block	RTG1SysInfo	ProgrammingLanguage	F_DB
+block	RTG2SysInfo	BlockOfflineSignature	0
+block	RTG2SysInfo	Folder	System blocks/STEP 7 Safety
+block	RTG2SysInfo	Kind	InstanceDB
+block	RTG2SysInfo	Number	40001
+block	RTG2SysInfo	ProgrammingLanguage	F_DB
+block	SPLIT_FOB_1_1	BlockOfflineSignature	0
+block	SPLIT_FOB_1_1	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	SPLIT_FOB_1_1	Kind	FC
+block	SPLIT_FOB_1_1	Number	32770
+block	SPLIT_FOB_1_1	ProgrammingLanguage	SCL
+block	SPLIT_FOB_2_1	BlockOfflineSignature	0
+block	SPLIT_FOB_2_1	Folder	System blocks/STEP 7 Safety/Compiler blocks
+block	SPLIT_FOB_2_1	Kind	FC
+block	SPLIT_FOB_2_1	Number	32771
+block	SPLIT_FOB_2_1	ProgrammingLanguage	SCL
+block	SafetyData	BlockOfflineSignature	3610335986
+block	SafetyData	Folder	Safety
+block	SafetyData	Kind	GlobalDB
+block	SafetyData	Number	3
+block	SafetyData	ProgrammingLanguage	F_DB
+blocknumbers	PLC_Safety	FromDB	40000
+blocknumbers	PLC_Safety	FromFB	32767
+blocknumbers	PLC_Safety	FromFC	32767
+blocknumbers	PLC_Safety	ManagementMode	FixedRange
+blocknumbers	PLC_Safety	ToDB	40999
+blocknumbers	PLC_Safety	ToFB	65535
+blocknumbers	PLC_Safety	ToFC	65535
+cpu	PLC_Safety	Failsafe_CentralFSourceAddress	7
+cpu	PLC_Safety	Failsafe_DefaultFmonitoringTimeCentral	200
+cpu	PLC_Safety	Failsafe_FCapabilityActivated	True
+cpu	PLC_Safety	Failsafe_LowerBoundForFDestinationAddresses	100
+cpu	PLC_Safety	Failsafe_UpperBoundForFDestinationAddresses	400
+fio	PLC_Safety/F-DI_Main	Failsafe_FBlockID	1
+fio	PLC_Safety/F-DI_Main	Failsafe_FCRCSeed	1
+fio	PLC_Safety/F-DI_Main	Failsafe_FCheckSeqNr	0
+fio	PLC_Safety/F-DI_Main	Failsafe_FCheckiPar	0
+fio	PLC_Safety/F-DI_Main	Failsafe_FDestinationAddress	65534
+fio	PLC_Safety/F-DI_Main	Failsafe_FIODBName	F00000_F-DI_Main
+fio	PLC_Safety/F-DI_Main	Failsafe_FIODBNumber	40002
+fio	PLC_Safety/F-DI_Main	Failsafe_FMonitoringtime	200
+fio	PLC_Safety/F-DI_Main	Failsafe_FParVersion	1
+fio	PLC_Safety/F-DI_Main	Failsafe_FParameterSignatureIndividualParameters	784920115
+fio	PLC_Safety/F-DI_Main	Failsafe_FParameterSignatureWithAddresses	40784
+fio	PLC_Safety/F-DI_Main	Failsafe_FParameterSignatureWithoutAddresses	47397
+fio	PLC_Safety/F-DI_Main	Failsafe_FPassivation	1
+fio	PLC_Safety/F-DI_Main	Failsafe_FSIL	2
+fio	PLC_Safety/F-DI_Main	Failsafe_FSourceAddress	7
+fio	PLC_Safety/F-DI_Main	Failsafe_F_CRC_Length	2
+fio	PLC_Safety/F-DI_Main	Failsafe_ManualAssignmentFIODBNumber	0
+fio	PLC_Safety/F-DI_Main	Failsafe_ManualAssignmentFMonitoringtime	0
+fio	PLC_Safety/F-DI_Main	StartAddress.Input	0
+fio	PLC_Safety/F-DI_Main	StartAddress.Output	0
+fio	PLC_Safety/F-DQ_Main	Failsafe_FBlockID	1
+fio	PLC_Safety/F-DQ_Main	Failsafe_FCRCSeed	1
+fio	PLC_Safety/F-DQ_Main	Failsafe_FCheckSeqNr	0
+fio	PLC_Safety/F-DQ_Main	Failsafe_FCheckiPar	0
+fio	PLC_Safety/F-DQ_Main	Failsafe_FDestinationAddress	65533
+fio	PLC_Safety/F-DQ_Main	Failsafe_FIODBName	F00010_F-DQ_Main
+fio	PLC_Safety/F-DQ_Main	Failsafe_FIODBNumber	40003
+fio	PLC_Safety/F-DQ_Main	Failsafe_FMonitoringtime	250
+fio	PLC_Safety/F-DQ_Main	Failsafe_FParVersion	1
+fio	PLC_Safety/F-DQ_Main	Failsafe_FParameterSignatureIndividualParameters	1123389683
+fio	PLC_Safety/F-DQ_Main	Failsafe_FParameterSignatureWithAddresses	32680
+fio	PLC_Safety/F-DQ_Main	Failsafe_FParameterSignatureWithoutAddresses	6387
+fio	PLC_Safety/F-DQ_Main	Failsafe_FPassivation	1
+fio	PLC_Safety/F-DQ_Main	Failsafe_FSIL	2
+fio	PLC_Safety/F-DQ_Main	Failsafe_FSourceAddress	7
+fio	PLC_Safety/F-DQ_Main	Failsafe_F_CRC_Length	2
+fio	PLC_Safety/F-DQ_Main	Failsafe_ManualAssignmentFIODBNumber	0
+fio	PLC_Safety/F-DQ_Main	Failsafe_ManualAssignmentFMonitoringtime	1
+fio	PLC_Safety/F-DQ_Main	StartAddress.Input	10
+fio	PLC_Safety/F-DQ_Main	StartAddress.Output	10
+fio	Remote_F/F-DI_Remote	Failsafe_FBlockID	1
+fio	Remote_F/F-DI_Remote	Failsafe_FCRCSeed	1
+fio	Remote_F/F-DI_Remote	Failsafe_FCheckSeqNr	0
+fio	Remote_F/F-DI_Remote	Failsafe_FCheckiPar	0
+fio	Remote_F/F-DI_Remote	Failsafe_FDestinationAddress	150
+fio	Remote_F/F-DI_Remote	Failsafe_FIODBName	F00020_F-DI_Remote
+fio	Remote_F/F-DI_Remote	Failsafe_FIODBNumber	40004
+fio	Remote_F/F-DI_Remote	Failsafe_FMonitoringtime	150
+fio	Remote_F/F-DI_Remote	Failsafe_FParVersion	1
+fio	Remote_F/F-DI_Remote	Failsafe_FParameterSignatureIndividualParameters	340412978
+fio	Remote_F/F-DI_Remote	Failsafe_FParameterSignatureWithAddresses	15561
+fio	Remote_F/F-DI_Remote	Failsafe_FParameterSignatureWithoutAddresses	62
+fio	Remote_F/F-DI_Remote	Failsafe_FPassivation	1
+fio	Remote_F/F-DI_Remote	Failsafe_FSIL	2
+fio	Remote_F/F-DI_Remote	Failsafe_FSourceAddress	7
+fio	Remote_F/F-DI_Remote	Failsafe_F_CRC_Length	2
+fio	Remote_F/F-DI_Remote	Failsafe_ManualAssignmentFIODBNumber	0
+fio	Remote_F/F-DI_Remote	Failsafe_ManualAssignmentFMonitoringtime	0
+fio	Remote_F/F-DI_Remote	StartAddress.Input	20
+fio	Remote_F/F-DI_Remote	StartAddress.Output	20
+group	Guard	FOBCycleTime	30000
+group	Guard	FOBEventClass	Cyclic interrupt
+group	Guard	FOBName	FOB_RTG2
+group	Guard	FOBNumber	124
+group	Guard	FOBPhaseShift	0
+group	Guard	FOBPriority	12
+group	Guard	InfoDbName	RTG2SysInfo
+group	Guard	MainSafetyBlockIDbName	GuardSafety_DB
+group	Guard	MainSafetyBlockName	GuardSafety
+group	Guard	MaximumCycleTime	300000
+group	Guard	Name	Guard
+group	Guard	WarnCycleTime	250000
+group	Line	FOBCycleTime	50000
+group	Line	FOBEventClass	Cyclic interrupt
+group	Line	FOBName	FOB_RTG1
+group	Line	FOBNumber	123
+group	Line	FOBPhaseShift	0
+group	Line	FOBPriority	12
+group	Line	InfoDbName	RTG1SysInfo
+group	Line	MainSafetyBlockIDbName	LineSafety_DB
+group	Line	MainSafetyBlockName	LineSafety
+group	Line	MaximumCycleTime	200000
+group	Line	Name	Line
+group	Line	WarnCycleTime	150000
+program	PLC_Safety	CollectiveOfflineSignature	780661938
+program	PLC_Safety	CommunicationAddressOfflineSignature	0
+program	PLC_Safety	HardwareOfflineSignature	3090554824
+program	PLC_Safety	PasswordSet	False
+program	PLC_Safety	SoftwareOfflineSignature	1985074410
+settings	PLC_Safety	ActivationOfFChangeHistory	True
+settings	PLC_Safety	CreateDriverInstanceDataBlocksWithoutPrefix	False
+settings	PLC_Safety	EnableConsistentUploadFromFCpu	False
+settings	PLC_Safety	EnableFCommunicationIdTag	False
+settings	PLC_Safety	SafetyModeCanBeDisabled	True
+settings	PLC_Safety	SafetySystemVersion	V2.8

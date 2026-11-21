@@ -1,0 +1,10 @@
+﻿DATA_BLOCK "GuardSafety_DB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+"GuardSafety"
+
+BEGIN
+
+END_DATA_BLOCK
+

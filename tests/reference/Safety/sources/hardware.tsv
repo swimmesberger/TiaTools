@@ -1,0 +1,12 @@
+# Invented hardware of the reference project Safety (spec 0012), in the rows of spec 0010; docs/comparing-with-tia.md has the fields.
+subnet	PN/IE_1	Ethernet
+device	PLC_Safety	6ES7 516-3FN02-0AB0	V2.9
+module	PLC_Safety	2	6ES7 526-1BH00-0AB0	V1.0	F-DI_Main	I=0	Q=0
+module	PLC_Safety	3	6ES7 526-2BF00-0AB0	V1.0	F-DQ_Main	I=10	Q=10
+interface	PLC_Safety	PROFINET interface_1	PN/IE_1	192.168.0.1	255.255.255.0	plc-safety
+iosystem	PLC_Safety	PROFINET interface_1	Safety IO system	100
+device	Remote_F	6ES7 155-6AU01-0CN0	V4.2
+module	Remote_F	1	6ES7 136-6BA01-0CA0	V2.0	F-DI_Remote	I=20	Q=20
+interface	Remote_F	PROFINET interface	PN/IE_1	192.168.0.10	255.255.255.0	remote-f
+iodevice	Remote_F	PROFINET interface	Safety IO system
+device	PLC_Locked	6ES7 516-3FN02-0AB0	V2.9

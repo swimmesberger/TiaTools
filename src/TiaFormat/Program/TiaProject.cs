@@ -13,6 +13,9 @@ public sealed class TiaItem {
     /// <summary>The kind of the project's hardware report (spec 0010), shown like an item but no part of the program.</summary>
     public const string HardwareReportKind = "Devices & networks";
 
+    /// <summary>The kind of a PLC's safety report (spec 0012), shown like an item but no part of the program.</summary>
+    public const string SafetyReportKind = "Safety";
+
     internal TiaItem(string name, string kind, long? number, string? language, bool isClosed, string scope, bool isProject, TiaBlock? block, TiaTagTable? table) {
         Name = name;
         Kind = kind;
@@ -50,8 +53,8 @@ public sealed class TiaItem {
     /// <summary>A watch table or force table, of kind <c>Watch</c> or <c>Force</c>; else null.</summary>
     public TiaWatchTable? WatchTable { get; internal init; }
 
-    /// <summary>A PLC's OPC UA report or the project's hardware: not searched, referenced, counted or exported.</summary>
-    public bool IsReport => Kind is OpcUaReportKind or HardwareReportKind;
+    /// <summary>A PLC's OPC UA or safety report or the project's hardware: not searched, referenced, counted or exported.</summary>
+    public bool IsReport => Kind is OpcUaReportKind or SafetyReportKind or HardwareReportKind;
 
     /// <summary>The project's devices and networks.</summary>
     public bool IsHardware => Kind == HardwareReportKind;
@@ -115,12 +118,13 @@ public readonly record struct TiaSearchResult(TiaItem Item, int Line, string Tex
 /// </summary>
 public sealed class TiaProject {
     /// <summary>The order kinds are offered in: the blocks as TIA lists them, then tag tables and the OPC UA report.</summary>
-    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", "Watch", "Force", TiaItem.OpcUaReportKind];
+    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", "Watch", "Force", TiaItem.OpcUaReportKind, TiaItem.SafetyReportKind];
 
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaNodeList> _opcUaNodes = new();
     private TiaHardwareReport? _hardware;
+    private readonly ConcurrentDictionary<TiaItem, TiaSafetyPlc> _safety = new();
     private readonly Dictionary<(string Scope, string Name), TiaLocation> _names = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _to = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _from = [];
@@ -149,8 +153,8 @@ public sealed class TiaProject {
     public List<TiaItem> Items { get; } = [];
 
     /// <summary>
-    /// One OPC UA report per PLC of the project, in the tree beside the PLC's folders, and the project's devices and
-    /// networks first in the tree, if it has devices.
+    /// One OPC UA report per PLC of the project, and a safety report per PLC with a safety program, in the tree beside the
+    /// PLC's folders, and the project's devices and networks first in the tree, if it has devices.
     /// </summary>
     public List<TiaItem> Reports { get; } = [];
 
@@ -163,17 +167,18 @@ public sealed class TiaProject {
     /// <summary>The item's text, made once, when it is first asked for.</summary>
     public TiaDocument Document(TiaItem item) => _documents.GetOrAdd(item, static (key, project) =>
         key.IsHardware ? project.HardwareText()
+        : key.Kind == TiaItem.SafetyReportKind ? project.SafetyReport(key)
         : key.ReportPlc is not null ? project.Report(key)
         : key.Table is { } table ? TiaDocumentBuilder.Build(table)
         : key.WatchTable is { } watch ? TiaDocumentBuilder.FromText(TiaWatchTables.Text(watch))
         : TiaDocumentBuilder.Build(project.Program, key.Block!), this);
 
     /// <summary>A report's OPC UA configuration of its PLC, read once, when it is first asked for; null for any other item.</summary>
-    public TiaOpcUaPlc? OpcUa(TiaItem item) => item.ReportPlc is null ? null : _opcUa.GetOrAdd(item, static (key, program) =>
+    public TiaOpcUaPlc? OpcUa(TiaItem item) => item.Kind != TiaItem.OpcUaReportKind ? null : _opcUa.GetOrAdd(item, static (key, program) =>
         TiaOpcUa.Read(program, key.ReportPlc).Plcs.SingleOrDefault() ?? new TiaOpcUaPlc(key.ReportPlc!, null, null, [], []), Program);
 
     /// <summary>The nodes of a report's PLC (spec 0006), derived once, when first asked for; null for any other item.</summary>
-    public TiaOpcUaNodeList? OpcUaNodes(TiaItem item) => item.ReportPlc is null ? null : _opcUaNodes.GetOrAdd(item, static (key, program) =>
+    public TiaOpcUaNodeList? OpcUaNodes(TiaItem item) => item.Kind != TiaItem.OpcUaReportKind ? null : _opcUaNodes.GetOrAdd(item, static (key, program) =>
         TiaOpcUaNodes.Read(program, key.ReportPlc).SingleOrDefault() ?? new TiaOpcUaNodeList(key.ReportPlc!, []), Program);
 
     /// <summary>The project's devices, subnets and IO systems (spec 0010), read once, when first asked for; null for any other item.</summary>
@@ -194,6 +199,17 @@ public sealed class TiaProject {
             }
         }
         return null;
+    }
+
+    /// <summary>A safety report's safety program of its PLC (spec 0012), read once, when it is first asked for; null for any other item.</summary>
+    public TiaSafetyPlc? Safety(TiaItem item) => item.Kind != TiaItem.SafetyReportKind ? null : _safety.GetOrAdd(item, static (key, program) =>
+        TiaSafety.Read(program, key.ReportPlc).Plcs.SingleOrDefault() ?? new TiaSafetyPlc(key.ReportPlc!, null), Program);
+
+    /// <summary>The report <c>tiadump safety --plc</c> writes for a safety report's PLC, as plain text.</summary>
+    private TiaDocument SafetyReport(TiaItem item) {
+        var output = new StringWriter { NewLine = "\n" };
+        TiaSafetyWriter.WriteMarkdown(new TiaSafetyReport([Safety(item)!]), TiaOpcUaWriter.Title(Path), output);
+        return new TiaDocument(output.ToString(), []);
     }
 
     /// <summary>The report <c>tiadump opcua --plc</c> writes for a report's PLC, as plain text.</summary>
@@ -481,11 +497,17 @@ public sealed class TiaProject {
             Place(HolderOf(table.Frame, root, libraries, plcs), Program.FolderPath(table.Frame), item);
             NoteProjectPlc(table.Frame, projectPlcs);
         }
+        var safety = TiaSafety.PlcsWithSafetyProgram(Program);
         foreach (var (key, holder) in plcs) {
             if (projectPlcs.TryGetValue(key, out var plc)) {
                 var report = new TiaItem(TiaItem.OpcUaReportKind, TiaItem.OpcUaReportKind, null, null, false, key, true, null, null) { ReportPlc = plc };
                 Reports.Add(report);
                 holder.Children.Add(new TiaTreeNode(report.Name, report));
+                if (safety.Contains(plc)) {
+                    var safetyReport = new TiaItem(TiaItem.SafetyReportKind, TiaItem.SafetyReportKind, null, null, false, key, true, null, null) { ReportPlc = plc };
+                    Reports.Add(safetyReport);
+                    holder.Children.Add(new TiaTreeNode(safetyReport.Name, safetyReport));
+                }
             }
         }
         if (TiaHardware.HasDevices(Program)) {

@@ -39,6 +39,7 @@ public sealed class KindBadge : Border {
                 "Force" => "FRC",
                 TiaFormat.Program.TiaItem.OpcUaReportKind => "OPC",
                 TiaFormat.Program.TiaItem.HardwareReportKind => "HW",
+                TiaFormat.Program.TiaItem.SafetyReportKind => "F",
                 _ => Kind,
             };
             Background = Glyphs.KindBrush(Kind);

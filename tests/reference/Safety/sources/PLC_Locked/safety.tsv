@@ -1,0 +1,2 @@
+# A safety program with a password: one F-runtime group, no F-I/O.
+group	Main	LockedSafety	LockedSafety_DB

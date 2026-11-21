@@ -8,7 +8,7 @@ status: stable
 
 Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers), the OPC UA configuration and the hardware. `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Eight reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run; `Hardware` among them for the hardware (section 19), `Tables` for watch and force tables and the cross-reference list (sections 20 and 21). Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Nine reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run; `Hardware` among them for the hardware (section 19), `Tables` for watch and force tables and the cross-reference list (sections 20 and 21), `Safety` for the safety program (section 22). Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -19,7 +19,7 @@ Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 8
 | **[I]** | Inferred from the samples, with no check that could have refuted it. |
 | **[?]** | Unknown. |
 
-**The generated text of SCL blocks, data blocks and UDTs has been compared with TIA Portal,** through Openness and for every unprotected block of one project: section 17 has the result. STL has been compared the same way, and LAD, FBD and GRAPH through TIA's export of invented blocks written in the same statement form, on the reference projects (section 13). The samples' fail-safe FBD has only been compared by eye, on two blocks. Everything stored but not rendered has not been compared at all.
+**The generated text of SCL blocks, data blocks and UDTs has been compared with TIA Portal,** through Openness and for every unprotected block of one project: section 17 has the result. STL has been compared the same way, and LAD, FBD and GRAPH through TIA's export of invented blocks written in the same statement form, on the reference projects (section 13). Fail-safe F-FBD and F-LAD have been compared the same way on invented blocks, the samples' only by eye. A PLC's safety program (section 19) is compared with what TIA reports through Openness. Everything else stored but not rendered has not been compared at all.
 
 ## 1. The containers
 
@@ -450,7 +450,7 @@ Each `CompileUnitData` is one network. `ICompileUnitData.ProgrammingLanguage` is
 
 ### LAD and FBD
 
-Languages: `LAD_CLASSIC` and `FBD_CLASSIC`, which TIA calls LAD and FBD, and `F_FBD` in the samples. All are one `FlgNet`, `<FlgNet xmlns="http://www.siemens.com/automation/2015/FunctionLadderDiagram" Version="14.0.0.2" Lang="...">`, and it holds the graph TIA's SimaticML export holds, under other names: **[S]**
+Languages: `LAD_CLASSIC` and `FBD_CLASSIC`, which TIA calls LAD and FBD, and their fail-safe forms `F_FBD` and `F_LAD`. All are one `FlgNet`, `<FlgNet xmlns="http://www.siemens.com/automation/2015/FunctionLadderDiagram" Version="14.0.0.2" Lang="...">`, and it holds the graph TIA's SimaticML export holds, under other names: **[S]**
 
 | Stored | SimaticML |
 |---|---|
@@ -490,7 +490,7 @@ A network has no text in TIA, so TiaTools writes it in a **statement form** of i
 | `Jump`, `JumpNot`, `Return`; labels | `IF <logic> THEN GOTO skip; END_IF;`, `RETURN;`; `skip:` before the network's statements |
 | Anything else | `Name(pin := …, pin => …);`, naming every connected pin |
 
-Checked: all 27 LAD and FBD networks of the reference project give the same statements from the archive as from TIA's export of each compiled block. **[S]** The samples' `F_FBD` networks go the same way, but TIA exports no SimaticML of them (section 17), so they were compared by eye only.
+Checked: all 27 LAD and FBD networks of the reference project `Languages` give the same statements from the archive as from TIA's export of each compiled block. **[S]** So do the 7 fail-safe networks of the reference project `Safety`, 6 in F-FBD and one in F-LAD, compiled by TIA with STEP 7 Safety: a fail-safe network is stored as any other. **[S]** The samples' `F_FBD` networks go the same way, but TIA exports no SimaticML of them (section 17), so they were compared by eye only.
 
 ### STL
 
@@ -596,7 +596,7 @@ The differences: one OB on each PLC whose title and comment have no text in the 
 
 Tag tables, from TIA's export of them: all 208 tags and constants in them agree in type, all 66 addresses and all 142 values. The 282 system constants the reader also lists are in no exported table.
 
-**The reference projects.** Six small projects TIA Portal V21 built from sources written for this repository, committed in `tests/reference` with the source TIA generated and its export of each tag table ([spec 0008](../specs/0008-reference-projects.md)). The library's tests compare the reader with them in every run. They hold every elementary type with start values, arrays, nested UDTs, a DB of a UDT, a retained DB and a standard-access DB, an FB with every interface section and constants and its instance DB, a multi-instance, text in German, French, Japanese and Chinese with string escapes, two PLCs with folders four deep, and one know-how protected block. All 34 blocks TIA generated source for are identical, the protected one is closed and shows nothing of its body, and all 27 tags agree in name, type, address, comment and external access. These are new programs, so unlike A's comparison they test the rules on something they were not worked out from.
+**The reference projects.** Seven small projects TIA Portal V21 built from sources written for this repository, committed in `tests/reference` with the source TIA generated and its export of each tag table ([spec 0008](../specs/0008-reference-projects.md)). The library's tests compare the reader with them in every run. They hold every elementary type with start values, arrays, nested UDTs, a DB of a UDT, a retained DB and a standard-access DB, an FB with every interface section and constants and its instance DB, a multi-instance, text in German, French, Japanese and Chinese with string escapes, two PLCs with folders four deep, and one know-how protected block. All 34 blocks TIA generated source for are identical, the protected one is closed and shows nothing of its body, and all 27 tags agree in name, type, address, comment and external access. These are new programs, so unlike A's comparison they test the rules on something they were not worked out from.
 
 The sixth, `Languages` ([spec 0009](../specs/0009-logic-languages.md)), holds blocks TIA takes no text source for, imported as SimaticML written for it and compiled by TIA: LAD and FBD with contacts in series and in parallel, negated contacts, inputs and outputs, set and reset coils and boxes, edges, a jump to a label, a move, a comparison, an addition, a timer as a multi-instance and with a data block of its own, a counter, a call of an FC and of an FB; a LAD block with an SCL and an STL network; an STL block with bit logic in brackets, load and transfer, arithmetic, a jump and a call; and a GRAPH block with a simultaneous and an alternative branch, a jump, actions with the qualifiers N, S, R and D, an event, an interlocked action, an assignment and a call, a supervision, an interlock and permanent instructions before and after. Its STL block and the timer's data block are identical to TIA's generated source; its 27 LAD and FBD networks and its GRAPH sequence give the same statement form from the archive as from TIA's SimaticML export (section 13). Invented blocks test the rules on the forms TIA writes, not on the habits of a real program.
 
@@ -604,9 +604,11 @@ The seventh, `Hardware` ([spec 0010](../specs/0010-hardware.md)), holds hardware
 
 The eighth, `Tables` ([spec 0015](../specs/0015-tables-and-cross-references.md)), holds a copy of the `Languages` program with a global data block of a UDT, an FC using its members, an instance data block called from `Main`, and a protected FC that calls another and writes a tag; and two watch tables and the force table, imported as SimaticML: entries on tags, data block members, an array element, an address with no tag, five display formats, three triggers, values, comments and a comment line, and a table in a folder. All 14 entries agree with TIA's export of the tables (section 19), and 169 rows of TIA's cross-reference list, from each block's and each tag's side, with the list the reader reads from `XRef.db` (section 21).
 
+The ninth, `Safety` ([spec 0012](../specs/0012-safety.md)), holds two F-CPUs. `PLC_Safety` has an F-DI and an F-DQ in its rack and an IO device with an F-DI, two F-runtime groups with cycle times of their own, F-blocks in F-FBD and F-LAD, a fail-safe global DB, an F-FB as a multi-instance, fixed F-block number ranges, a hand-set F-monitoring time and F-destination address, and a standard OB that reads the fail-safe DB; TIA compiled its safety program. `PLC_Locked` has one F-runtime group, and an invented safety password set after compiling. Every value of `tiadump safety` that Openness also reports, 485 of them, equals it, every one of the 77 fail-safe blocks with its F-signature among them; its 7 fail-safe networks give the same statement form as TIA's export; and neither the invented password nor what the archive stores of it appears in the report or the dump (section 19).
+
 The text is the same after compiling. TIA exports SimaticML only for a compiled block, so a retrieved copy was compiled block by block, with every block that is not fail-safe, and closed unsaved. It refuses to compile the whole PLC without permission for the safety program. That gave SimaticML for all 319 UDTs, 85 of 92 open DBs, 194 of 379 open SCL blocks, and the same table as above.
 
-**What this does not cover.** FBD networks: all 48 in the project are `F_FBD`, so they stay uncompiled and TIA exports none of them. Protected blocks, by choice. LAD, plain FBD, STL and GRAPH: none in the project are open.
+**What this does not cover.** FBD networks: all 48 in the project are `F_FBD`, so they stay uncompiled and TIA exports none of them; fail-safe networks are compared on the reference project `Safety` instead. Protected blocks, by choice. LAD, plain FBD, STL and GRAPH: none in the project are open.
 
 **Values still not decoded, by design or not understood**: `0x80000016` in 6 HMI objects of B; 24 keys unknown in an HMI `StyleData` simple expando; `XRef.db`'s `addrs` table and some access codes (section 21); `MetaId`; `0x70003` to `0x70006`. In the V15.1 library 12 `DataBlockData` objects do not fit the schema for some attributes (`Subtype`, `Culture`, `Password`, `Version`, `ITagAddress`), whichever of its three schemas is used: an offset leads out of the frame. A reader must treat such a value as absent. **[?]**
 
@@ -805,12 +807,82 @@ TIA's cross-reference list lies beside the database as a SQLite file ([sqlite.or
 
 **Not in it**: watch and force tables. Neither the list nor TIA's `CrossReferenceService`, asked for a block, a data block or a tag, names one. The reader lists a table's entries as uses of what they name, with the access `Monitor`, and `Modify` or `Force` for an entry with a value: names of TIA's `Access` type, but no output of TIA's to compare with. **[I]**
 
+## 22. Safety
+
+Where a PLC's safety program keeps what TIA's safety administration shows: its settings, F-runtime groups, signatures, fail-safe blocks, and the F-parameters of the F-CPU and its F-I/O. Found by walking the objects of two samples with a safety program, then checked on the reference project `Safety` (section 17), whose build writes what TIA reports through Openness (`SafetyAdministration`, the blocks' `SafetySignatureProvider`, and the device items' `Failsafe_` attributes) beside its archive. A claim marked **[S]** is one the library's tests compare with that report. `tiadump safety` reports it all. This section names types and keys only.
+
+**The safety program** of a PLC is a `Siemens.Simatic.Safety.Model.FailsafeInfo` whose `Target` is the PLC; a PLC without one has no safety program. **[S]** Its relations lead to the rest: `FailsafeInfoToFailsafeProgramSettings`, `FailsafeInfoToCompilationInfos`, `FailsafeInfoToRuntimegroupInfos` and `FailsafeInfoToFModuleInfos`. **[S]** The PLC also leads back to it through `ControllerTargetToFailsafeInfo`.
+
+**Settings**, attributes of `IFailsafeProgramSettings` on the `FailsafeProgramSettings`: **[S]**
+
+| Attribute | TIA's setting (Openness) |
+|---|---|
+| `SafetySystemVersion` | Safety system version, a string such as `V2.8` (`SafetySystemVersion`) |
+| `ActivateFChangelog` | F-change history (`ActivationOfFChangeHistory`); absent means off |
+| `SafetyModeCanBeDisabled` | Safety mode can be disabled; absent means no |
+| `AutomaticOrManual` | `1` when F-block numbers come from fixed ranges (`ManagementMode` `FixedRange`); absent when the F-system manages them. A sample stores `-1`, which this reader also takes as managed. **[I]** for `-1` |
+| `FunctionblockFrom`, `FunctionblockTo`, `FunctionsFrom`, `FunctionsTo`, `DatablockFrom`, `DatablockTo` | The ranges for F-FBs, F-FCs and F-DBs (`FromFB` ... `ToDB`), stored in either mode |
+| `FProgramPasswordPlus` | The safety program password, as 64 characters derived from it, or empty without one. Only whether it is empty is read; Openness's `IsSafetyOfflineProgramPasswordSet` agrees in both cases |
+
+The keys `FProgramPasswordChanged` (expando) and `PrivateCompilerSelectors` (on F-block information) stay unread, and the CPU's common device item holds `EncryptedPasswordFailsafe` and `PasswordConfirmationValid1` to `4`: `inspect` shows none of their values, and nothing else reads them.
+
+**Signatures.** **[S]**
+
+| Signature | Where |
+|---|---|
+| Collective F-signature (`CollectiveOfflineSignature`) | `IFailsafeCompilationInfo.OverallSignature` of the `FailsafeCompilationInfo`, a signed 32 bit integer to be read unsigned |
+| Collective F-SW signature (`SoftwareOfflineSignature`) | Dictionary expando key `FunctionalSoftwareSignature` of the `FailsafeProgramSettings`, uint |
+| Collective F-HW signature (`HardwareOfflineSignature`) | Key `FunctionalHardwareSignature`, uint |
+| F-communication address signature (`CommunicationAddressOfflineSignature`) | Key `CommunicationAddressSignature`, uint |
+| When it was compiled | `IFailsafeCompilationInfo.TimeLastGen`, .NET ticks in UTC (section 2) **[I]** for UTC |
+
+Setting a safety password counts as a change: TIA then reports the collective and the F-SW signature as 0, and the archive holds no `OverallSignature` and `FunctionalSoftwareSignature` 0 until the program is compiled again. **[S]** The samples' compilation info holds no `OverallSignature` either, and their main safety block's `BodyCompileState` is `OutOfDate`, so their safety program was most likely changed after its last compile. **[I]** `OverallSystemSignature` beside it, and the F-runtime group's `OverallSignature`, are signatures TIA's administration does not show by those names. **[?]**
+
+**F-runtime groups**, one `RuntimegroupInfo` each, numbered by `RuntimegroupID`: **[S]**
+
+| What | Where |
+|---|---|
+| Name | `ICoreAttributes.Name` |
+| Maximum cycle time, warning limit | `IRuntimegroupInfo.MaxCycleTime`, `WarningCycletime`, in µs (Openness `MaximumCycleTime`, `WarnCycleTime`) |
+| Main safety block and its instance DB | Relations `RuntimegroupInfoToMainSafety`, `RuntimegroupInfoToMainSafetyInstanceDataBlocks` |
+| F-OB | Relation `RuntimegroupInfoToMainSafetyCallers`. Its event class is the OB's subtype (section 10), `OB.CyclicInterrupt.Safety`, which TIA writes `Cyclic interrupt`; its `HandledEvent` is a `CyclicInterruptEventData` with `ICyclicInterruptEventData.CyclicTime` in µs (`FOBCycleTime`) and `IOrganizationBlockEventDataAttributes.Priority` (`FOBPriority`) |
+| F-runtime group information DB | `IRuntimegroupInfo.Control1IDBSymbol`, its name (`InfoDbName`); relation `RuntimegroupInfoToControl1Idb` |
+| Pre- and post-processing | `PreProcessorFCName`, `PostProcessorFCName`; empty in every object seen, as Openness's `PreProcessingName` and `PostProcessingName` are null. **[U]** when set |
+
+**F-blocks.** A block is fail-safe when its relation `GeneralBlockSourceDataToBlockInfo` leads to an `FBlockInfo`; its F-signature is `IFBlockInfoExtension.FunctionalSignature` there, signed 32 bit, read unsigned, absent where Openness reports 0. **[S]** For all 77 such blocks of the reference project Openness reports exactly these blocks and signatures, the F-OBs, F-I/O data blocks and STEP 7 Safety's compiler blocks among them. TIA made a block when it sits in the system blocks folder (`SystemBlocksFolder`, below it `SafetyResourcesFolder` and `SafetyCompilerBlocksFolder`, `SafetyIODataBlocksFolder`), or is an F-runtime group's F-OB. **[S]** Most of those are know-how protected; their signature is in clear on the `FBlockInfo` all the same, and the report gives it while their body stays closed (section 15). `IFBlockInfo.IsHiddenFromUser` does not say which TIA made: it is set on the main safety blocks too. **[S]**
+
+**The F-CPU's F-parameters** are dictionary expando keys of the PLC, the `S7ControllerTargetData`: **[S]**
+
+| Key | TIA's setting (Openness attribute of the CPU) | Default |
+|---|---|---|
+| `Failsafe_CentralSourceAddress` | Central F-source address (`Failsafe_CentralFSourceAddress`) | TIA assigns one per F-CPU; stored on both of the reference project's |
+| `Failsafe_DestinationAddress_LowerBound`, `Failsafe_DestinationAddress_UpperBound` | Range of F-destination addresses (`Failsafe_LowerBoundForFDestinationAddresses`, `...UpperBound...`) | as above: 1 to 99 for the first F-CPU of a project, 100 to 199 for the second **[U]** when absent |
+| `Failsafe_Central_F_WD_Time` | Default F-monitoring time for central F-I/O, ms (`Failsafe_DefaultFmonitoringTimeCentral`) | absent means 150 **[S]** |
+
+The CPU's `S71500.CPU.CPUFexecUnit` device item stores none of them.
+
+**An F-I/O** is an `FModuleInfo` of the safety program; `FModuleInfoToDeviceItemData` leads to its device item, the module's submodule, whose `LogicalContainer` is the `DeviceData` of its device. Both names are what the device list of spec 0010 shows. **[S]**
+
+| What | Where |
+|---|---|
+| First input and output address | `IFModuleInfo.InputBaseAddress`, `OutputBaseAddress`, bytes, `xs:uint` |
+| F-monitoring time, ms | `IFModuleInfo.MonitoringTime`; the device item's key `Failsafe_F_WD_Time` holds the same |
+| Set by hand | The device item's key `Failsafe_F_WD_Time_Setting` `1` (Openness `Failsafe_ManualAssignmentFMonitoringtime`) |
+| F-source address | Key `Failsafe_F_Source_Add`, the F-CPU's central F-source address |
+| F-destination address | Key `Failsafe_F_Dest_Add`; absent means 65534 |
+| F-parameter signature with and without addresses | Keys `Failsafe_F_Par_CRC` (also `IFModuleInfo.ModuleCRC`) and `Failsafe_F_Par_CRC_WithoutAddresses` |
+| F-I/O DB | `IFModuleInfo.IDBNr` and `StoredNameStorage` (Openness `Failsafe_FIODBNumber`, `Failsafe_FIODBName`) |
+
+All **[S]**. The absent `Failsafe_F_Dest_Add` meaning 65534 rests on one module, the first TIA numbered; two F-I/O of a sample store none either. That TIA stores the key only once the address differs from 65534 is **[I]**. The device item's other `Failsafe_` keys are the channel parameters (sensor supply, discrepancy behaviour, short-circuit test and so on), which this reader does not report.
+
+The schema also has `FCommunication`, `RuntimegroupCommunicationInfo`, `SafetyOverOpcUaProvider` and `SafetyOverOpcUaConsumer`, presumably F-communication between PLCs; no sample or reference project holds any. **[U]**
+
 ## Open questions
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
 
 1. **A second project.** Most of sections 11 and 12 was worked out from A alone, and A's V20 archive is the same program; `MFlags` has since been checked bit by bit on test blocks. B has not been compared with TIA. A rule that overfits shows there first.
-2. **Fail-safe FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles, as the comparison page says. Then compare them in statement form with TIA's export, as the reference project does for LAD and FBD (section 13).
+2. **Fail-safe FBD in a real program.** The reference project `Safety` compares invented F-FBD and F-LAD networks with TIA's export (section 13), but all 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling A's fail-safe blocks needs permission for its safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles, as the comparison page says. Then compare them in statement form with TIA's export.
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, FBD, STL and GRAPH in a real program.** The reference project `Languages` checks each on invented blocks (section 13), but no sample has any unprotected, so a real program's habits are untried: other instructions, nested branches, GRAPH with several sequences or step times, STL with indirect addressing.
 5. **Hardware beyond the reference project.** Section 19 rests on one invented project of S7-1500 and ET 200SP devices: other families, GSD devices, HMI devices, a module whose inputs and outputs share one range, IP addresses from DHCP, and a real project's hardware are untried, and which device items TIA leaves out comes from its catalog, not the file. Module parameters are not read.
@@ -825,6 +897,6 @@ What is left of the comparison with TIA Portal, most important first. [Comparing
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `show` also watch and force tables, `xref` lists cross references (section 21), `dump --raw` adds each network as stored, `opcua` reports section 18, `devices` section 19, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db`, `.tags`, `.watch` and `.force` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks, `show` also watch and force tables, `xref` lists cross references (section 21), `dump --raw` adds each network as stored, `opcua` reports section 18, `devices` section 19, `safety` section 22, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db`, `.tags`, `.watch` and `.force` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.
