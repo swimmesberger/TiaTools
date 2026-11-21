@@ -45,7 +45,8 @@ dotnet run --project src/TiaViewer -c Release -- Project.zap21
 
 - **Open:** the button, *File › Open…* or Ctrl or Cmd + O, drag and drop, or an argument. *File › Open Recent* and the start screen list the last ten archives, projects and libraries opened.
 - **Follow a name:** Ctrl or Cmd + click it in the source. Back and forward are on Alt+Left and Alt+Right.
-- **Who uses this:** the tabs below the source. Walking through a list keeps the list.
+- **Who uses this:** the tabs below the source, each use with how it is used (read, write, call, watch, ...); for a tag table, each with the tag it uses. Walking through a list keeps the list.
+- **Watch and force tables:** under their PLC in the tree, as text: each entry with its name or address, display format, triggers, value and comment.
 - **Search:** the box at the top for all source (Ctrl or Cmd + Shift + F), Ctrl or Cmd + F within a block, the box on the left for block names. Both are in the *Edit* menu too.
 - **Kinds:** the badges below the name box show only blocks of the kinds turned on, such as only the OBs, or the data blocks and tag tables; with none on, the tree shows everything. They work together with the name box.
 - **Where it starts:** a green triangle marks the program cycle OB, OB 1 `Main` in most programs, by the event class TIA stores for it.
@@ -56,7 +57,7 @@ dotnet run --project src/TiaViewer -c Release -- Project.zap21
 
 The recent files are kept in `~/Library/Application Support/TIA Viewer` on a Mac and `%LOCALAPPDATA%\TIA Viewer` on Windows; on a Mac they also go to the system's recent documents. *Clear Menu* forgets them.
 
-References come from source, so a closed block's calls are not among them. The viewer says how many blocks that affects, and a short list may be incomplete. It sees direct calls, calls through instance data blocks and multi-instances, and other uses by name; it does not yet tell a read from a write.
+References come from TIA's own cross-reference list, which the archive holds beside the program, so they tell a read from a write and include what a closed block calls, reads and writes, though nothing of how it does so. A watch or force table counts as a user of what its entries name. When the archive holds no list that belongs to it, references come from the source instead: a closed block's uses are then unknown, the viewer says so and how many blocks that affects, and a short list may be incomplete.
 
 Colours and links come from the tokens stored in the project, not from a grammar. Declarations and the statement form of LAD, FBD and GRAPH, which have no stored tokens, go through a small scanner.
 
@@ -98,7 +99,8 @@ The tool is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on 
 | Command | What it does | Options |
 |---|---|---|
 | `tiadump list <archive>` | One line per block: PLC, environment, kind, number, `KHP` if protected, `STUB` if held elsewhere, language, name and folder. The block count goes to stderr | `--grep <regex>` on the name, `--stubs` to include references to blocks held elsewhere |
-| `tiadump show <archive> <name>` | Prints every block of exactly that name as source. Exits with 1 if there is none | `--plc <name>` for one PLC only |
+| `tiadump show <archive> <name>` | Prints every block, watch table or force table of exactly that name as text. Exits with 1 if there is none | `--plc <name>` for one PLC only |
+| `tiadump xref <archive> [name]` | Lists cross references, one use per line: PLC, user, its kind, what it uses, the access, the network and the line. With a name, only uses of or by that block, tag, table or data block member. The first line says whether they come from TIA's cross-reference list or, without one, from the source | `--plc <name>` for one PLC only |
 | `tiadump inspect <archive> <name or id>` | Prints what is stored for a block or object: attributes, dictionary expando values (marked `~`) and relations, for finding where a fact lives. Encrypted values stay closed, and values named like a password, key, hash or certificate are not shown | `--plc <name>` for one PLC, `--full` to print long values whole |
 | `tiadump dump <archive> <folder>` | Writes all blocks and tag tables as files, and creates the folder if needed. Takes about a second for a 60 MB archive. Exits with 1 if a block failed; the rest are still written | `--grep <regex>` on the name (no tag tables then), `--raw` to add each network as stored, `--verify` to check every frame's hash |
 | `tiadump opcua <archive>` | Reports each PLC's OPC UA server as Markdown: whether it is on, its application name, security policies and other settings, its roles and server interfaces, and which data blocks, members and tags an OPC UA client could read or write. Never shows passwords, keys, hashes or certificates. Some readings are not yet confirmed against TIA, and the report says which | `--json` for every data block and tag as JSON, `--plc <name>` for one PLC only, `--nodes` for the nodes of the standard server interface as tab-separated text, `--nodeset` for one PLC's node set file, as TIA's *OPC UA › Server › Export* writes it |
@@ -122,6 +124,7 @@ Project/<PLC>/<folder path>/<block>.<kind>
 | `.udt` | A user data type, with the start values its members are declared with |
 | `.db` | A data block. One of a UDT or FB names its type and lists the values set in it, as TIA does; the type's members follow as comments, with start values where they are known. A shared one declares its members and lists its values |
 | `.tags` | A tag table |
+| `.watch`, `.force` | A watch table or the force table with entries, one entry per line: name and address, display format, triggers that are not the default, value and comment. Listed in `index.tsv` with the kind `Watch` or `Force` |
 
 Each block file starts with comment lines giving kind, number, language, know-how flag, PLC and folder. The same name can occur several times: on several PLCs, and as a project block and a library master copy; the `environment` and `plc` columns tell them apart, and `ProjectData` is the project itself.
 

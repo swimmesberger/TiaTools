@@ -1,0 +1,22 @@
+FUNCTION_BLOCK "Pulse"
+TITLE = One cycle pulse on a rising edge
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      trigger : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      q : Bool;
+   END_VAR
+
+   VAR
+      last : Bool;
+   END_VAR
+
+
+BEGIN
+	#q := #trigger AND NOT #last;
+	#last := #trigger;
+END_FUNCTION_BLOCK
+

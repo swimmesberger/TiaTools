@@ -225,7 +225,7 @@
     <Window.DataTemplates>
         <DataTemplate x:DataType="local:PlaceRow">
             <Grid ColumnDefinitions="Auto,Auto,280,48,*">
-                <TextBlock Text="{Binding Verb}" Classes="verb" Classes.call="{Binding IsCall}" IsVisible="{Binding HasVerb}" Width="30" FontSize="12" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Verb}" Classes="verb" Classes.call="{Binding IsCall}" IsVisible="{Binding HasVerb}" Width="46" FontSize="12" VerticalAlignment="Center" />
                 <local:KindBadge Grid.Column="1" Kind="{Binding Kind}" Margin="0,0,8,0" />
                 <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 <TextBlock Grid.Column="3" Text="{Binding At}" Classes="muted" FontSize="12" TextAlignment="Right" Margin="0,0,14,0" VerticalAlignment="Center" />

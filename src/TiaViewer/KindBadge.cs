@@ -35,6 +35,8 @@ public sealed class KindBadge : Border {
         if (change.Property == KindProperty) {
             _label.Text = Kind switch {
                 "Tags" => "TAG",
+                "Watch" => "WAT",
+                "Force" => "FRC",
                 TiaFormat.Program.TiaItem.OpcUaReportKind => "OPC",
                 _ => Kind,
             };

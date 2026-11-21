@@ -1,0 +1,14 @@
+FUNCTION "Sealed" : Void
+TITLE = A closed block that calls Limit and writes a tag
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_TEMP
+      kept : Int;
+   END_VAR
+
+
+BEGIN
+	// SEALED-MARKER-4K8P body comment that must never be shown
+	#kept := "Limit"(value := "Level", low := 0, high := 100);
+	"Alarm" := #kept > 90;
+END_FUNCTION

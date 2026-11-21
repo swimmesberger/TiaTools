@@ -1,0 +1,9 @@
+﻿TYPE "RecipeStep"
+VERSION : 0.1
+   STRUCT
+      target : Real;   // Speed to reach
+      duration : Time;   // How long to hold it
+   END_STRUCT;
+
+END_TYPE
+

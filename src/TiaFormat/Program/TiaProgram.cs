@@ -305,6 +305,31 @@ public sealed class TiaProgram {
         }
     }
 
+    /// <summary>
+    /// The block's interface members by the path of their ids, as TIA's cross-reference list names them (spec 0015):
+    /// <c>"53"</c> for a member, <c>"53:52"</c> for a member of its struct, UDT or FB type; the name is dotted, <c>inner.answer</c>.
+    /// A function's return value has the function's name.
+    /// </summary>
+    public Dictionary<string, string> MemberNamesById(TiaBlock block) {
+        var names = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!_db.TryGetTarget(block.Frame, _currentInterface, out var root)) {
+            return names;
+        }
+        var context = new InterfaceContext { Parts = PositionalParts(root), IsDataBlock = block.Kind.StartsWith("DB", StringComparison.Ordinal) };
+        Add(ParseRoot(root, context), "");
+        return names;
+
+        void Add(List<TiaMemberNode> members, string prefix) {
+            foreach (var member in members) {
+                // A function's return value is named after the function, as in its code.
+                var name = prefix.Length == 0 && member.Section == "Return" ? block.Name : prefix + member.Name;
+                names.TryAdd(member.Path, name);
+                Add(member.Children, name + ".");
+                Add(member.TypeMembers, name + ".");
+            }
+        }
+    }
+
     /// <summary>The block's interface: sections flattened, each member carrying its section, structs as children.</summary>
     public IReadOnlyList<TiaMember> ReadInterface(TiaBlock block) {
         if (!_db.TryGetTarget(block.Frame, _currentInterface, out var root)) {

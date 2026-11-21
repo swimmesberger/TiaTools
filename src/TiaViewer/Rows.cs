@@ -59,7 +59,12 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public IBrush GlyphLine => Parent is not null ? FolderLine : Name == LibrariesName ? LibraryLine : PlcLine;
 
-    public string ExportLabel => IsItem ? (Kind == "Tags" ? "Export this tag table…" : "Export this block…")
+    public string ExportLabel => IsItem ? Kind switch {
+            "Tags" => "Export this tag table…",
+            "Watch" => "Export this watch table…",
+            "Force" => "Export this force table…",
+            _ => "Export this block…",
+        }
         : Parent is null && Name != LibrariesName ? "Export this PLC…" : "Export this folder…";
 
     public ObservableCollection<TreeRow> Children { get; } = [];
@@ -78,7 +83,7 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 }
 
 /// <summary>One line of a list that leads to a place in the source.</summary>
-public sealed class PlaceRow(TiaItem item, int line, TiaItem named, TiaReferenceKind? kind, string text) {
+public sealed class PlaceRow(TiaItem item, int line, TiaItem named, string name, string verb, string text) {
     /// <summary>The block the line is in.</summary>
     public TiaItem Item { get; } = item;
 
@@ -86,16 +91,13 @@ public sealed class PlaceRow(TiaItem item, int line, TiaItem named, TiaReference
 
     public string Kind { get; } = named.Kind;
 
-    /// <summary>The block the row is about: the one who uses, or the one used.</summary>
-    public string Name { get; } = named.Name;
+    /// <summary>The item the row is about, the one who uses or the one used, with the tag or member it is about.</summary>
+    public string Name { get; } = name;
 
     public string At { get; } = (line + 1).ToString(CultureInfo.InvariantCulture);
 
-    public string Verb { get; } = kind switch {
-        TiaReferenceKind.Call => "call",
-        TiaReferenceKind.Use => "use",
-        _ => "",
-    };
+    /// <summary>How it is used: the access TIA's cross-reference list gives, or call or use from the text.</summary>
+    public string Verb { get; } = verb;
 
     public bool HasVerb => Verb.Length != 0;
 
@@ -103,13 +105,25 @@ public sealed class PlaceRow(TiaItem item, int line, TiaItem named, TiaReference
 
     public string Text { get; } = text;
 
-    /// <summary>A line elsewhere that refers to the block on show.</summary>
-    public static PlaceRow UsedBy(TiaReference reference) => new(reference.From, reference.Line, reference.From, reference.Kind, reference.Text);
+    /// <summary>A line elsewhere that refers to the item on show; on a tag table, it names the tag.</summary>
+    public static PlaceRow UsedBy(TiaReference reference) =>
+        new(reference.From, reference.Line, reference.From, reference.Target is { } target ? reference.From.Name + "  → " + target : reference.From.Name, VerbOf(reference), reference.Text);
 
-    /// <summary>A line of the block on show that refers to another: it names the other, and leads to the line.</summary>
-    public static PlaceRow Uses(TiaReference reference) => new(reference.From, reference.Line, reference.To, reference.Kind, reference.Text);
+    /// <summary>A line of the item on show that refers to another: it names the other, and leads to the line.</summary>
+    public static PlaceRow Uses(TiaReference reference) =>
+        new(reference.From, reference.Line, reference.To, TiaCrossReferenceWriter.Used(reference), VerbOf(reference), reference.Text);
 
-    public static PlaceRow Found(TiaSearchResult result) => new(result.Item, result.Line, result.Item, null, result.Text);
+    public static PlaceRow Found(TiaSearchResult result) => new(result.Item, result.Line, result.Item, result.Item.Name, "", result.Text);
+
+    /// <summary>TIA's access in a word: read, write, r/w, call, inst, type, watch, modify, force.</summary>
+    private static string VerbOf(TiaReference reference) => reference.Access switch {
+        null => reference.Kind == TiaReferenceKind.Call ? "call" : "use",
+        "RW" => "r/w",
+        "InstanceDB" or "Multiinstance" => "inst",
+        "Declaration" => "type",
+        "Monitor" => "watch",
+        var access => access.ToLowerInvariant(),
+    };
 }
 
 /// <summary>One recently opened file on the start screen: its name, and below it the folder it is in.</summary>

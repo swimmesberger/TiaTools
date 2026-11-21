@@ -15,6 +15,8 @@ using Siemens.Engineering.SW.Blocks;
 using Siemens.Engineering.SW.ExternalSources;
 using Siemens.Engineering.SW.Tags;
 using Siemens.Engineering.SW.Types;
+using Siemens.Engineering.SW.WatchAndForceTables;
+using Siemens.Engineering.CrossReference;
 
 namespace TiaOpennessExport;
 
@@ -178,7 +180,7 @@ internal static class Program {
         static void Count(Dictionary<string, int> counts, string what) => counts[what] = counts.TryGetValue(what, out var count) ? count + 1 : 1;
     }
 
-    private static int Export(Project project, string output, bool blockXml = true) {
+    private static int Export(Project project, string output, bool blockXml = true, bool crossReferences = false) {
         Directory.CreateDirectory(output);
         using var manifest = new StreamWriter(Path.Combine(output, "manifest.tsv"), false, new UTF8Encoding(false)) { AutoFlush = true };
         manifest.WriteLine("plc\tobject\tnumber\tlanguage\tstatus\tsource\txml\tname\tnote");
@@ -186,6 +188,9 @@ internal static class Program {
         foreach (var plc in Plcs(project)) {
             Console.WriteLine($"PLC {plc.Name}");
             exporter.ExportPlc(plc);
+            if (crossReferences) {
+                exporter.CrossReferences(plc);
+            }
         }
         Console.WriteLine($"{exporter.Written} files written, {exporter.Closed} closed, {exporter.Failed} failed");
         return 0;
@@ -264,7 +269,7 @@ internal static class Program {
             var archived = Path.Combine(work, "out");
             project.Archive(new DirectoryInfo(archived), name + ".zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
             var generated = Path.Combine(work, "generated");
-            Export(project, generated, blockXml: false);
+            Export(project, generated, blockXml: false, crossReferences: true);
 
             File.Copy(Path.Combine(archived, name + ".zap21"), Path.Combine(folder, name + ".zap21"), overwrite: true);
             var target = Path.Combine(folder, "generated");
@@ -273,6 +278,7 @@ internal static class Program {
             }
             Directory.Move(generated, target);
             Console.WriteLine($"{name}: archive and generated source replaced");
+            StaleExperiment(project, name, work);
             return true;
         } finally {
             project.Close();
@@ -280,8 +286,79 @@ internal static class Program {
     }
 
     /// <summary>
+    /// Whether TIA's cross-reference list follows a change made without a compile (spec 0015). Runs only when
+    /// TIA_STALE_EXPERIMENT is set to "&lt;project name&gt;|&lt;source file&gt;|&lt;folder&gt;|&lt;block folder&gt;": after the reference
+    /// files are written, the source replaces its block in the first PLC, the project is saved and archived as
+    /// &lt;name&gt;.stale.zap21, then compiled and archived as &lt;name&gt;.recompiled.zap21, both into the folder, which must lie
+    /// outside the repository. The committed files are written before and never touched.
+    /// </summary>
+    private static void StaleExperiment(Project project, string name, string work) {
+        var setting = Environment.GetEnvironmentVariable("TIA_STALE_EXPERIMENT")?.Split('|');
+        if (setting is not { Length: 4 } || setting[0] != name) {
+            return;
+        }
+        var plc = Plcs(project).First();
+        var source = plc.ExternalSourceGroup.ExternalSources.CreateFromFile(Path.GetFileName(setting[1]), setting[1]);
+        source.GenerateBlocksFromSource((PlcBlockUserGroup)BlockGroup(plc, setting[3].Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries).ToList()), GenerateBlockOption.None);
+        source.Delete();
+        Directory.CreateDirectory(setting[2]);
+        foreach (var state in new[] { "stale", "recompiled" }) {
+            if (state == "recompiled") {
+                Compile(plc);
+            }
+            project.Save();
+            var folder = Path.Combine(work, state);
+            project.Archive(new DirectoryInfo(folder), name + ".zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
+            File.Copy(Path.Combine(folder, name + ".zap21"), Path.Combine(setting[2], name + "." + state + ".zap21"), overwrite: true);
+            Console.WriteLine($"{name}: {state} archive written to {setting[2]}");
+        }
+    }
+
+    /// <summary>
+    /// Watch tables and the force table from "Watch and force tables", as SimaticML files in TIA's export form, each into
+    /// the table group its folder names. A force table replaces the PLC's own, which every PLC has and none can delete.
+    /// Before the first, an empty table with one comment line is exported and printed, to show the form TIA writes.
+    /// </summary>
+    private static int ImportTables(PlcSoftware plc, string sources) {
+        var tables = Path.Combine(sources, "Watch and force tables");
+        if (!Directory.Exists(tables)) {
+            return 0;
+        }
+        var probe = plc.WatchAndForceTableGroup.WatchTables.Create("Probe");
+        probe.Entries.Create();
+        var probeFile = Path.Combine(Path.GetTempPath(), "TiaOpennessExport-watch-probe.xml");
+        File.Delete(probeFile);
+        probe.Export(new FileInfo(probeFile), ExportOptions.WithDefaults);
+        Console.WriteLine(File.ReadAllText(probeFile));
+        File.Delete(probeFile);
+        probe.Delete();
+
+        var refused = 0;
+        foreach (var file in Directory.GetFiles(tables, "*.xml", SearchOption.AllDirectories).OrderBy(file => file, StringComparer.Ordinal)) {
+            var relative = file.Substring(tables.Length).TrimStart('\\', '/').Replace('\\', '/');
+            PlcWatchAndForceTableGroup group = plc.WatchAndForceTableGroup;
+            foreach (var folder in relative.Split('/').Reverse().Skip(1).Reverse()) {
+                group = group.Groups.Find(folder) ?? (PlcWatchAndForceTableGroup)group.Groups.Create(folder);
+            }
+            try {
+                if (File.ReadAllText(file).Contains("<SW.WatchAndForceTables.PlcForceTable ")) {
+                    group.ForceTables.Import(new FileInfo(file), ImportOptions.Override);
+                } else {
+                    group.WatchTables.Import(new FileInfo(file), ImportOptions.None);
+                }
+                Console.WriteLine($"imported {plc.Name}/{relative}");
+            } catch (EngineeringException e) {
+                refused++;
+                Console.WriteLine($"refused {plc.Name}/{relative}: {e.Message.Replace(Environment.NewLine, " ")}");
+            }
+        }
+        return refused;
+    }
+
+    /// <summary>
     /// Tag tables, then the types and blocks in the order order.txt gives, each in the folder its file is in: a text source
-    /// generated, a block in SimaticML (.xml) imported. Then the PLC is compiled, and protect.txt's blocks are protected.
+    /// generated, a block in SimaticML (.xml) imported. Then the PLC is compiled, the watch and force tables imported,
+    /// and protect.txt's blocks are protected.
     /// </summary>
     private static int BuildPlc(PlcSoftware plc, string sources) {
         var tags = Path.Combine(sources, "PLC tags");
@@ -328,6 +405,7 @@ internal static class Program {
             // TIA exports SimaticML only for a compiled block; a compile error counts as a refused source.
             refused += Compile(plc);
         }
+        refused += ImportTables(plc, sources);
 
         var protect = Path.Combine(sources, "protect.txt");
         foreach (var blockName in File.Exists(protect) ? File.ReadAllLines(protect).Where(line => line.Length != 0) : Enumerable.Empty<string>()) {
@@ -419,6 +497,112 @@ internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml
         Blocks(plc, folder, plc.BlockGroup);
         Types(plc, folder, plc.TypeGroup);
         TagTables(plc, folder, plc.TagTableGroup);
+        WatchAndForceTables(plc, folder, plc.WatchAndForceTableGroup);
+    }
+
+    private void WatchAndForceTables(PlcSoftware plc, string folder, PlcWatchAndForceTableGroup group) {
+        foreach (var table in group.WatchTables) {
+            Table(plc, folder, "WATCH", table.Name, file => table.Export(file, ExportOptions.WithDefaults));
+        }
+        foreach (var table in group.ForceTables) {
+            Table(plc, folder, "FORCE", table.Name, file => table.Export(file, ExportOptions.WithDefaults));
+        }
+        foreach (var child in group.Groups) {
+            WatchAndForceTables(plc, folder, child);
+        }
+    }
+
+    private void Table(PlcSoftware plc, string folder, string kind, string name, Action<FileInfo> export) {
+        var stem = Path.Combine(folder, Unique(kind + "." + Safe(name)));
+        var notes = new List<string>();
+        var xml = Attempt(notes, "xml", () => export(new FileInfo(stem + ".xml")));
+        Row(plc, kind, "", "", notes.Count == 0 ? "ok" : "partial", "", Relative(stem, ".xml", xml), name, string.Join(" | ", notes));
+    }
+
+    /// <summary>
+    /// TIA's cross-reference list of every block, type and tag table of the PLC, as
+    /// CrossReferenceService gives it, one row per location, into xref.tsv beside the PLC's other files (spec 0015).
+    /// </summary>
+    public void CrossReferences(PlcSoftware plc) {
+        var path = Path.Combine(root, Safe(plc.Name), "xref.tsv");
+        using var output = new StreamWriter(path, false, new UTF8Encoding(false));
+        output.WriteLine("object\tsource\tsource_type\tsource_address\tsource_path\treference\treference_type\treference_address\treference_path\tdevice\trelation\taccess\tlocation\treferenced_as\tlocation_name\tlocation_type\tlocation_address");
+        var objects = new List<(string Name, IEngineeringServiceProvider Item)>();
+        AddBlocks(plc.BlockGroup, objects);
+        AddTypes(plc.TypeGroup, objects);
+        AddTagTables(plc.TagTableGroup, objects);
+        // Watch and force tables offer no cross-reference service; they appear as users of the tags they name.
+        var rows = 0;
+        foreach (var (name, item) in objects) {
+            try {
+                var service = item.GetService<CrossReferenceService>();
+                if (service is null) {
+                    output.WriteLine(Line(name, "[no cross-reference service]"));
+                    continue;
+                }
+                foreach (var source in service.GetCrossReferences(CrossReferenceFilter.AllObjects).Sources) {
+                    rows += Source(output, name, source);
+                }
+            } catch (EngineeringException e) {
+                Failed++;
+                output.WriteLine(Line(name, "[failed: " + e.Message + "]"));
+            }
+        }
+        Written++;
+        Console.WriteLine($"{plc.Name}: {rows} cross-reference locations of {objects.Count} objects");
+
+        static int Source(StreamWriter output, string name, SourceObject source) {
+            var rows = 0;
+            foreach (var reference in source.References) {
+                foreach (var location in reference.Locations) {
+                    output.WriteLine(Line(name, source.Name, source.TypeName, source.Address, source.Path, reference.Name, reference.TypeName, reference.Address, reference.Path, reference.Device,
+                        location.ReferenceType.ToString(), location.Access.ToString(), location.ReferenceLocation, location.ReferencedAsName, location.Name, location.TypeName, location.Address));
+                    rows++;
+                }
+                if (reference.Locations.Count == 0) {
+                    output.WriteLine(Line(name, source.Name, source.TypeName, source.Address, source.Path, reference.Name, reference.TypeName, reference.Address, reference.Path, reference.Device));
+                    rows++;
+                }
+            }
+            foreach (var child in source.Children) {
+                rows += Source(output, name, child);
+            }
+            return rows;
+        }
+
+        static string Line(params string[] fields) =>
+            string.Join("\t", fields.Select(field => (field ?? "").Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ')));
+
+        static void AddBlocks(PlcBlockGroup group, List<(string, IEngineeringServiceProvider)> into) {
+            foreach (var block in group.Blocks) {
+                into.Add(("block:" + block.Name, block));
+            }
+            foreach (var child in group.Groups) {
+                AddBlocks(child, into);
+            }
+        }
+
+        static void AddTypes(PlcTypeGroup group, List<(string, IEngineeringServiceProvider)> into) {
+            foreach (var type in group.Types) {
+                into.Add(("type:" + type.Name, type));
+            }
+            foreach (var child in group.Groups) {
+                AddTypes(child, into);
+            }
+        }
+
+        static void AddTagTables(PlcTagTableGroup group, List<(string, IEngineeringServiceProvider)> into) {
+            foreach (var table in group.TagTables) {
+                into.Add(("tags:" + table.Name, table));
+                // A tag table offers no cross-reference service; each tag may, with its uses in watch and force tables.
+                foreach (var tag in table.Tags) {
+                    into.Add(("tag:" + tag.Name, tag));
+                }
+            }
+            foreach (var child in group.Groups) {
+                AddTagTables(child, into);
+            }
+        }
     }
 
     private void Blocks(PlcSoftware plc, string folder, PlcBlockGroup group) {

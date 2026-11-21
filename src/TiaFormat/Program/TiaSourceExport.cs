@@ -7,7 +7,10 @@ using Microsoft.Win32.SafeHandles;
 namespace TiaFormat.Program;
 
 /// <summary>What an export wrote. A block that failed is named in <see cref="Failures"/>; the rest were still written.</summary>
-public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures);
+public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures) {
+    /// <summary>Watch and force table files.</summary>
+    public int WatchFiles { get; init; }
+}
 
 /// <summary>Writes a program as readable files in a tree, environment / PLC / folder path / block, with an index.tsv of every block. Used by the command line and the viewer alike, so both write the same files.</summary>
 public sealed class TiaSourceExport(TiaProgram program, string root) {
@@ -23,6 +26,9 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
 
     /// <summary>Which tag tables to write, all if null.</summary>
     public Func<TiaTagTable, bool>? TagTables { get; init; }
+
+    /// <summary>Which watch and force tables to write, all if null.</summary>
+    public Func<TiaWatchTable, bool>? WatchTables { get; init; }
 
     /// <summary>Also write each network as stored, next to its block. Never an encrypted part.</summary>
     public bool Raw { get; init; }
@@ -66,8 +72,9 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             output => output.Dispose());
 
         var tagFiles = WriteTagTables();
+        var watchFiles = WriteWatchTables(index);
         File.WriteAllText(Path.Combine(root, "index.tsv"), index.ToString(), new UTF8Encoding(false));
-        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]);
+        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]) { WatchFiles = watchFiles };
     }
 
     private void WriteBlock(TiaBlock block, string path, PooledByteWriter output) {
@@ -106,6 +113,24 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             TiaSourceWriter.WriteTagTable(table, output);
             var folder = ProgramFolder(table.Frame);
             WriteFile(_paths.Reserve(Path.Combine(folder, Safe(table.Name) + ".tags"), table.Frame.ObjectId), output.WrittenSpan);
+            count++;
+        }
+        return count;
+    }
+
+    /// <summary>Each watch and force table with entries as a .watch or .force file, listed in the index (spec 0015, FR-003).</summary>
+    private int WriteWatchTables(StringBuilder index) {
+        var count = 0;
+        foreach (var table in TiaWatchTables.Read(program)) {
+            if (table.Entries.Count == 0 || (WatchTables is { } include && !include(table))) {
+                continue;
+            }
+            var extension = table.Kind == TiaWatchTableKind.Force ? ".force" : ".watch";
+            var path = _paths.Reserve(Path.Combine(ProgramFolder(table.Frame), Safe(table.Name) + extension), table.Frame.ObjectId);
+            WriteFile(path, Encoding.UTF8.GetBytes(TiaWatchTables.Text(table)));
+            var environment = program.Environment(table.Frame);
+            index.Append(CultureInfo.InvariantCulture,
+                $"{table.Frame.ObjectId}\t{environment.Kind}\t{program.PlcName(table.Frame)}\t{table.Kind}\t\t\tno\t{Path.GetRelativePath(root, path).Replace('\\', '/')}\t{table.Name}\n");
             count++;
         }
         return count;

@@ -1,0 +1,9 @@
+DATA_BLOCK "LadBoxesData"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+"LadBoxes"
+
+BEGIN
+
+END_DATA_BLOCK

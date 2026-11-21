@@ -14,3 +14,5 @@
 * [0011](0011-know-how-protection-stays-closed.md) - Protected blocks are reported as encrypted because the archive holds only ciphertext; decryption is a separate, unbuilt capability, password-only if ever built
 * [0012](0012-reference-projects-are-committed.md) - Archives that TIA Portal builds from invented sources are committed as reference projects, with the source TIA generates for them
 * [0013](0013-networks-are-shown-as-statements.md) - The text the tools write is for a coding agent, so LAD, FBD and GRAPH logic is written in statement form; the viewer may show it otherwise
+* [0014](0014-xref-db-is-read-by-a-reader-of-our-own.md) - TIA's cross-reference list, a SQLite file, is read by a read-only SQLite reader written here, so the library still takes no dependency
+* [0015](0015-what-a-closed-block-uses-is-shown.md) - What a closed block uses, which TIA's cross-reference list keeps in clear, is shown; its body, its own members' uses and the places inside it are not
