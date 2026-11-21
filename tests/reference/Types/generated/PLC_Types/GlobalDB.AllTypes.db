@@ -1,0 +1,99 @@
+﻿DATA_BLOCK "AllTypes"
+TITLE = Every elementary type
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR 
+      aBool : Bool;
+      aByte : Byte;
+      aWord : Word;
+      aDWord : DWord;
+      aLWord : LWord;
+      aSInt : SInt;
+      aUSInt : USInt;
+      aInt : Int;
+      aUInt : UInt;
+      aDInt : DInt;
+      aUDInt : UDInt;
+      aLInt : LInt;
+      aULInt : ULInt;
+      aReal : Real;
+      aLReal : LReal;
+      aTime : Time;
+      aLTime : LTime;
+      aS5Time : S5Time;
+      aDate : Date;
+      aTimeOfDay : Time_Of_Day;
+      aLTimeOfDay : LTime_Of_Day;
+      aDateAndTime : Date_And_Time;
+      anLDT : LDT;
+      aDTL {InstructionName := 'DTL'; LibVersion := '1.0'} : DTL;
+      aChar : Char;
+      aWChar : WChar;
+      aString : String;
+      aShortString : String[10];
+      aWString : WString;
+      anArray : Array[0..3] of Int;
+      aMatrix : Array[1..2, 1..3] of Real;
+      anArrayOfStruct : Array[1..2] of Struct
+         on : Bool;
+         speed : Int;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+   aBool := TRUE;
+   aByte := 16#AB;
+   aWord := 16#ABCD;
+   aDWord := 16#DEAD_BEEF;
+   aLWord := 16#0123_4567_89AB_CDEF;
+   aSInt := -5;
+   aUSInt := 200;
+   aInt := -1234;
+   aUInt := 60000;
+   aDInt := -100000;
+   aUDInt := 4_000_000_000;
+   aLInt := -9_000_000_000;
+   aULInt := 18_000_000_000_000_000_000;
+   aReal := 3.25;
+   aLReal := -1.0E-10;
+   aTime := T#1D_2H_3M_4S_5MS;
+   aLTime := LT#1S_500NS;
+   aS5Time := S5T#10S;
+   aDate := D#2024-02-29;
+   aTimeOfDay := TOD#12:34:56.789;
+   aLTimeOfDay := LTOD#12:34:56.123456789;
+   aDateAndTime := DT#2024-02-29-12:00:00;
+   anLDT := LDT#2024-02-29-12:00:00.123456789;
+   aDTL.YEAR := 2024;
+   aDTL.MONTH := 2;
+   aDTL.DAY := 29;
+   aDTL.WEEKDAY := 5;
+   aDTL.HOUR := 12;
+   aDTL.MINUTE := 0;
+   aDTL.SECOND := 0;
+   aDTL.NANOSECOND := 0;
+   aDTL := DTL#2024-02-29-12:00:00;
+   aChar := 'A';
+   aWChar := WCHAR#'B';
+   aString := 'hello';
+   aShortString := 'short';
+   aWString := WSTRING#'wide';
+   anArray[0] := 1;
+   anArray[1] := 2;
+   anArray[2] := 3;
+   anArray[3] := 4;
+   aMatrix[1,1] := 0.5;
+   aMatrix[1,2] := 1.5;
+   aMatrix[1,3] := 2.5;
+   aMatrix[2,1] := 3.5;
+   aMatrix[2,2] := 4.5;
+   aMatrix[2,3] := 5.5;
+   anArrayOfStruct[1].on := TRUE;
+   anArrayOfStruct[1].speed := 100;
+   anArrayOfStruct[2].on := TRUE;
+   anArrayOfStruct[2].speed := 100;
+
+END_DATA_BLOCK
+

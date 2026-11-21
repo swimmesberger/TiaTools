@@ -1,0 +1,12 @@
+﻿TYPE "typeLabel"
+VERSION : 0.1
+   STRUCT
+      german : WString[40] := WSTRING#'Füllhöhe überschritten';   // Größe in Millilitern
+      french : WString[40] := WSTRING#'Défaut de la vanne';   // Vanne fermée, ça bloque
+      japanese : WString[20] := WSTRING#'液面センサー';   // 日本語のコメント
+      chinese : WString[20] := WSTRING#'液位传感器';   // 中文注释
+      plain : String[20] := 'It$'s 50% full';   // A quote and a percent sign
+   END_STRUCT;
+
+END_TYPE
+

@@ -3,10 +3,14 @@ using TiaFormat.Xml;
 
 namespace TiaFormat.Program;
 
+/// <summary>A parameter of a called block: its name and section (Input, Output, InOut, Return).</summary>
+public readonly record struct TiaParameter(string Name, string Section);
+
 /// <summary>A block's identifier table: the id a network or SCL symbol refers to, to its display name.</summary>
 public sealed class TiaIdentTable {
     private readonly Dictionary<int, string> _names = [];
     private readonly List<(int Id, int Parent, string Path)> _structured = [];
+    private readonly Dictionary<int, List<TiaParameter>> _parameters = [];
 
     /// <summary>Adds one <c>IdentXmlPart</c>. Call <see cref="Complete"/> after the last.</summary>
     public void Add(ReadOnlySpan<byte> part) {
@@ -34,6 +38,9 @@ public sealed class TiaIdentTable {
         _structured.Clear();
     }
 
+    /// <summary>A called block's parameters in their order, from its <c>BlockInterfaceInfo</c>; a call numbers them from 1.</summary>
+    public IReadOnlyList<TiaParameter> Parameters(int? id) => id is { } value && _parameters.TryGetValue(value, out var list) ? list : [];
+
     public string Name(int? id) {
         if (id is not { } value) {
             return "(not connected)";
@@ -53,6 +60,7 @@ public sealed class TiaIdentTable {
         var segmentCount = 0;
         var depth = isEmpty ? 0 : 1;
         var kindCopy = KindOf(kind);
+        List<TiaParameter>? parameters = kind.SequenceEqual("BlockInterfaceInfo"u8) ? [] : null;
         while (depth > 0 && reader.Read()) {
             if (reader.IsEnd) {
                 depth--;
@@ -76,11 +84,17 @@ public sealed class TiaIdentTable {
             } else if (tag.SequenceEqual("STAD"u8)) {
                 structuredBase = reader.GetInt32("TIRD"u8);
             } else if (tag.SequenceEqual("CB"u8) && literal is null) {
-                literal = reader.GetString("V"u8);
+                // SV is the constant as the source writes it (T#2S), escaped as an XML name; V only its value (2000).
+                literal = reader.GetString("SV"u8) is { Length: > 0 } source ? Unescape(source) : reader.GetString("V"u8);
+            } else if (parameters is not null && tag.SequenceEqual("BPI"u8)) {
+                parameters.Add(new TiaParameter(reader.GetString("N"u8) ?? "", reader.GetString("S"u8) ?? ""));
             }
         }
         if (id is not { } rid) {
             return;
+        }
+        if (parameters is not null) {
+            _parameters[rid] = parameters;
         }
         switch (kindCopy) {
             case IdentKind.Local:
@@ -130,6 +144,24 @@ public sealed class TiaIdentTable {
             return IdentKind.Literal;
         }
         return kind.SequenceEqual("Instruction"u8) || kind.SequenceEqual("DirectType"u8) || kind.SequenceEqual("Label"u8) ? IdentKind.Plain : IdentKind.None;
+    }
+
+    /// <summary>Undoes XML name escaping: <c>_x0023_</c> is <c>#</c>.</summary>
+    private static string Unescape(string text) {
+        if (!text.Contains("_x", StringComparison.Ordinal)) {
+            return text;
+        }
+        var builder = new StringBuilder(text.Length);
+        for (var i = 0; i < text.Length; i++) {
+            if (text[i] == '_' && i + 6 < text.Length && text[i + 1] == 'x' && text[i + 6] == '_'
+                && int.TryParse(text.AsSpan(i + 2, 4), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out var code)) {
+                builder.Append((char)code);
+                i += 6;
+            } else {
+                builder.Append(text[i]);
+            }
+        }
+        return builder.ToString();
     }
 
     /// <summary>TIA quotes a name that is not a plain identifier.</summary>

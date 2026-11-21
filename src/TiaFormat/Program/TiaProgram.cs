@@ -25,7 +25,7 @@ public sealed class TiaProgram {
     private readonly TiaAttributeHandle _unitData, _unitRef, _unitLanguage, _partPayload, _partKind, _identPayload, _text, _image, _libraryVersion;
     private readonly TiaAttributeHandle _tagAddress, _tagType, _tagValue, _tagAccessible, _tagVisible, _tagReadOnly;
     private readonly TiaAttributeHandle _author, _family, _headerName, _version, _optimized;
-    private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _isGeneratedFrom, _tagContent;
+    private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _unitComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _isGeneratedFrom, _tagContent;
     private readonly Lazy<Dictionary<int, string>> _typeCodes;
 
     public TiaProgram(TiaDatabase database) {
@@ -63,6 +63,7 @@ public sealed class TiaProgram {
         _usedParts = s.Relation("UsedParts");
         _comments = s.Relation("InterfaceComments");
         _blockComment = s.Relation("BlockComment");
+        _unitComment = s.Relation("CompileUnitComment");
         _identContainer = s.Relation("CoreObject2IdentContainer");
         _identParts = s.Relation("IdentParts");
         _folder = s.Relation("AggregatingFolder");
@@ -122,6 +123,18 @@ public sealed class TiaProgram {
         _db.TryGetTarget(block.Frame, _generatedFrom, out var master) || _db.TryGetTarget(block.Frame, _isGeneratedFrom, out master)
             ? _db.ReadString(master, _name)
             : null;
+
+    /// <summary>
+    /// For a data block of a system type, such as an IEC_TIMER that a TON uses, the version that type states about itself,
+    /// as its source writes it in <c>LibVersion</c>; null for any other block. The type's root is the block's first used part.
+    /// </summary>
+    public string? InstructionVersion(TiaBlock block) {
+        if (!block.Kind.StartsWith("DB", StringComparison.Ordinal) || !_db.TryGetTarget(block.Frame, _currentInterface, out var root)) {
+            return null;
+        }
+        var parts = PositionalParts(root);
+        return parts.Count == 0 ? null : LibraryVersion(0, new InterfaceContext { Parts = parts });
+    }
 
     /// <summary>A data block's own settings: what a source file writes as NON_RETAIN and as block attributes.</summary>
     public TiaDataBlockSettings DataBlockSettings(TiaBlock block) => new(
@@ -235,7 +248,8 @@ public sealed class TiaProgram {
                 (int)(_db.ReadInteger(unit, _unitRef) ?? 0),
                 _db.ReadString(unit, _unitLanguage) ?? "",
                 _db.ReadCoreText(unit, _comment),
-                FormOf(data.Span)));
+                FormOf(data.Span),
+                _db.TryGetTarget(unit, _unitComment, out var comment) ? _db.ReadCoreText(comment, _text) : null));
         }
         return result;
     }
@@ -262,11 +276,25 @@ public sealed class TiaProgram {
             case "FlgNet":
                 FlgNetRenderer.Render(data.Span, ReadIdents(block), output);
                 break;
+            case "Statements":
+                StlRenderer.Render(data.Span, ReadIdents(block), output);
+                break;
             default:
                 output.Write("[unknown source form, raw follows]\n"u8);
                 output.Write(data.Span);
                 break;
         }
+    }
+
+    /// <summary>A GRAPH block's sequence, read from all its compile units together (docs/FORMAT.md, section 13).</summary>
+    public TiaGraph ReadGraph(TiaBlock block) {
+        var units = CompileUnits(block);
+        var data = new List<ReadOnlyMemory<byte>>(units.Count);
+        foreach (var unit in units) {
+            using var blob = _db.ReadBlob(unit, _unitData);
+            data.Add(blob.Span.ToArray());
+        }
+        return TiaGraph.Read(data, ReadIdents(block));
     }
 
     /// <summary>Writes a compile unit exactly as stored, unless it is encrypted.</summary>
@@ -422,7 +450,7 @@ public sealed class TiaProgram {
         if (head[..Math.Min(300, head.Length)].IndexOf("<EncryptedData"u8) >= 0) {
             return "EncryptedData";
         }
-        return head.StartsWith("<SCLSource"u8) ? "SCLSource" : head.StartsWith("<FlgNet"u8) ? "FlgNet" : "Other";
+        return head.StartsWith("<SCLSource"u8) ? "SCLSource" : head.StartsWith("<FlgNet"u8) ? "FlgNet" : head.StartsWith("<Statements"u8) ? "Statements" : "Other";
     }
 
     private List<TiaObjectKey> PositionalParts(in TiaFrame root) {

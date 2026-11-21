@@ -40,23 +40,6 @@ public sealed class TiaSourceRenderingTest {
     }
 
     [Test]
-    public void ANegatedOutputInvertsWhatItsWireCarries() {
-        var idents = new TiaIdentTable();
-        idents.Add(Encoding.UTF8.GetBytes("""
-            <IdentXmlPart><InterfaceAccess><ID N="" S="Local" RID="1" /><SSD><AOS><AO N="a"><TD /></AO></AOS></SSD></InterfaceAccess></IdentXmlPart>
-            """));
-        idents.Complete();
-        var xml = """
-            <FlgNet Lang="F_FBD"><Parts><ORef UId="9" RefId="1" /><Part UId="21" Gate="A"><Negated PinName="out" /></Part><Part UId="23" Gate="Coil" /></Parts><Wires><Wire UId="28"><PCon UId="21" PinName="out" /><PCon UId="23" PinName="in" /></Wire><Wire UId="29"><PCon UId="21" PinName="out" /><OCon UId="9" /></Wire></Wires></FlgNet>
-            """;
-        using var output = new PooledByteWriter();
-
-        FlgNetRenderer.Render(Encoding.UTF8.GetBytes(xml), idents, output);
-
-        Encoding.UTF8.GetString(output.WrittenSpan).Should().Be("P21: A(NOT out => #a)\nP23: Coil(in := NOT P21.out)");
-    }
-
-    [Test]
     public void ABoolFromTheDataBlockImageIsItsOwnBit() {
         byte[] image = [0x02];
 
@@ -65,20 +48,37 @@ public sealed class TiaSourceRenderingTest {
     }
 
     [Test]
-    public void ANetworkPrintsItsPartsWithWiresResolved() {
+    public void AFailSafeNetworkIsWrittenInStatementFormFromItsStoredParts() {
         var idents = new TiaIdentTable();
         idents.Add(Encoding.UTF8.GetBytes("""
             <IdentXmlPart><InterfaceAccess><ID N="" S="Local" RID="1"><CS /></ID><SSD><AOS><AO N="in"><TD T="Bool:33554433:Bool" /></AO></AOS></SSD></InterfaceAccess><InterfaceAccess><ID N="" S="Local" RID="2" /><SSD><AOS><AO N="s"><TD /></AO><AO N="odd name"><TD /></AO></AOS></SSD></InterfaceAccess></IdentXmlPart>
             """));
         idents.Complete();
         var xml = """
-            <FlgNet xmlns="x" Lang="F_FBD"><Parts><ORef UId="24" RefId="1" /><ORef UId="26" RefId="2" /><ORef UId="27" /><Part UId="21" Gate="A"><Negated PinName="in1" /></Part><Part UId="23" Gate="Coil" /></Parts><Wires><Wire UId="28"><OCon UId="24" /><PCon UId="21" PinName="in1" /></Wire><Wire UId="29"><PCon UId="21" PinName="out" /><PCon UId="23" PinName="in" /></Wire><Wire UId="30"><OCon UId="26" /><PCon UId="23" PinName="operand" /></Wire><Wire UId="31"><PCon UId="23" PinName="Q" /><OCon UId="27" /></Wire></Wires></FlgNet>
+            <FlgNet xmlns="x" Lang="F_FBD"><Parts><ORef UId="24" RefId="1" /><ORef UId="26" RefId="2" /><ORef UId="27" /><Part UId="21" Gate="A"><Negated PinName="in1" /></Part><Part UId="23" Gate="Coil" /></Parts><Wires><Wire UId="28"><OCon UId="24" /><PCon UId="21" PinName="in1" /></Wire><Wire UId="29"><PCon UId="21" PinName="out" /><PCon UId="23" PinName="in" /></Wire><Wire UId="30"><OCon UId="26" /><PCon UId="23" PinName="operand" /></Wire><Wire UId="31"><PCon UId="23" PinName="out" /><OCon UId="27" /></Wire></Wires></FlgNet>
             """;
         using var output = new PooledByteWriter();
 
         FlgNetRenderer.Render(Encoding.UTF8.GetBytes(xml), idents, output);
 
+        Encoding.UTF8.GetString(output.WrittenSpan).Should().Be("#s.\"odd name\" := NOT #in;");
+    }
+
+    [Test]
+    public void AnStlCallListsItsParametersByNameWithTheirAssignmentsInOneColumn() {
+        var idents = new TiaIdentTable();
+        idents.Add(Encoding.UTF8.GetBytes("""
+            <IdentXmlPart><InterfaceAccess><ID N="" S="Local" RID="1" /><SSD><AOS><AO N="count"><TD /></AO></AOS></SSD></InterfaceAccess><FCBlock><ID N="Limit" S="Global" RID="2" /></FCBlock><BlockInterfaceInfo><ID N="" S="BlockInterfaceInfo" RID="3" /><BIID><BPIL><BPI N="value" S="Input" /><BPI N="Ret_Val" S="Return" /></BPIL></BIID></BlockInterfaceInfo><Label><ID N="done" S="Local" RID="4" /></Label></IdentXmlPart>
+            """));
+        idents.Complete();
+        var xml = """
+            <Statements Version="14.0.0.0"><Statement UId="1"><Token Kw="1" DispName="A" /><OpdAccess RefId="1" UId="2" /><LC DispName=" counted" UId="3" /></Statement><Statement UId="4"><Token Kw="64" DispName="CALL" /><OpdAccess RefId="2" UId="5" /><CallInfo RefId="3" UId="6"><ParaExpression FPNum="2" UId="7"><OpdAccess RefId="1" UId="8" /></ParaExpression><ParaExpression FPNum="1" UId="9"><UserToken Type="Constant" DispName="7" /></ParaExpression></CallInfo></Statement><Statement UId="10"><Label><OpdAccess RefId="4" UId="11" /><Token Kw=":" /></Label><Token DispName="NOP" /><UserToken Type="Constant" DispName="0" /></Statement></Statements>
+            """;
+        using var output = new PooledByteWriter();
+
+        StlRenderer.Render(Encoding.UTF8.GetBytes(xml), idents, output);
+
         Encoding.UTF8.GetString(output.WrittenSpan).Should().Be(
-            "P21: A(in1 := NOT #in)\nP23: Coil(in := P21.out, operand := #s.\"odd name\", Q => (not connected))");
+            "      A #count ;// counted\n      CALL \"Limit\"\n      (  value                       := 7 , \n         Ret_Val                     := #count\n      );\ndone:      NOP 0;");
     }
 }

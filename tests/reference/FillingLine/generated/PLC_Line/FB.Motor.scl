@@ -1,0 +1,48 @@
+﻿FUNCTION_BLOCK "Motor"
+TITLE = Motor with feedback
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Starts and stops a motor and watches its contactor's feedback.
+   VAR_INPUT 
+      start : Bool;   // Start command
+      stop : Bool;   // Stop command, wins over start
+      feedback : Bool;   // Contactor is closed
+      reset : Bool;   // Acknowledge a fault
+   END_VAR
+
+   VAR_OUTPUT 
+      run : Bool;   // Drives the contactor
+      fault : Bool;   // The feedback did not come in time
+   END_VAR
+
+   VAR 
+      feedbackTimer {InstructionName := 'TON_TIME'; LibVersion := '1.0'} : TON_TIME;
+      enabled : Bool;   // Started and not stopped since
+   END_VAR
+
+   VAR CONSTANT 
+      FEEDBACK_TIME : Time := T#2S;   // How long the contactor may take
+   END_VAR
+
+
+BEGIN
+	
+	 // Stop wins over start, and a fault keeps the motor off until it is reset.
+	 IF #stop OR #fault THEN
+	     #enabled := FALSE;
+	 ELSIF #start THEN
+	     #enabled := TRUE;
+	 END_IF;
+	
+	 #feedbackTimer(IN := #enabled AND NOT #feedback,
+	                PT := #FEEDBACK_TIME);
+	 IF #feedbackTimer.Q THEN
+	     #fault := TRUE;
+	 ELSIF #reset THEN
+	     #fault := FALSE;
+	 END_IF;
+	
+	 #run := #enabled AND NOT #fault;
+	
+END_FUNCTION_BLOCK
+

@@ -1,0 +1,6 @@
+# The same block names on two PLCs, in folders four deep, with tag tables on both.
+PLC data types/Area/Shared/typeStatus.udt
+Program blocks/Area/Line/Cell/Station/Pump.scl
+Program blocks/Area/Line/Cell/Station/Station.scl
+Program blocks/Area/Data/StationData.db
+Program blocks/Main.scl

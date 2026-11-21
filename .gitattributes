@@ -3,3 +3,5 @@
 # Windows batch files must keep CRLF: cmd.exe mis-parses labels and goto/call in LF-only files
 *.bat text eol=crlf
 *.cmd text eol=crlf
+# The reference projects' archives: never a line ending or diff to touch
+*.zap[0-9]* binary

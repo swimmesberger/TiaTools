@@ -1,0 +1,12 @@
+# Text sources first, then the blocks in SimaticML that call them.
+Program blocks/Common/Limit.scl
+Program blocks/Common/Pulse.scl
+Program blocks/Common/Tick.scl
+Program blocks/Common/LampDelay.db
+Program blocks/Statement/StlBasics.awl
+Program blocks/Ladder/LadLogic.xml
+Program blocks/Ladder/LadBoxes.xml
+Program blocks/Function/FbdLogic.xml
+Program blocks/Function/FbdBoxes.xml
+Program blocks/Ladder/Mixed.xml
+Program blocks/Sequence/Batch.xml

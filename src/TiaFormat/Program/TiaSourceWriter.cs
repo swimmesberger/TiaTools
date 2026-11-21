@@ -54,7 +54,8 @@ public static class TiaSourceWriter {
         }
         var header = program.Header(block);
         var settings = opener == "DATA_BLOCK" ? program.DataBlockSettings(block) : new TiaDataBlockSettings(false, true, true);
-        WriteAttributes(output, opener, header, settings);
+        var instruction = opener == "DATA_BLOCK" ? program.InstructionVersion(block) : null;
+        WriteAttributes(output, opener, header, settings, instruction is null ? null : (program.GeneratedFrom(block) ?? "", instruction));
         WriteHeader(output, header);
         if (settings.IsNonRetain) {
             output.Write("NON_RETAIN\n"u8);
@@ -75,7 +76,7 @@ public static class TiaSourceWriter {
             return 0;
         }
         if (opener == "DATA_BLOCK") {
-            WriteDataBlock(output, program, block, members, header.OptimizedAccess);
+            WriteDataBlock(output, program, block, members, header.OptimizedAccess, instruction is not null);
             return 0;
         }
 
@@ -86,21 +87,49 @@ public static class TiaSourceWriter {
         if (block.IsKnowHowProtected) {
             output.Write(ProtectedMarker);
             output.Write((byte)'\n');
+        } else if (block.Language?.StartsWith("GRAPH", StringComparison.Ordinal) == true) {
+            // A GRAPH block is one sequence spread over many units; it is written as a whole.
+            output.Write("\n"u8);
+            foreach (var line in TiaGraph.Write(program.ReadGraph(block))) {
+                output.Write(line);
+                output.Write((byte)'\n');
+            }
         } else {
             var networks = program.Networks(block);
+            var statementList = networks.Count != 0 && networks.All(network => network.Form == "Statements");
             for (var i = 0; i < networks.Count; i++) {
                 var network = networks[i];
+                if (statementList) {
+                    // An STL block as TIA generates its source: NETWORK, its title and comment, the statements.
+                    output.Write("NETWORK\nTITLE = "u8);
+                    WriteOneLine(output, network.Title ?? "");
+                    output.Write((byte)'\n');
+                    foreach (var line in (network.Comment ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries)) {
+                        output.Write("//"u8);
+                        output.Write(line.TrimEnd('\r'));
+                        output.Write((byte)'\n');
+                    }
+                    program.WriteNetworkSource(block, i, output, out _);
+                    output.Write((byte)'\n');
+                    continue;
+                }
                 if (networks.Count > 1 || network.Form != "SCLSource") {
                     output.Write("\n// ---- network "u8);
                     output.Write(network.Number.ToString(CultureInfo.InvariantCulture));
                     output.Write(" ("u8);
-                    output.Write(network.Language);
+                    // TIA names classic LAD and FBD as LAD and FBD; only it knows them by the longer names.
+                    output.Write(network.Language is "LAD_CLASSIC" or "FBD_CLASSIC" ? network.Language[..3] : network.Language);
                     output.Write(")"u8);
                     if (!string.IsNullOrEmpty(network.Title)) {
                         output.Write(": "u8);
                         WriteOneLine(output, network.Title);
                     }
                     output.Write((byte)'\n');
+                    foreach (var line in (network.Comment ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries)) {
+                        output.Write("// "u8);
+                        output.Write(line.TrimEnd('\r'));
+                        output.Write((byte)'\n');
+                    }
                 }
                 int missing;
                 if (network.Form == "SCLSource") {
@@ -202,12 +231,15 @@ public static class TiaSourceWriter {
     /// A data block of a type names the type and lists only the values set in it, a shared one declares its members.
     /// A reader wants a type's members and the known values too, so they follow as comments.
     /// </summary>
-    private static void WriteDataBlock(PooledByteWriter output, TiaProgram program, TiaBlock block, IReadOnlyList<TiaMember> members, bool optimized) {
+    private static void WriteDataBlock(PooledByteWriter output, TiaProgram program, TiaBlock block, IReadOnlyList<TiaMember> members, bool optimized, bool systemType) {
         var type = program.GeneratedFrom(block);
         if (type is not null) {
-            output.Write((byte)'"');
+            // A system type, such as IEC_TIMER, is named without quotes, as a user's type never is.
+            if (!systemType) {
+                output.Write((byte)'"');
+            }
             output.Write(type);
-            output.Write("\"\n\n"u8);
+            output.Write(systemType ? "\n\n"u8 : "\"\n\n"u8);
         } else if (optimized) {
             WriteSections(output, members);
             output.Write((byte)'\n');
@@ -286,11 +318,20 @@ public static class TiaSourceWriter {
         }
     }
 
-    private static void WriteAttributes(PooledByteWriter output, string opener, TiaBlockHeader header, TiaDataBlockSettings settings) {
+    private static void WriteAttributes(PooledByteWriter output, string opener, TiaBlockHeader header, TiaDataBlockSettings settings, (string Name, string Version)? instruction = null) {
         if (opener is not ("FUNCTION_BLOCK" or "FUNCTION" or "ORGANIZATION_BLOCK" or "DATA_BLOCK")) {
             return;
         }
-        output.Write("{ "u8);
+        // A data block of a system type names it first, right after the brace, as an instruction's member does.
+        if (instruction is { } system) {
+            output.Write("{InstructionName := '"u8);
+            output.Write(system.Name);
+            output.Write("';\n LibVersion := '"u8);
+            output.Write(system.Version);
+            output.Write("';\n "u8);
+        } else {
+            output.Write("{ "u8);
+        }
         if (!settings.AccessibleFromOpcUa) {
             output.Write("DB_Accessible_From_OPC_UA := 'FALSE' ;\n "u8);
         }

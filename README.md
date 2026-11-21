@@ -58,7 +58,7 @@ The recent files are kept in `~/Library/Application Support/TIA Viewer` on a Mac
 
 References come from source, so a closed block's calls are not among them. The viewer says how many blocks that affects, and a short list may be incomplete. It sees direct calls, calls through instance data blocks and multi-instances, and other uses by name; it does not yet tell a read from a write.
 
-Colours and links come from the tokens stored in the project, not from a grammar. Declarations and FBD text, which have no stored tokens, go through a small scanner.
+Colours and links come from the tokens stored in the project, not from a grammar. Declarations and the statement form of LAD, FBD and GRAPH, which have no stored tokens, go through a small scanner.
 
 ### As an app
 
@@ -116,7 +116,9 @@ Project/<PLC>/<folder path>/<block>.<kind>
 |---|---|
 | `index.tsv` | Every block, also the ones with no file. Columns: `object`, `environment`, `plc`, `kind`, `number`, `language`, `know-how` (`yes` or `no`), `file`, `name`. `file` is empty when nothing is stored for the block |
 | `.scl` | SCL source with comments and layout as written. After the leading comment lines it matches what TIA's *Generate source from blocks* writes. A protected block has at most its interface, and its body says it is closed |
-| `.f_fbd` | Interface, then FBD networks as part calls with their wires and operands. **This layout is ours**, not text TIA would show |
+| `.awl` | An STL block, as TIA's *Generate source from blocks* writes it |
+| `.lad`, `.fbd`, `.f_fbd` | Interface, then each LAD or FBD network with its title and comment and its logic in statement form: contacts and gates as AND, OR and NOT, coils as assignments, boxes, timers and calls as calls ([ADR 0013](docs/adr/0013-networks-are-shown-as-statements.md)). **This form is ours**, as TIA has no text for these languages. A network in SCL or STL inside such a block is written in its own language |
+| `.graph` | Interface, then a GRAPH sequence in statement form: the permanent instructions before and after it, each step with its actions and their qualifiers, supervision and interlock, and each transition with the steps it leaves and activates and its condition |
 | `.udt` | A user data type, with the start values its members are declared with |
 | `.db` | A data block. One of a UDT or FB names its type and lists the values set in it, as TIA does; the type's members follow as comments, with start values where they are known. A shared one declares its members and lists its values |
 | `.tags` | A tag table |
@@ -129,14 +131,14 @@ A dump is the program owner's code: keep it outside any repository.
 
 ## For coding agents
 
-A coding agent can answer questions about a PLC program from its archive alone: which blocks exist, a block's interface and start values, SCL source, FBD networks as calls and wires, tag tables, and what each PLC's OPC UA server offers. The procedure is the [`read-tia-project`](.agents/skills/read-tia-project/SKILL.md) skill, in the Agent Skills format: how to dump, search and follow calls, how far to trust the result, and the rules, above all that know-how protected blocks stay closed. Copy it into your own repository's `.agents/skills/`, or point your agent at it.
+A coding agent can answer questions about a PLC program from its archive alone: which blocks exist, a block's interface and start values, SCL and STL source, LAD, FBD and GRAPH logic in statement form, tag tables, and what each PLC's OPC UA server offers. The procedure is the [`read-tia-project`](.agents/skills/read-tia-project/SKILL.md) skill, in the Agent Skills format: how to dump, search and follow calls, how far to trust the result, and the rules, above all that know-how protected blocks stay closed. Copy it into your own repository's `.agents/skills/`, or point your agent at it.
 
 ## How far to trust the output
 
 - **Compared with TIA, block by block, on one project.** 786 of the 790 SCL blocks, data blocks and UDTs TIA would generate source for are byte-identical to it, after our leading comment lines and before our trailing ones. Section 17 of [the format](docs/FORMAT.md) lists the other four. Some of the rules come from that one project, so another project can differ, above all in member attributes. When an answer really matters, check it in TIA.
-- **FBD text is ours.** Every part, wire and inversion of two FBD blocks was checked by eye against TIA's networks. That is a sample, not the whole archive.
+- **LAD, FBD and GRAPH text is ours.** It is checked against TIA in every test run: the [reference project](docs/comparing-with-tia.md#reference-projects) `Languages`, built and compiled by TIA Portal V21, holds blocks in all of them, and TIA's own export of each, written in the same form, must give the same text. STL is checked byte for byte against TIA's generated source. The fail-safe FBD of the samples is written the same way, but was only compared by eye.
 - **It is the code as written.** It says nothing about what a running PLC does, or about changes made on site.
-- **Tested on** two V20 archives, one project upgraded to V21 and one V15.1 global library. **Untested,** because no sample has any unprotected: LAD, plain FBD, STL and GRAPH. Versions before V14 use other file headers and have not been tried.
+- **Tested on** two V20 archives, one project upgraded to V21 and one V15.1 global library. LAD, FBD, STL and GRAPH are checked on invented blocks only, since no sample has any unprotected. Versions before V14 use other file headers and have not been tried.
 - **The OPC UA report is checked against TIA on a copy of the demo project.** Each server setting, security policy, tag access column and data block member access was set in TIA Portal V21 through Openness and read back from the archive; section 18 of [the format](docs/FORMAT.md) gives the evidence. One combination stays open: a tag stored as not accessible but visible, which TIA does not let a person set; the report says so.
 - **Start values in a `.db`'s trailing comment are partial.** The source text before it matches TIA's and lists what TIA lists. The comment adds values from the compiled image, and the reader takes those only for optimized data blocks generated from a UDT, and only for `Bool` and integer types. So a member with no start value there may still have one on the PLC, above all in an instance data block.
 
@@ -156,7 +158,7 @@ It uses the base class library only. [The format](docs/FORMAT.md) it reads is de
 
 ## The demo project
 
-The pictures show an invented filling line, not anyone's plant. Its program is in [`demo`](demo) as SCL sources, with tag tables and the order to generate them in. With TIA Portal V21 on Windows, [this](docs/comparing-with-tia.md#the-demo-project) makes a new project from them and archives it, for trying the tools on without a project of your own. `tools/ReadmePictures` takes the pictures from that archive.
+The pictures show an invented filling line, not anyone's plant. It is one of the [reference projects](docs/comparing-with-tia.md#reference-projects): its program is in [`tests/reference/FillingLine`](tests/reference/FillingLine) as SCL sources, with tag tables and the order to generate them in, beside the archive TIA Portal V21 built from them, `FillingLine.zap21`. Open that archive to try the tools without a project of your own. `tools/ReadmePictures` takes the pictures from it.
 
 ## Changing it
 
@@ -170,14 +172,14 @@ That builds the solution, where warnings fail the build, and runs the library's 
 
 | Path | Holds |
 |---|---|
-| `src/TiaFormat` | The library: `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL and FBD text, tag tables, `TiaSourceExport`, which writes them as files, and `TiaProject`: tree, tokens, references, search) |
+| `src/TiaFormat` | The library: `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL, STL, LAD, FBD and GRAPH text, tag tables, `TiaSourceExport`, which writes them as files, and `TiaProject`: tree, tokens, references, search) |
 | `src/TiaDump` | The command line tool |
 | `src/TiaViewer` | The viewer, in Avalonia. `Glyphs.cs` holds its icons; `Assets/make_icons.py` draws the app icon, and the files it writes are committed |
 | `tests/TiaFormat.Tests` | The library's tests |
 | `tests/TiaViewer.Tests` | The viewer's tests: recent files, file types, version |
-| `tools/TiaOpennessExport` | Exports a project through TIA Portal for comparing, and builds the demo project. Not in the solution, because it needs TIA |
+| `tools/TiaOpennessExport` | Exports a project through TIA Portal for comparing, and builds the reference projects. Not in the solution, because it needs TIA |
 | `tools/ReadmePictures` | Takes the pictures in this README from the demo project |
-| `demo` | The demo project's program |
+| `tests/reference` | The reference projects: invented programs, the archives TIA Portal built from them and the source it generated, which the tests check the reader against |
 | [`docs`](docs/index.md) | Project knowledge: [the format](docs/FORMAT.md), the architecture, decisions and how we work, listed in its index |
 | `AGENTS.md`, `GLOSSARY.md`, `specs`, `.agents/skills` | Instructions, terms, feature specs and procedures for coding agents, in the layout of [agentic-repo-template](https://github.com/swimmesberger/agentic-repo-template) |
 | `tools/*.py`, `tools/*.sh`, `Makefile` | The repository's own checks, and the building and packing of a release ([releasing](docs/releasing.md)) |

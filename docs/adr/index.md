@@ -12,3 +12,5 @@
 * [0009](0009-apache-2-0-with-the-commons-clause.md) - TiaTools is licensed under Apache 2.0 with the Commons Clause and additional terms: free to use, change and use in paid work, not to sell without permission
 * [0010](0010-readme-pictures-are-rendered-headless.md) - The README's pictures are rendered headless by a tool in the solution, on Avalonia.Headless
 * [0011](0011-know-how-protection-stays-closed.md) - Protected blocks are reported as encrypted because the archive holds only ciphertext; decryption is a separate, unbuilt capability, password-only if ever built
+* [0012](0012-reference-projects-are-committed.md) - Archives that TIA Portal builds from invented sources are committed as reference projects, with the source TIA generates for them
+* [0013](0013-networks-are-shown-as-statements.md) - The text the tools write is for a coding agent, so LAD, FBD and GRAPH logic is written in statement form; the viewer may show it otherwise

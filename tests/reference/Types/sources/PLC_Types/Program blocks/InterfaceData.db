@@ -1,0 +1,12 @@
+DATA_BLOCK "InterfaceData"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+"Interface"
+
+BEGIN
+   setpoint := 75.0;
+   state := 4;
+
+END_DATA_BLOCK
+

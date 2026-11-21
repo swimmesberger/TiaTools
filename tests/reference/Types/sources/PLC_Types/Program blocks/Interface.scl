@@ -1,0 +1,52 @@
+FUNCTION_BLOCK "Interface"
+TITLE = Every section of an interface
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Inputs, outputs, in-outs, statics, temporaries and constants, with start values.
+   VAR_INPUT
+      enable : Bool := TRUE;   // Input with a start value
+      setpoint : Real := 50.0;
+      config : "typeInner";   // A data type as input
+   END_VAR
+
+   VAR_OUTPUT
+      busy : Bool;
+      result : DInt := -1;
+   END_VAR
+
+   VAR_IN_OUT
+      shared : "typeOuter";   // A data type passed by reference
+   END_VAR
+
+   VAR
+      state : Int := 3;
+      history : Array[1..5] of Real := [1.0, 2.0, 3.0, 4.0, 5.0];
+      delay {InstructionName := 'TON_TIME'; LibVersion := '1.0'} : TON_TIME;
+      local : "typeInner";
+   END_VAR
+
+   VAR_TEMP
+      scratch : DInt;
+   END_VAR
+
+   VAR CONSTANT
+      LIMIT_HIGH : Real := 100.0;   // A constant
+      STEPS : Int := 5;
+      LABEL : String[8] := 'iface';
+   END_VAR
+
+
+BEGIN
+	#delay(IN := #enable,
+	       PT := T#1S);
+	#busy := #enable AND NOT #delay.Q;
+	#scratch := #state * #STEPS;
+	IF #setpoint > #LIMIT_HIGH THEN
+	    #result := -1;
+	ELSE
+	    #result := #scratch + #shared.inner.count + #config.count;
+	END_IF;
+	#history[1] := #setpoint;
+	#local := #config;
+END_FUNCTION_BLOCK
+

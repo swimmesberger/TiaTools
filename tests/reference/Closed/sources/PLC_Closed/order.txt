@@ -1,0 +1,4 @@
+# A know-how protected block, called from an open one. Its body's lines are the markers the tests look for.
+Program blocks/Vault/Secret.scl
+Program blocks/Caller.scl
+Program blocks/CallerData.db

@@ -69,7 +69,7 @@ public enum TiaExternalAccess : byte {
 }
 
 /// <summary>One compile unit: a network, or an SCL body.</summary>
-public readonly record struct TiaNetwork(int Number, string Language, string? Title, string Form);
+public readonly record struct TiaNetwork(int Number, string Language, string? Title, string Form, string? Comment = null);
 
 /// <summary>One PLC tag, or a global constant when <see cref="Value"/> is set.</summary>
 public sealed record TiaTag(string Name, string? Type, string? Address, string? Value, string? Comment) {

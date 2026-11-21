@@ -165,6 +165,23 @@ class RepositoryCheck(unittest.TestCase):
         self.write(".scratch/notes.md", "# Notes\n")
         self.assertEqual(check(self.root), [])
 
+    def test_an_archive_outside_a_reference_project_is_reported(self):
+        self.write("samples/Plant.zap21", "not really an archive")
+        self.assertFinding("samples/Plant.zap21", "reference project")
+
+    def test_a_database_outside_a_reference_project_is_reported(self):
+        self.write("tests/data/System/PEData.plf", "not really a database")
+        self.assertFinding("tests/data/System/PEData.plf", "reference project")
+
+    def test_a_reference_projects_archive_beside_its_sources_passes(self):
+        self.write("tests/reference/Demo/Demo.zap21", "an archive")
+        self.write("tests/reference/Demo/sources/PLC_Demo/order.txt", "# order\n")
+        self.assertEqual(check(self.root), [])
+
+    def test_a_reference_projects_archive_without_sources_is_reported(self):
+        self.write("tests/reference/Demo/Demo.zap21", "an archive")
+        self.assertFinding("tests/reference/Demo/Demo.zap21", "sources")
+
     def test_the_check_reports_every_finding_of_a_run(self):
         self.write("CLAUDE.md", "content\n")
         self.edit("docs/guide.md", "type: Guide\n", "")

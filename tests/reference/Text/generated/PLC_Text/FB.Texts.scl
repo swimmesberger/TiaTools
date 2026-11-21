@@ -1,0 +1,41 @@
+﻿FUNCTION_BLOCK "Texts"
+TITLE = Überprüfung der Füllhöhe – ½ Liter
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Prüft die Füllhöhe. Vérifie le niveau. 液面を確認する。检查液位。
+//A second comment line, with symbols: ± ° µ € ✓
+   VAR_INPUT 
+      level : Real;   // Füllhöhe in ml – niveau de remplissage
+      limit : Real := 500.0;   // Grenzwert ≥ 0
+   END_VAR
+
+   VAR_OUTPUT 
+      message : WString[60];   // Meldung für das Bedienfeld
+      tooHigh : Bool;   // Zu hoch ✗
+   END_VAR
+
+   VAR 
+      label : "typeLabel";   // Texte in vier Sprachen
+      path : String[40] := 'C:/data // not a comment';
+      fake : String[40] := '(* not a comment either *)';
+   END_VAR
+
+
+BEGIN
+	
+	 REGION Prüfung der Füllhöhe
+	     // Ist die Flasche zu voll? Est-elle trop pleine? 満杯ですか?
+	     #tooHigh := #level > #limit;
+	     IF #tooHigh THEN
+	         #message := #label.german;   // Deutsch zuerst
+	     ELSE
+	         #message := WSTRING#'Alles in Ordnung – OK';
+	     END_IF;
+	 END_REGION
+	
+	 (* Ein Blockkommentar
+	    über zwei Zeilen: äöü ÄÖÜ ß *)
+	 #path := 'It$'s here: $'quoted$'';
+	
+END_FUNCTION_BLOCK
+

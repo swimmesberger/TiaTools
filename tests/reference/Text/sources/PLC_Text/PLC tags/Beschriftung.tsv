@@ -1,0 +1,3 @@
+Lamp_Überlast	Bool	%Q0.0	Überlast der Pumpe – Leuchte
+Sensor_Niveau	Int	%IW2	Capteur de niveau, en ‰
+Etikett	Word	%MW4	ラベル番号 (標識)

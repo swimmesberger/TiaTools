@@ -1,0 +1,15 @@
+DATA_BLOCK "Settings"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+"typeOuter"
+
+BEGIN
+   inner.count := 11;
+   list[2].value := 9.75;
+   matrix[1, 2] := 12;
+   nested.b.c := -4.5;
+   text := 'settings';
+
+END_DATA_BLOCK
+

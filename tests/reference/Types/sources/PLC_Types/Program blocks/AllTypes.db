@@ -1,0 +1,48 @@
+DATA_BLOCK "AllTypes"
+TITLE = Every elementary type
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR
+      aBool : Bool := TRUE;
+      aByte : Byte := 16#AB;
+      aWord : Word := 16#ABCD;
+      aDWord : DWord := 16#DEAD_BEEF;
+      aLWord : LWord := 16#0123_4567_89AB_CDEF;
+      aSInt : SInt := -5;
+      aUSInt : USInt := 200;
+      aInt : Int := -1234;
+      aUInt : UInt := 60000;
+      aDInt : DInt := -100000;
+      aUDInt : UDInt := 4000000000;
+      aLInt : LInt := -9000000000;
+      aULInt : ULInt := 18000000000000000000;
+      aReal : Real := 3.25;
+      aLReal : LReal := -1.0E-10;
+      aTime : Time := T#1D_2H_3M_4S_5MS;
+      aLTime : LTime := LT#1S_500NS;
+      aS5Time : S5Time := S5T#10S;
+      aDate : Date := D#2024-02-29;
+      aTimeOfDay : Time_Of_Day := TOD#12:34:56.789;
+      aLTimeOfDay : LTime_Of_Day := LTOD#12:34:56.123456789;
+      aDateAndTime : Date_And_Time := DT#2024-02-29-12:00:00;
+      anLDT : LDT := LDT#2024-02-29-12:00:00.123456789;
+      aDTL : DTL := DTL#2024-02-29-12:00:00;
+      aChar : Char := 'A';
+      aWChar : WChar := WCHAR#'B';
+      aString : String := 'hello';
+      aShortString : String[10] := 'short';
+      aWString : WString := WSTRING#'wide';
+      anArray : Array[0..3] of Int := [1, 2, 3, 4];
+      aMatrix : Array[1..2, 1..3] of Real := [0.5, 1.5, 2.5, 3.5, 4.5, 5.5];
+      anArrayOfStruct : Array[1..2] of Struct
+         on : Bool := TRUE;
+         speed : Int := 100;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+
+END_DATA_BLOCK
+

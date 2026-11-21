@@ -1,0 +1,17 @@
+DATA_BLOCK "Classic"
+{ S7_Optimized_Access := 'FALSE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR
+      first : Bool := TRUE;   // At offset 0.0
+      second : Int := 2;   // At offset 2.0
+      third : Real := 3.0;   // At offset 4.0
+      fourth : Array[1..4] of Byte := [16#01, 16#02, 16#03, 16#04];
+   END_VAR
+
+
+BEGIN
+   second := 22;
+
+END_DATA_BLOCK
+

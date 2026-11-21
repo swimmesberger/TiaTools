@@ -1,0 +1,28 @@
+FUNCTION "Average" : LReal
+TITLE = Average of an array
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//A function with a return value, an array passed in, and temporary data.
+   VAR_INPUT
+      values : Array[0..9] of LReal;   // The values
+      count : Int;   // How many of them count
+   END_VAR
+
+   VAR_TEMP
+      sum : LReal;
+      i : Int;
+   END_VAR
+
+
+BEGIN
+	#sum := 0.0;
+	FOR #i := 0 TO LIMIT(MN := 0, IN := #count, MX := 10) - 1 DO
+	    #sum := #sum + #values[#i];
+	END_FOR;
+	IF #count > 0 THEN
+	    #Average := #sum / INT_TO_LREAL(#count);
+	ELSE
+	    #Average := 0.0;
+	END_IF;
+END_FUNCTION
+

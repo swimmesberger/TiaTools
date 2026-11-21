@@ -83,6 +83,10 @@ _Avoid_: address space dump, tag list
 What `tiadump opcua` writes per PLC: its OPC UA server's settings, roles and server interfaces, and the external access of its data blocks and tags.
 _Avoid_: OPC UA export, address space dump
 
+**Network**:
+One unit of a LAD, FBD or STL block's logic, with its own number, title and comment; TIA stores each as a compile unit, and an SCL block has one.
+_Avoid_: rung, segment, compile unit (outside the format page)
+
 **Closed**:
 What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing more. Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable
@@ -97,6 +101,10 @@ _Avoid_: extract, decompile, backup
 The text TIA Portal writes with *Generate source from blocks*, which a dump matches for SCL blocks, data blocks and UDTs.
 _Avoid_: export, SimaticML (which is TIA's XML export, a different thing)
 
+**Statement form**:
+The text TiaTools writes for a LAD or FBD network or a GRAPH sequence, which TIA has no text for: its logic as SCL-like assignments and calls, a form of our own (ADR 0013).
+_Avoid_: decompiled, SCL translation, pseudo code
+
 **Comparison**:
 `tiadump compare` of a dump against TIA's generated source, block by block.
 _Avoid_: diff, test run
@@ -106,8 +114,12 @@ A real archive the reader was checked on, named only by a letter (A, B) in this 
 _Avoid_: the project's or plant's own name
 
 **Demo project**:
-The invented filling line in `demo/`, the only project whose content may appear in this repository.
+The invented filling line shown in the README's pictures, the reference project `tests/reference/FillingLine`; with the other reference projects, the only projects whose content may appear in this repository.
 _Avoid_: example project, test project
+
+**Reference project**:
+A small project TIA Portal built from invented sources, committed with its archive and the generated source TIA wrote for it, so the tests check the reader against TIA without TIA at hand (spec 0008).
+_Avoid_: test project, fixture, golden file
 
 ## Repository
 

@@ -1,0 +1,10 @@
+# Every elementary type with a start value, nested types, arrays, constants, retained and non-optimized data.
+PLC data types/typeInner.udt
+PLC data types/typeOuter.udt
+Program blocks/AllTypes.db
+Program blocks/Retained.db
+Program blocks/Classic.db
+Program blocks/Settings.db
+Program blocks/Average.scl
+Program blocks/Interface.scl
+Program blocks/InterfaceData.db

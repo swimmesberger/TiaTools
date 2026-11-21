@@ -1,0 +1,6 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Text	FB	1	SCL	ok	PLC_Text/FB.Texts.scl		Texts	
+PLC_Text	GlobalDB	1	DB	ok	PLC_Text/GlobalDB.Labels.db		Labels	
+PLC_Text	UDT		UDT	ok	PLC_Text/UDT.typeLabel.udt		typeLabel	
+PLC_Text	TAGS			ok		PLC_Text/TAGS.Default tag table.xml	Default tag table	
+PLC_Text	TAGS			ok		PLC_Text/TAGS.Beschriftung.xml	Beschriftung	

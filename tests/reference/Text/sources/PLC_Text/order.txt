@@ -1,0 +1,4 @@
+# Text outside ASCII in comments, titles, strings and tags, and strings that look like comments.
+PLC data types/typeLabel.udt
+Program blocks/Texts.scl
+Program blocks/Labels.db

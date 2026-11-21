@@ -1,0 +1,34 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Languages	FC	1	SCL	ok	PLC_Languages/FC.Limit.scl		Limit	
+PLC_Languages	FB	1	SCL	ok	PLC_Languages/FB.Pulse.scl		Pulse	
+PLC_Languages	FC	2	SCL	ok	PLC_Languages/FC.Tick.scl		Tick	
+PLC_Languages	InstanceDB	1	DB	ok	PLC_Languages/InstanceDB.LampDelay.db		LampDelay	
+PLC_Languages	FB	2	STL	ok	PLC_Languages/FB.StlBasics.awl		StlBasics	
+PLC_Languages	FB	10	LAD	ok		PLC_Languages/FB.LadLogic.xml	LadLogic	
+PLC_Languages	FB	11	LAD	ok		PLC_Languages/FB.LadBoxes.xml	LadBoxes	
+PLC_Languages	FB	12	LAD	ok		PLC_Languages/FB.Mixed.xml	Mixed	
+PLC_Languages	FB	13	FBD	ok		PLC_Languages/FB.FbdLogic.xml	FbdLogic	
+PLC_Languages	FB	14	FBD	ok		PLC_Languages/FB.FbdBoxes.xml	FbdBoxes	
+PLC_Languages	FB	20	GRAPH	ok		PLC_Languages/FB.Batch.xml	Batch	
+PLC_Languages	FB	701	SCL	closed			Diag_Alarm	
+PLC_Languages	FC	310	SCL	closed			G7_RT_Plus_1_V6	
+PLC_Languages	FC	311	SCL	closed			G7_RT_Plus_2_V6	
+PLC_Languages	FC	316	SCL	closed			G7_RT_Plus_SUB_1_V6	
+PLC_Languages	FC	317	SCL	closed			G7_RT_Plus_SUB_2_V6	
+PLC_Languages	FC	312	SCL	closed			G7_RT_Plus_3_V6	
+PLC_Languages	FC	313	SCL	closed			G7_RT_Plus_4_V6	
+PLC_Languages	FC	314	SCL	closed			G7_RT_Plus_5_V6	
+PLC_Languages	FC	318	SCL	closed			G7_RT_Plus_SUB_3_V6	
+PLC_Languages	FC	315	SCL	closed			G7_RT_Plus_6_V6	
+PLC_Languages	UDT		UDT	closed			G7_StepPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_TransitionPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_RTDataPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_MOPPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_SQFlagsPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_OffsetsPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_GCFlagsPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_IfParPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_InParPlus_V6	
+PLC_Languages	UDT		UDT	closed			G7_OutParPlus_V6	
+PLC_Languages	TAGS			ok		PLC_Languages/TAGS.Default tag table.xml	Default tag table	
+PLC_Languages	TAGS			ok		PLC_Languages/TAGS.IO.xml	IO	
