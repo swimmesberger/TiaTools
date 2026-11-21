@@ -1,0 +1,2 @@
+Run_North	Bool	%I0.0	Start the north station
+Lamp_North	Bool	%Q0.0	The north station runs

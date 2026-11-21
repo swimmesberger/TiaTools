@@ -1,0 +1,18 @@
+﻿DATA_BLOCK "Labels"
+TITLE = Beschriftungen für das Bedienfeld
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR
+      current : "typeLabel";   // Die aktuelle Meldung
+      list : Array[1..2] of "typeLabel";   // Zur Auswahl
+      note : WString[40] := WSTRING#'Notiz: «Anführungszeichen»';   // Guillemets
+   END_VAR
+
+
+BEGIN
+   list[1].german := WSTRING#'Ventil öffnet';
+   list[2].japanese := WSTRING#'バルブが開く';
+
+END_DATA_BLOCK
+

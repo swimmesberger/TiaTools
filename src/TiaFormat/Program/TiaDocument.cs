@@ -108,6 +108,8 @@ public static class TiaDocumentBuilder {
         "FUNCTION_BLOCK", "FUNCTION", "ORGANIZATION_BLOCK", "DATA_BLOCK", "TYPE", "END_FUNCTION_BLOCK", "END_FUNCTION", "END_ORGANIZATION_BLOCK",
         "END_DATA_BLOCK", "END_TYPE", "VAR", "VAR_INPUT", "VAR_OUTPUT", "VAR_IN_OUT", "VAR_TEMP", "END_VAR", "CONSTANT", "RETAIN", "NON_RETAIN",
         "DB_SPECIFIC", "STRUCT", "END_STRUCT", "BEGIN", "TITLE", "AUTHOR", "FAMILY", "NAME", "VERSION", "AT", "OF", "ARRAY", "NOT",
+        // The statement form of LAD, FBD and GRAPH (ADR 0013), and STL's network heading.
+        "AND", "OR", "XOR", "MOD", "IF", "THEN", "END_IF", "GOTO", "RETURN", "TRUE", "FALSE", "CALL", "NETWORK", "STEP", "TRANSITION", "WHEN",
     };
 
     private static readonly HashSet<string> Types = new(StringComparer.OrdinalIgnoreCase) {
@@ -173,7 +175,10 @@ public static class TiaDocumentBuilder {
         return map;
     }
 
-    /// <summary>Scans declarations and our own FBD text. Knows comments, strings and names, which is all this text has.</summary>
+    /// <summary>
+    /// Scans declarations and the statement form of LAD, FBD and GRAPH. Knows comments, strings, names and keywords,
+    /// which is all this text has.
+    /// </summary>
     private static void Scan(string text, int start, int end, List<TiaToken> tokens) {
         var i = start;
         while (i < end) {

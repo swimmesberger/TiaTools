@@ -1,0 +1,23 @@
+﻿FUNCTION_BLOCK "Station"
+TITLE = Station with 3 pumps
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      run : Bool;   // Run the station
+   END_VAR
+
+   VAR 
+      pump1 : "Pump";   // Pump 1 of 3
+      pump2 : "Pump";   // Pump 2 of 3
+      pump3 : "Pump";   // Pump 3 of 3
+   END_VAR
+
+
+BEGIN
+	
+	 #pump1(run := #run);
+	 #pump2(run := #run);
+	 #pump3(run := #run);
+	
+END_FUNCTION_BLOCK
+

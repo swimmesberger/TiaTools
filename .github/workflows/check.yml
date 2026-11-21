@@ -12,3 +12,15 @@ jobs:
         with:
           python-version: "3.12"
       - run: make check
+  # The reference projects' archives are read on every system the tools run on (spec 0008, FR-007).
+  library:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+      - run: dotnet test --project tests/TiaFormat.Tests

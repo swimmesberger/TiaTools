@@ -1,0 +1,24 @@
+﻿FUNCTION_BLOCK "Caller"
+TITLE = An open block that calls the protected one
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      seed : DInt;   // Passed on
+   END_VAR
+
+   VAR_OUTPUT 
+      answer : DInt;   // Passed back
+   END_VAR
+
+   VAR 
+      inner : "Secret";   // The protected block, as a multi-instance
+   END_VAR
+
+
+BEGIN
+	
+	 #inner(seed := #seed);
+	 #answer := #inner.answer;
+	
+END_FUNCTION_BLOCK
+

@@ -1,0 +1,11 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Types	GlobalDB	1	DB	ok	PLC_Types/GlobalDB.AllTypes.db		AllTypes	
+PLC_Types	GlobalDB	2	DB	ok	PLC_Types/GlobalDB.Retained.db		Retained	
+PLC_Types	GlobalDB	3	DB	ok	PLC_Types/GlobalDB.Classic.db		Classic	
+PLC_Types	InstanceDB	4	DB	ok	PLC_Types/InstanceDB.Settings.db		Settings	
+PLC_Types	FC	1	SCL	ok	PLC_Types/FC.Average.scl		Average	
+PLC_Types	FB	1	SCL	ok	PLC_Types/FB.Interface.scl		Interface	
+PLC_Types	InstanceDB	5	DB	ok	PLC_Types/InstanceDB.InterfaceData.db		InterfaceData	
+PLC_Types	UDT		UDT	ok	PLC_Types/UDT.typeInner.udt		typeInner	
+PLC_Types	UDT		UDT	ok	PLC_Types/UDT.typeOuter.udt		typeOuter	
+PLC_Types	TAGS			ok		PLC_Types/TAGS.Default tag table.xml	Default tag table	

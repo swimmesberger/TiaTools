@@ -1,0 +1,5 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Closed	FB	2	SCL	ok	PLC_Closed/FB.Caller.scl		Caller	
+PLC_Closed	InstanceDB	1	DB	ok	PLC_Closed/InstanceDB.CallerData.db		CallerData	
+PLC_Closed	FB	1	SCL	closed			Secret	
+PLC_Closed	TAGS			ok		PLC_Closed/TAGS.Default tag table.xml	Default tag table	

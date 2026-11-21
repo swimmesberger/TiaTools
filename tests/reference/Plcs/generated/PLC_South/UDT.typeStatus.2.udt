@@ -1,0 +1,9 @@
+﻿TYPE "typeStatus"
+VERSION : 0.1
+   STRUCT
+      running : Bool;   // Runs, south
+      faults : Int;   // Faults counted on the south side
+   END_STRUCT;
+
+END_TYPE
+

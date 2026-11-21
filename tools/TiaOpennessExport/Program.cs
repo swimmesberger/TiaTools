@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security;
 using System.Text;
 using Siemens.Engineering;
 using Siemens.Engineering.Compiler;
@@ -19,7 +20,8 @@ namespace TiaOpennessExport;
 
 /// <summary>
 /// Writes what TIA Portal itself says about a project, for comparing with tiadump: generated source and SimaticML per
-/// block, plus the tag tables. It only reads: it never compiles or saves, and it leaves know-how protected blocks alone.
+/// block, plus the tag tables. On a project it did not create it only reads, and it never saves one; it compiles only a
+/// retrieved copy (compiled-copy) and the reference projects it builds itself. It leaves know-how protected blocks alone.
 /// </summary>
 internal static class Program {
     private const string DefaultPublicApi = @"C:\Program Files\Siemens\Automation\Portal V21\PublicAPI\V21\net48";
@@ -54,8 +56,8 @@ internal static class Program {
                 return FromArchive(args[1], args[2], args[3]);
             case "compiled-copy" when args.Length == 3:
                 return CompiledCopy(args[1], args[2]);
-            case "demo" when args.Length == 4:
-                return Demo(args[1], args[2], args[3]);
+            case "reference" when args.Length >= 3:
+                return References(args[1], args.Skip(2).ToList());
             default:
                 Console.Error.WriteLine("""
                     usage:
@@ -63,7 +65,7 @@ internal static class Program {
                       TiaOpennessExport attach <out>                     export the project open in the one running TIA
                       TiaOpennessExport archive <.zap> <empty dir> <out> retrieve a copy, export it, close it unsaved
                       TiaOpennessExport compiled-copy <.ap21> <out>      compile a retrieved copy, export it, close it unsaved
-                      TiaOpennessExport demo <sources> <empty dir> <out>    build the demo project from demo/ and archive it
+                      TiaOpennessExport reference <empty dir> <folder>... build reference projects again from their sources
 
                     Keep <empty dir> short, such as C:\\Users\\me\\tc: TIA refuses to retrieve into a long path, and only says
                     "Unable to retrieve the project". An export refuses blocks that are not compiled; source generation does not.
@@ -176,11 +178,11 @@ internal static class Program {
         static void Count(Dictionary<string, int> counts, string what) => counts[what] = counts.TryGetValue(what, out var count) ? count + 1 : 1;
     }
 
-    private static int Export(Project project, string output) {
+    private static int Export(Project project, string output, bool blockXml = true) {
         Directory.CreateDirectory(output);
         using var manifest = new StreamWriter(Path.Combine(output, "manifest.tsv"), false, new UTF8Encoding(false)) { AutoFlush = true };
         manifest.WriteLine("plc\tobject\tnumber\tlanguage\tstatus\tsource\txml\tname\tnote");
-        var exporter = new Exporter(output, manifest);
+        var exporter = new Exporter(output, manifest, blockXml);
         foreach (var plc in Plcs(project)) {
             Console.WriteLine($"PLC {plc.Name}");
             exporter.ExportPlc(plc);
@@ -189,68 +191,159 @@ internal static class Program {
         return 0;
     }
 
+    private static string Cpu(TiaPortal portal) =>
+        (portal.HardwareCatalog.Find("6ES7 516-3AN02-0AB0").OrderBy(entry => entry.TypeIdentifier, StringComparer.Ordinal).LastOrDefault()
+            ?? throw new InvalidOperationException("No CPU 1516-3 PN/DP in the hardware catalog.")).TypeIdentifier;
+
+    /// <summary>Compiles the PLC's software and prints every error with where it is; returns how many there are.</summary>
+    private static int Compile(PlcSoftware plc) {
+        var result = plc.GetService<ICompilable>().Compile();
+        Print(result.Messages, "");
+        Console.WriteLine($"compiled {plc.Name}: {result.State}, {result.ErrorCount} errors, {result.WarningCount} warnings");
+        return result.ErrorCount;
+
+        void Print(CompilerResultMessageComposition messages, string path) {
+            foreach (var message in messages) {
+                var where = string.IsNullOrEmpty(message.Path) ? path : path.Length == 0 ? message.Path : path + "/" + message.Path;
+                if (message.State == CompilerResultState.Error && message.Messages.Count == 0) {
+                    Console.WriteLine($"compile error {plc.Name}/{where}: {message.Description}");
+                }
+                Print(message.Messages, where);
+            }
+        }
+    }
+
+    /// <summary>The password reference projects protect blocks with. Invented, it guards nothing: the reader never uses it.</summary>
+    private const string ReferencePassword = "Reference-0008";
+
     /// <summary>
-    /// Builds a new project from invented sources, for pictures and tries that show nothing of anyone's plant: a PLC, its
-    /// tag tables, then the types and blocks in the order order.txt gives, each in the folder its file is in. It saves the
-    /// new project and writes it as an archive. It opens no other project.
+    /// Builds reference projects again (spec 0008), all in one TIA session: for each folder a new project from the invented
+    /// sources in its sources folder, one PLC per subfolder, then its archive and TIA's generated source. A folder's committed
+    /// files are replaced only when all of that worked. It opens no project but the ones it creates, and deletes them after.
     /// </summary>
-    private static int Demo(string sources, string workFolder, string output) {
+    private static int References(string workFolder, List<string> folders) {
         var work = new DirectoryInfo(workFolder);
         if (work.Exists && work.EnumerateFileSystemInfos().Any()) {
-            Console.Error.WriteLine($"{workFolder} is not empty; the project is created in a folder of its own.");
+            Console.Error.WriteLine($"{workFolder} is not empty; each project is created in a folder of its own there.");
             return 1;
         }
         var clock = Stopwatch.StartNew();
-        using var portal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
-        Console.WriteLine($"TIA Portal started in {clock.Elapsed.TotalSeconds:F0} s");
-        var project = portal.Projects.Create(work, "FillingLine");
+        var failed = 0;
+        using (var portal = new TiaPortal(TiaPortalMode.WithoutUserInterface)) {
+            Console.WriteLine($"TIA Portal started in {clock.Elapsed.TotalSeconds:F0} s");
+            var cpu = Cpu(portal);
+            foreach (var folder in folders.Select(Path.GetFullPath)) {
+                failed += Reference(portal, cpu, folder, Path.Combine(work.FullName, Path.GetFileName(folder))) ? 0 : 1;
+                Console.WriteLine($"after {clock.Elapsed.TotalSeconds:F0} s");
+            }
+        }
         try {
-            var cpu = portal.HardwareCatalog.Find("6ES7 516-3AN02-0AB0").OrderBy(entry => entry.TypeIdentifier, StringComparer.Ordinal).LastOrDefault()
-                ?? throw new InvalidOperationException("No CPU 1516-3 PN/DP in the hardware catalog.");
-            Console.WriteLine($"CPU {cpu.TypeIdentifier}");
-            var device = project.Devices.CreateWithItem(cpu.TypeIdentifier, "PLC_Line", "Line");
-            var plc = device.DeviceItems.SelectMany(Software).Single();
+            work.Delete(recursive: true);
+        } catch (IOException e) {
+            Console.Error.WriteLine($"could not delete {work.FullName}: {e.Message}");
+        }
+        return failed == 0 ? 0 : 1;
+    }
 
-            foreach (var file in Directory.GetFiles(Path.Combine(sources, "PLC tags"), "*.tsv").OrderBy(file => file, StringComparer.Ordinal)) {
-                var table = plc.TagTableGroup.TagTables.Create(Path.GetFileNameWithoutExtension(file));
-                foreach (var line in File.ReadAllLines(file).Where(line => line.Length != 0)) {
-                    var fields = line.Split('\t');
-                    var tag = table.Tags.Create(fields[0], fields[1], fields[2]);
-                    tag.Comment.Items.First().Text = fields[3];
-                }
+    private static bool Reference(TiaPortal portal, string cpu, string folder, string work) {
+        var name = Path.GetFileName(folder);
+        Console.WriteLine($"== {name}");
+        var project = portal.Projects.Create(new DirectoryInfo(work), name);
+        try {
+            var refused = 0;
+            foreach (var plcFolder in Directory.GetDirectories(Path.Combine(folder, "sources")).OrderBy(path => path, StringComparer.Ordinal)) {
+                var plcName = Path.GetFileName(plcFolder);
+                var device = project.Devices.CreateWithItem(cpu, plcName, plcName);
+                refused += BuildPlc(device.DeviceItems.SelectMany(Software).Single(), plcFolder);
             }
-
-            // A new PLC comes with an empty Main; the demo has its own.
-            plc.BlockGroup.Blocks.Find("Main")?.Delete();
-            var failed = 0;
-            foreach (var entry in File.ReadAllLines(Path.Combine(sources, "order.txt")).Where(line => line.Length != 0 && !line.StartsWith("#", StringComparison.Ordinal))) {
-                var parts = entry.Split('/');
-                var folders = parts.Skip(1).Take(parts.Length - 2).ToList();
-                var source = plc.ExternalSourceGroup.ExternalSources.CreateFromFile(parts.Last(), Path.GetFullPath(Path.Combine(sources, entry)));
-                // One run reports every source TIA refuses, not only the first.
-                try {
-                    Generate(plc, source, parts[0], folders);
-                    Console.WriteLine($"generated {entry}");
-                } catch (EngineeringTargetInvocationException e) {
-                    failed++;
-                    Console.WriteLine($"failed {entry}: {e.Message.Replace(Environment.NewLine, " ")}");
-                }
-                source.Delete();
+            if (refused != 0) {
+                Console.Error.WriteLine($"{name}: {refused} sources refused; its files stay as they were.");
+                return false;
             }
-            if (failed != 0) {
-                Console.Error.WriteLine($"{failed} sources failed; nothing archived.");
-                return 1;
-            }
-
             project.Save();
-            Directory.CreateDirectory(output);
-            project.Archive(new DirectoryInfo(output), "FillingLine.zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
-            Console.WriteLine($"archived to {output} after {clock.Elapsed.TotalSeconds:F0} s");
-            return 0;
+            var archived = Path.Combine(work, "out");
+            project.Archive(new DirectoryInfo(archived), name + ".zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
+            var generated = Path.Combine(work, "generated");
+            Export(project, generated, blockXml: false);
+
+            File.Copy(Path.Combine(archived, name + ".zap21"), Path.Combine(folder, name + ".zap21"), overwrite: true);
+            var target = Path.Combine(folder, "generated");
+            if (Directory.Exists(target)) {
+                Directory.Delete(target, recursive: true);
+            }
+            Directory.Move(generated, target);
+            Console.WriteLine($"{name}: archive and generated source replaced");
+            return true;
         } finally {
             project.Close();
         }
     }
+
+    /// <summary>
+    /// Tag tables, then the types and blocks in the order order.txt gives, each in the folder its file is in: a text source
+    /// generated, a block in SimaticML (.xml) imported. Then the PLC is compiled, and protect.txt's blocks are protected.
+    /// </summary>
+    private static int BuildPlc(PlcSoftware plc, string sources) {
+        var tags = Path.Combine(sources, "PLC tags");
+        foreach (var file in Directory.Exists(tags) ? Directory.GetFiles(tags, "*.tsv").OrderBy(file => file, StringComparer.Ordinal) : Enumerable.Empty<string>()) {
+            var table = plc.TagTableGroup.TagTables.Create(Path.GetFileNameWithoutExtension(file));
+            foreach (var line in File.ReadAllLines(file, Encoding.UTF8).Where(line => line.Length != 0)) {
+                var fields = line.Split('\t');
+                var tag = table.Tags.Create(fields[0], fields[1], fields[2]);
+                if (fields.Length > 3) {
+                    tag.Comment.Items.First().Text = fields[3];
+                }
+            }
+        }
+
+        // A new PLC comes with an empty Main; a program that wants one brings its own.
+        plc.BlockGroup.Blocks.Find("Main")?.Delete();
+        var refused = 0;
+        foreach (var entry in File.ReadAllLines(Path.Combine(sources, "order.txt")).Where(line => line.Length != 0 && !line.StartsWith("#", StringComparison.Ordinal))) {
+            var parts = entry.Split('/');
+            var folders = parts.Skip(1).Take(parts.Length - 2).ToList();
+            var path = Path.GetFullPath(Path.Combine(sources, entry));
+            if (path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)) {
+                try {
+                    BlockGroup(plc, folders).Blocks.Import(new FileInfo(path), ImportOptions.None);
+                    Console.WriteLine($"imported {plc.Name}/{entry}");
+                } catch (EngineeringException e) {
+                    refused++;
+                    Console.WriteLine($"refused {plc.Name}/{entry}: {e.Message.Replace(Environment.NewLine, " ")}");
+                }
+                continue;
+            }
+            var source = plc.ExternalSourceGroup.ExternalSources.CreateFromFile(parts.Last(), path);
+            // One run reports every source TIA refuses, not only the first.
+            try {
+                Generate(plc, source, parts[0], folders);
+                Console.WriteLine($"generated {plc.Name}/{entry}");
+            } catch (EngineeringTargetInvocationException e) {
+                refused++;
+                Console.WriteLine($"refused {plc.Name}/{entry}: {e.Message.Replace(Environment.NewLine, " ")}");
+            }
+            source.Delete();
+        }
+        if (refused == 0) {
+            // TIA exports SimaticML only for a compiled block; a compile error counts as a refused source.
+            refused += Compile(plc);
+        }
+
+        var protect = Path.Combine(sources, "protect.txt");
+        foreach (var blockName in File.Exists(protect) ? File.ReadAllLines(protect).Where(line => line.Length != 0) : Enumerable.Empty<string>()) {
+            var block = FindBlock(plc.BlockGroup, blockName) ?? throw new InvalidOperationException($"protect.txt names {blockName}, which {plc.Name} does not have.");
+            using var password = new SecureString();
+            foreach (var c in ReferencePassword) {
+                password.AppendChar(c);
+            }
+            block.GetService<PlcBlockProtectionProvider>().Protect(password);
+            Console.WriteLine($"protected {plc.Name}/{blockName}");
+        }
+        return refused;
+    }
+
+    private static PlcBlock FindBlock(PlcBlockGroup group, string name) =>
+        group.Blocks.Find(name) ?? group.Groups.Select(child => FindBlock(child, name)).FirstOrDefault(block => block is not null);
 
     private static void Generate(PlcSoftware plc, PlcExternalSource source, string root, List<string> folders) {
         if (root == "PLC data types") {
@@ -267,13 +360,16 @@ internal static class Program {
         } else if (folders.Count == 0) {
             source.GenerateBlocksFromSource(GenerateBlockOption.None);
         } else {
-            PlcBlockUserGroup group = null;
-            foreach (var name in folders) {
-                var groups = group is null ? plc.BlockGroup.Groups : group.Groups;
-                group = groups.Find(name) ?? groups.Create(name);
-            }
-            source.GenerateBlocksFromSource(group, GenerateBlockOption.None);
+            source.GenerateBlocksFromSource((PlcBlockUserGroup)BlockGroup(plc, folders), GenerateBlockOption.None);
         }
+    }
+
+    private static PlcBlockGroup BlockGroup(PlcSoftware plc, List<string> folders) {
+        PlcBlockGroup group = plc.BlockGroup;
+        foreach (var name in folders) {
+            group = group.Groups.Find(name) ?? group.Groups.Create(name);
+        }
+        return group;
     }
 
 
@@ -310,7 +406,7 @@ internal static class Program {
     }
 }
 
-internal sealed class Exporter(string root, StreamWriter manifest) {
+internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml) {
     private readonly HashSet<string> _taken = new(StringComparer.OrdinalIgnoreCase);
 
     public int Written { get; private set; }
@@ -360,7 +456,8 @@ internal sealed class Exporter(string root, StreamWriter manifest) {
         var stem = Path.Combine(folder, Unique(kind + "." + Safe(block.Name)));
         var notes = new List<string>();
         var source = extension is null ? "" : Attempt(notes, "source", () => Generate(plc, block, stem + extension));
-        var xml = Attempt(notes, "xml", () => block.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults));
+        // A block TIA generates no source for is compared through its SimaticML, so that is always exported.
+        var xml = blockXml || extension is null ? Attempt(notes, "xml", () => block.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults)) : "";
         Row(plc, kind, block.Number.ToString(), language, notes.Count == 0 ? "ok" : "partial", Relative(stem, extension, source), Relative(stem, ".xml", xml), block.Name, string.Join(" | ", notes));
     }
 
@@ -389,7 +486,7 @@ internal sealed class Exporter(string root, StreamWriter manifest) {
         var stem = Path.Combine(folder, Unique("UDT." + Safe(type.Name)));
         var notes = new List<string>();
         var source = Attempt(notes, "source", () => Generate(plc, type, stem + ".udt"));
-        var xml = Attempt(notes, "xml", () => type.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults));
+        var xml = blockXml ? Attempt(notes, "xml", () => type.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults)) : "";
         Row(plc, "UDT", "", "UDT", notes.Count == 0 ? "ok" : "partial", Relative(stem, ".udt", source), Relative(stem, ".xml", xml), type.Name, string.Join(" | ", notes));
     }
 

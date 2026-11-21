@@ -36,6 +36,14 @@ public sealed class TiaProjectTest {
     }
 
     [Test]
+    public void TheStatementFormOfANetworkOrSequenceShowsItsKeywords() {
+        var document = TiaDocumentBuilder.FromText("IF #start AND NOT \"Fault\" THEN GOTO skip; END_IF;\nTRANSITION 1 Go: Idle -> Fill WHEN #full OR FALSE");
+
+        document.Tokens.Where(token => token.Kind == TiaTokenKind.Keyword).Select(token => TextOf(token, document.Text)).Should()
+            .Equal("IF", "AND", "NOT", "THEN", "GOTO", "END_IF", "TRANSITION", "WHEN", "OR", "FALSE");
+    }
+
+    [Test]
     public void ACalledFunctionIsACallToItsName() {
         var tokens = TokensOf("""<FctCa UId="1"><Sub UId="2" SI="FC" SyId="7" ODN="&quot;Other&quot;" /><BracO UId="3" /><BracC UId="4" /></FctCa>""", out _);
 

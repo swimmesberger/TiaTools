@@ -1,0 +1,10 @@
+﻿TYPE "typeRecipe"
+VERSION : 0.1
+   STRUCT
+      label : String[20];   // Shown on the panel
+      volume : Real;   // Fill volume in ml
+      settleTime : Time;   // Foam settles before the bottle moves on
+   END_STRUCT;
+
+END_TYPE
+

@@ -1,0 +1,17 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_North	OB	1	SCL	ok	PLC_North/OB.Main.scl		Main	
+PLC_North	FB	1	SCL	ok	PLC_North/FB.Pump.scl		Pump	
+PLC_North	FB	2	SCL	ok	PLC_North/FB.Station.scl		Station	
+PLC_North	InstanceDB	1	DB	ok	PLC_North/InstanceDB.StationData.db		StationData	
+PLC_North	UDT		UDT	ok	PLC_North/UDT.typeStatus.udt		typeStatus	
+PLC_North	TAGS			ok		PLC_North/TAGS.Default tag table.xml	Default tag table	
+PLC_North	TAGS			ok		PLC_North/TAGS.Counters.xml	Counters	
+PLC_North	TAGS			ok		PLC_North/TAGS.IO.xml	IO	
+PLC_South	OB	1	SCL	ok	PLC_South/OB.Main.2.scl		Main	
+PLC_South	FB	1	SCL	ok	PLC_South/FB.Pump.2.scl		Pump	
+PLC_South	FB	2	SCL	ok	PLC_South/FB.Station.2.scl		Station	
+PLC_South	InstanceDB	1	DB	ok	PLC_South/InstanceDB.StationData.2.db		StationData	
+PLC_South	UDT		UDT	ok	PLC_South/UDT.typeStatus.2.udt		typeStatus	
+PLC_South	TAGS			ok		PLC_South/TAGS.Default tag table.2.xml	Default tag table	
+PLC_South	TAGS			ok		PLC_South/TAGS.Counters.2.xml	Counters	
+PLC_South	TAGS			ok		PLC_South/TAGS.IO.2.xml	IO	

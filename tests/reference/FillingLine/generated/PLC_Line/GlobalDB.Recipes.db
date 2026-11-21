@@ -1,0 +1,23 @@
+﻿DATA_BLOCK "Recipes"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR 
+      active : "typeRecipe";   // The recipe in use
+      list : Array[1..3] of "typeRecipe";   // Recipes to choose from
+   END_VAR
+
+
+BEGIN
+   list[1].label := 'Water 0.5 l';
+   list[1].volume := 500.0;
+   list[1].settleTime := T#500MS;
+   list[2].label := 'Water 1 l';
+   list[2].volume := 1000.0;
+   list[2].settleTime := T#800MS;
+   list[3].label := 'Soda 0.5 l';
+   list[3].volume := 480.0;
+   list[3].settleTime := T#3S;
+
+END_DATA_BLOCK
+

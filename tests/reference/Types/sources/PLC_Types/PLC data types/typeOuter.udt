@@ -1,0 +1,18 @@
+TYPE "typeOuter"
+VERSION : 0.1
+   STRUCT
+      inner : "typeInner";   // One inner type
+      list : Array[1..3] of "typeInner";   // Three of them
+      matrix : Array[0..1, 0..2] of Int;   // Two dimensions
+      nested : Struct   // A struct in a struct
+         a : Bool := TRUE;
+         b : Struct
+            c : Real := 1.5;
+            d : Array[0..1] of Bool;
+         END_STRUCT;
+      END_STRUCT;
+      text : String[16] := 'outer';   // A short string
+   END_STRUCT;
+
+END_TYPE
+

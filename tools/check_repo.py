@@ -16,6 +16,8 @@ Run from anywhere: python3 tools/check_repo.py [ROOT]
      checked: that needs the diff, and is left to review.
   7. Every spec has a status; every spec with `status: stable` (approved) has the required sections in order,
      unique FR and SC numbers and no open clarification (ADR 0007).
+  8. No archive, project, library or database enters the repository but a reference project's archive, at
+     tests/reference/<name>/<name>.zap<NN> with its sources folder beside it (ADR 0012, spec 0008, FR-014).
 
 Folders named .git, node_modules, apm_modules, .scratch and raw are skipped at any depth.
 
@@ -32,6 +34,7 @@ STATUSES = ("draft", "stable", "deprecated")
 SPEC_SECTIONS = ["Intent", "User scenarios", "Requirements", "Success criteria", "Out of scope"]
 ENTRY = re.compile(r"^\* \[[^\]]+\]\(([^)]+)\) - \S")
 DAY = re.compile(r"^## (\d{4}-\d{2}-\d{2})$", re.M)
+PROJECT_FILE = re.compile(r"\.(zap|ap|al)\d+(_\d+)?$", re.I)
 
 
 def frontmatter(path: Path) -> tuple[dict[str, object], str]:
@@ -245,8 +248,20 @@ class Checker:
             if "[NEEDS CLARIFICATION" in body:
                 self.fail(spec, "an approved spec has an open [NEEDS CLARIFICATION]; resolve it or set status: draft")
 
+    def archives(self) -> None:
+        for path in walk(self.root, "*"):
+            if not path.is_file() or not (PROJECT_FILE.search(path.name) or path.name.lower() == "pedata.plf"):
+                continue
+            parts = path.relative_to(self.root).parts
+            reference = (len(parts) == 4 and parts[:2] == ("tests", "reference")
+                         and re.fullmatch(re.escape(parts[2]) + r"\.zap\d+(_\d+)?", parts[3], re.I)
+                         and (path.parent / "sources").is_dir())
+            if not reference:
+                self.fail(path, "a project file outside a reference project: only tests/reference/<name>/<name>.zap<NN>, "
+                                "with its invented sources beside it, may be committed (ADR 0012)")
+
     def run(self) -> list[str]:
-        for step in (self.routers, self.mirrors, self.skills, self.mcp, self.bundle, self.specs):
+        for step in (self.routers, self.mirrors, self.skills, self.mcp, self.bundle, self.specs, self.archives):
             step()
         return self.findings
 

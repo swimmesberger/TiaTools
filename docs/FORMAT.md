@@ -8,7 +8,7 @@ status: stable
 
 Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers). `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Six reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run. Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -19,7 +19,7 @@ Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 8
 | **[I]** | Inferred from the samples, with no check that could have refuted it. |
 | **[?]** | Unknown. |
 
-**The generated text of SCL blocks, data blocks and UDTs has been compared with TIA Portal,** through Openness and for every unprotected block of one project: section 17 has the result. FBD networks have only been compared by eye, on two blocks. Everything stored but not rendered has not been compared at all.
+**The generated text of SCL blocks, data blocks and UDTs has been compared with TIA Portal,** through Openness and for every unprotected block of one project: section 17 has the result. STL has been compared the same way, and LAD, FBD and GRAPH through TIA's export of invented blocks written in the same statement form, on the reference projects (section 13). The samples' fail-safe FBD has only been compared by eye, on two blocks. Everything stored but not rendered has not been compared at all.
 
 ## 1. The containers
 
@@ -300,7 +300,7 @@ Attributes of a block **[S]**:
 | Interface | Attribute | |
 |---|---|---|
 | `...ObjectFrame.ICoreAttributes` | `Name`, `Comment` (title), `Subtype`, `IsKnowHowProtected`, `Protection` | `Subtype` for UDT and DB is the kind |
-| `...Blocks.IGeneralBlockSourceData` | `BlockType` (FB, FC, ...), `Number`, `BlockLanguage` (SCL, F_FBD, DB, ...), `OnlySymbolicAccess`, which a source file shows as `S7_Optimized_Access` | `FALSE` agrees with TIA on one block **[S]**; `TRUE` **[U]** |
+| `...Blocks.IGeneralBlockSourceData` | `BlockType` (FB, FC, ...), `Number`, `BlockLanguage` (SCL, F_FBD, DB, ...), `OnlySymbolicAccess`, which a source file shows as `S7_Optimized_Access` | `FALSE` and `TRUE` agree with TIA's generated source in the reference projects (section 17) **[S]** |
 | `...Blocks.IPlcHeaderData` | `HeaderAuthor`, `HeaderFamily`, `HeaderName`, `HeaderVersion`: a source file's `AUTHOR`, `FAMILY`, `NAME`, `VERSION` | Agrees with TIA on one block **[S]**. Most UDTs do not have this set |
 
 Relations from a block **[S]**:
@@ -398,6 +398,8 @@ A **shared DB** declares its members in `VAR` sections if optimized, with retain
 
 A **DB of a type** has a root of kind `Values`: `UsedParts[0]` is the root of the UDT or FB, whose members and parts apply. With nothing set the root has no payload at all. **[S]** Its `<V>`s list only some start values. SimaticML lists the same ones: a member's `StartValue` is there only if it is set in the block, even with `ExportOptions.WithDefaults`, so what TIA shows comes from the block, else the type, else zero. **[S]** **All of them** are in the compiled image, `LoadablePlusDataBlockData.ILoadablePlusDataBlockData.VolatileBuffer`, reached by `Parent4LoadableBinaryData.LoadableBinaries`: an 8 byte head, then values little-endian at the sum of the optimized bit offsets along the path, `<Offsets><o o="bits"/>` in member order. Checked for `Bool` and integer types in optimized DBs generated from a UDT against what TIA's text implies: the block's value, else the UDT's, else zero. All 122 agree. **[S]** It does not hold for an instance DB, whose offsets count within its sections, and the reader does not use it there, for a protected block, or when the image is shorter than the UDT's `optSize`. A retained DB keeps its values in `RetainBuffer` instead, which the reader does not read. Other types and standard-access DBs: **[U]**. A standard DB's `ClassicBuffer` looks like its values big-endian. **[?]**
 
+A **DB of a system type**, such as the `IEC_TIMER` a `TON` with a data block of its own uses, has that type's root as `UsedParts[0]`, and its `IInterfaceLibraryData.Version` (`1.0.3;S71500,S71200`) gives the version. TIA's source names the type first among the block's attributes and without quotes: `{InstructionName := 'IEC_TIMER';`, ` LibVersion := '1.0';`, ` S7_Optimized_Access := 'TRUE' }`, then `IEC_TIMER` as the type. **[S]**, on the reference project.
+
 **Comments**: `InterfaceCommentsPartData.ICommentsExpandoAttributeSet`, a simple expando (section 7.7) of core texts, keyed by the id path. **[S]**
 
 ## 12. SCL source
@@ -440,23 +442,69 @@ TIA writes titles and comments in one language, the project's editing language. 
 
 A UDT is `TYPE`, `   STRUCT`, its members, `   END_STRUCT;`, a blank line, `END_TYPE`, with no `S7_Optimized_Access`. **[S]**
 
-## 13. FBD and LAD networks
+## 13. Networks: LAD, FBD, STL and GRAPH
 
-Each `CompileUnitData` is one network, with `<FlgNet xmlns="http://www.siemens.com/automation/2015/FunctionLadderDiagram" Version="14.0.0.2" Lang="F_FBD">`. Network title: `ICoreAttributes.Comment` of the compile unit. **[S]** Languages in the samples: `F_FBD`, `FBD_CLASSIC`. **LAD, plain FBD, STL and GRAPH source occur in no unprotected block here, so their forms are unknown.** **[?]**
+Each `CompileUnitData` is one network. `ICompileUnitData.ProgrammingLanguage` is its language, `ICoreAttributes.Comment` its title, and the relation `CompileUnitComment` leads to a `CoreText` with its comment. **[S]** Its `Data` names its form by its root element: `SCLSource` (section 12), `FlgNet` for LAD and FBD, `Statements` for STL, and `AddInfos`, `GraphStructure` and `Actions` for the parts of a GRAPH block. **[S]** The reference project `Languages` (section 17) holds blocks in all of them, built and compiled by TIA Portal V21; every title and comment there equals TIA's export.
+
+### LAD and FBD
+
+Languages: `LAD_CLASSIC` and `FBD_CLASSIC`, which TIA calls LAD and FBD, and `F_FBD` in the samples. All are one `FlgNet`, `<FlgNet xmlns="http://www.siemens.com/automation/2015/FunctionLadderDiagram" Version="14.0.0.2" Lang="...">`, and it holds the graph TIA's SimaticML export holds, under other names: **[S]**
+
+| Stored | SimaticML |
+|---|---|
+| `Part Gate="Contact"` | `Part Name="Contact"` |
+| `LRef RefId` with `Instance RefId`: an instruction with an instance, such as `TON` or `CTU` | `Part Name="TON"` with `Instance` |
+| `CRef RefId` with `CodeBlock RefId` and, for an FB, `Instance RefId`; `RefId` is the called block's `BlockInterfaceInfo` (section 14) | `Call` with `CallInfo Name` and its `Parameter`s |
+| `ORef RefId`, an identifier (section 14); without `RefId` an open connection | `Access` with its symbol or constant; `OpenCon` |
+| `PCon UId PinName`, `OCon UId`, `Powerrail` | `NameCon UId Name`, `IdentCon UId`, `Powerrail` |
+| `Labels` with an `ORef` per label | `Labels` with a `LabelDeclaration` per label |
 
 ```xml
 <Parts>
   <ORef UId="24" RefId="1"/>             <!-- an operand: RefId into the identifiers; none means not connected -->
   <Part UId="23" Gate="Coil"><Negated PinName="in"/><TemplateValue .../></Part> <!-- a gate -->
-  <LRef UId="21" RefId="5"><Instance UId="22" RefId="4"/></LRef>                <!-- a library call -->
+  <LRef UId="21" RefId="5"><Instance UId="22" RefId="4"/></LRef>                <!-- an instruction with an instance -->
   <CRef ...><CodeBlock RefId=".."/></CRef>                                       <!-- a block call -->
 </Parts>
 <Wires>
-  <Wire UId="28"><OCon UId="24"/><PCon UId="21" PinName="IN"/></Wire> <!-- first end is the source -->
+  <Wire UId="28"><OCon UId="24"/><PCon UId="21" PinName="IN"/></Wire>
 </Wires>
 ```
 
-The first connection of a `Wire` is its source; the others are sinks. **[I]** `Negated` names a pin of its part, an input or an output, so an inverted output inverts what its wire carries. `OCon` is an operand, `PCon` a part's pin. Gates in the samples: `Coil`, `A`, `O`, `Move`, `Le`, `Ge`, `Ne`, `Sr`, `Rs`, `Abs`, `Sub`, `Return`, `Jump`, `JumpNot`, `NBox`, `PContact`. A network has no text form of its own: `FlgNetRenderer` prints calls, one per part, which is our layout and not TIA's. `Labels` holds jump labels.
+A `Wire` lists its ends in no fixed order of source and sink: a coil's wire lists its operand first. What drives a wire is an output pin on it (`out`, `out1`, `q`, `Q`, `ET`, `CV`, `eno`, or a call's output or return parameter), else the power rail, else an operand. **[S]** `Negated` names a pin of its part, an input or an output, so an inverted output inverts what its wire carries. A LAD parallel branch closes in an `O` part; a coil names its operand through the pin `operand`, a jump its label through `label`, an edge its memory bit through `bit`. **[S]** Gates seen: `Contact`, `Coil`, `SCoil`, `RCoil`, `PContact`, `NBox`, `PBox`, `A`, `O`, `Move`, `Add`, `Sub`, `Abs`, `Eq`, `Ne`, `Ge`, `Le`, `Sr`, `Rs`, `Jump`, `JumpNot`, `Return`, and in GRAPH `TrCoil`, `SvCoil`, `IlCoil`.
+
+A network has no text in TIA, so TiaTools writes it in a **statement form** of its own (ADR 0013), each network under `// ---- network n (LAD): title` and its comment:
+
+| Parts | Statement |
+|---|---|
+| Contacts in series, in parallel, negated; gates `A`, `O`, `X` | `AND`, `OR`, `XOR`, `NOT`, in parentheses only where they must be |
+| `Coil` | `#op := <logic>;`, negated `#op := NOT <logic>;` |
+| `SCoil`, `RCoil`; `Sr`, `Rs` | `IF <logic> THEN #op := TRUE; END_IF;` and `FALSE`, unconditional on the power rail; a box's set and reset in its order of precedence |
+| `PContact`, `NContact`, `PBox`, `NBox` | `P(<signal>, <memory bit>)`, `N(...)` |
+| `Eq` … `Le`; `Add` … `Mod`; `Move` | `a >= b`; `#t := a + b;`; `#t := in;` |
+| A box with an enable input not on the power rail | its statements inside `IF <en> THEN … END_IF;` |
+| An instruction with an instance | `#delay(IN := …, PT := T#2S);`, with a data block of its own `"LampDelay".TON(…);`; an output another part reads is `#delay.Q` |
+| A call | `#r := "Limit"(value := …);`, `#pulser(trigger := …, q => #pulse);`, parameters in the order the block declares them |
+| `Jump`, `JumpNot`, `Return`; labels | `IF <logic> THEN GOTO skip; END_IF;`, `RETURN;`; `skip:` before the network's statements |
+| Anything else | `Name(pin := …, pin => …);`, naming every connected pin |
+
+Checked: all 27 LAD and FBD networks of the reference project give the same statements from the archive as from TIA's export of each compiled block. **[S]** The samples' `F_FBD` networks go the same way, but TIA exports no SimaticML of them (section 17), so they were compared by eye only.
+
+### STL
+
+`<Statements Version="14.0.0.0">`, one `Statement` per line: `Token DispName` is the mnemonic as written (`Kw` numbers it), `OpdAccess RefId` the operand, `UserToken DispName` a constant written in place, `LC DispName` a line comment, `Label` with an `OpdAccess` a label, and `CallInfo RefId`, the called block's `BlockInterfaceInfo`, with a `ParaExpression FPNum` per parameter: its place in that block's parameter list, from 1. `NumBLs` counts blanks as typed; TIA's generated source does not keep them. **[S]**
+
+TIA's generated source writes each network as `NETWORK`, `TITLE = ` and the title, the comment's lines after `//`, then each statement six blanks in: the mnemonic, a blank and the operand, `;`. A line comment follows ` ;//`; a label stands in front, `done:` and six blanks. A call is `CALL "Limit"`, then one parameter per line, `(  ` before the first and nine blanks before the others, the name padded to 28, `:= `, the value and ` , ` but after the last, then `      );`. **[S]**, byte for byte on the reference project's STL block. An STL network inside a LAD or FBD block is stored the same way and written with the same lines. **[S]**
+
+### GRAPH
+
+Language `GRAPH_PLUS`. A block's compile units, in order: `AddInfos` with its alarm settings; the permanent instructions before the sequence, as `FlgNet`s without `RefId`; `GraphStructure`; for each step an `Actions` unit and two `FlgNet`s ending in `SvCoil` (supervision) and `IlCoil` (interlock), and for each transition an `FlgNet` ending in `TrCoil`, each with the `RefId` of its step or transition; last the permanent instructions after the sequence. **[S]**
+
+`GraphStructure` holds `Sequence` with `Steps` (`Step UId RefId Init`), `Transitions` (`Transition UId RefId`), `Branches` (`Branch No Type Cardinality`, the types `SimBegin`, `SimEnd`, `AltBegin`, `AltEnd`) and `Structure`, a `Connection` of two of `StepRef No`, `TransitionRef No`, `BranchRef No In|Out`; a jump has `LinkType="Jump"` on the step it goes to. A step's or transition's `RefId` is the identifier of its static member, whose name is its name, so a step cannot share a name with a member. **[S]** A step's number is its `UId` less 100000, a transition's less 200000: what the connections call `No`. **[I]**, since the reference project's numbers run from 1 without a gap.
+
+An action is `Action Event Interlock` holding `Operator Operation`, the qualifier (with `Function`, `ADD` or `CALL`, for an instruction), then `OpdAccess`, `Token Text` and `Blank Num` in the order of its text, and a `CallInfo` of template parameters that are not text. A `Token Text="&#xA;"` ends the action's line. **[S]** A step's maximum and warning times, which TIA's export gives, were not found. **[?]**
+
+The statement form lists the permanent instructions before the sequence, then `STEP n name` with each action as `event qualifier interlocked: text` (`N: #valve`, `D: #lamp, T#2S`, `S1 N interlocked: #lamp`, `N: CALL "Tick"()`) and its supervision and interlock unless empty, then `TRANSITION n name: steps -> steps WHEN condition`, branches resolved into the steps a transition leaves and activates and a jump marked `(jump)`, and last the permanent instructions after. It equals what TIA's export of the reference project's GRAPH block gives. **[S]**
 
 ## 14. Identifiers
 
@@ -473,7 +521,7 @@ The first connection of a `Wire` is its source; the others are sinks. **[I]** `N
 | `Instruction`, `DirectType`, `Label` | `N` |
 | `BlockInterfaceInfo`, `Expression` | Not a name |
 
-A path segment that is not a plain identifier is quoted. `BPIL/BPI` gives a called block's parameters with `S`ection and type, `TD/@T` a type (section 11).
+A path segment that is not a plain identifier is quoted. `BPIL/BPI` gives a called block's parameters in order, each with its name `N`, section `S` (`Input`, `Output`, `InOut`, `Return`) and type; an STL call numbers them from 1, and a LAD or FBD call names them. **[S]** `TD/@T` gives a type (section 11). A `LiteralConstant`'s `CB/@SV` is the constant as the source writes it, escaped as an XML name (`T_x0023_2S` for `T#2S`), where `V` holds only its value (`2000`). **[S]**
 
 Note that **this table repeats names used in the block**, which is why a plain text search over a whole archive overcounts source occurrences (section 17).
 
@@ -544,6 +592,10 @@ The `ODN` differences are one kind: a nested access where the token holds the la
 The differences: one OB on each PLC whose title and comment have no text in the editing language (section 12), and two global DBs with a fail-safe UDT's `S7_SetPoint` (section 11). The project's V20 archive, upgraded and exported the same way, gives the same table. That is the same program, so it does not test the rules on anything new: most of sections 11 and 12 was worked out from this comparison, and comes from this one project.
 
 Tag tables, from TIA's export of them: all 208 tags and constants in them agree in type, all 66 addresses and all 142 values. The 282 system constants the reader also lists are in no exported table.
+
+**The reference projects.** Six small projects TIA Portal V21 built from sources written for this repository, committed in `tests/reference` with the source TIA generated and its export of each tag table ([spec 0008](../specs/0008-reference-projects.md)). The library's tests compare the reader with them in every run. They hold every elementary type with start values, arrays, nested UDTs, a DB of a UDT, a retained DB and a standard-access DB, an FB with every interface section and constants and its instance DB, a multi-instance, text in German, French, Japanese and Chinese with string escapes, two PLCs with folders four deep, and one know-how protected block. All 34 blocks TIA generated source for are identical, the protected one is closed and shows nothing of its body, and all 27 tags agree in name, type, address, comment and external access. These are new programs, so unlike A's comparison they test the rules on something they were not worked out from.
+
+The sixth, `Languages` ([spec 0009](../specs/0009-logic-languages.md)), holds blocks TIA takes no text source for, imported as SimaticML written for it and compiled by TIA: LAD and FBD with contacts in series and in parallel, negated contacts, inputs and outputs, set and reset coils and boxes, edges, a jump to a label, a move, a comparison, an addition, a timer as a multi-instance and with a data block of its own, a counter, a call of an FC and of an FB; a LAD block with an SCL and an STL network; an STL block with bit logic in brackets, load and transfer, arithmetic, a jump and a call; and a GRAPH block with a simultaneous and an alternative branch, a jump, actions with the qualifiers N, S, R and D, an event, an interlocked action, an assignment and a call, a supervision, an interlock and permanent instructions before and after. Its STL block and the timer's data block are identical to TIA's generated source; its 27 LAD and FBD networks and its GRAPH sequence give the same statement form from the archive as from TIA's SimaticML export (section 13). Invented blocks test the rules on the forms TIA writes, not on the habits of a real program.
 
 The text is the same after compiling. TIA exports SimaticML only for a compiled block, so a retrieved copy was compiled block by block, with every block that is not fail-safe, and closed unsaved. It refuses to compile the whole PLC without permission for the safety program. That gave SimaticML for all 319 UDTs, 85 of 92 open DBs, 194 of 379 open SCL blocks, and the same table as above.
 
@@ -626,9 +678,9 @@ Four tags of the demo, set through Openness to not accessible, not writable, not
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
 
 1. **A second project.** Most of sections 11 and 12 was worked out from A alone, and A's V20 archive is the same program; `MFlags` has since been checked bit by bit on test blocks. B has not been compared with TIA. A rule that overfits shows there first.
-2. **FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles, as the comparison page says. Then compare parts, wires and negated pins as data with what `FlgNetRenderer` reads, not as text, since our FBD text is our own layout. That would also settle whether a network stores `Time` under `TON`, as TIA shows it, where we print `TON`.
+2. **Fail-safe FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles, as the comparison page says. Then compare them in statement form with TIA's export, as the reference project does for LAD and FBD (section 13).
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
-4. **LAD, plain FBD, STL and GRAPH.** No sample has any unprotected. A small new project in TIA with one block of each would close that, and being invented, like the demo project, it can go into the tests as a fixture. It would also test the rules on something new.
+4. **LAD, FBD, STL and GRAPH in a real program.** The reference project `Languages` checks each on invented blocks (section 13), but no sample has any unprotected, so a real program's habits are untried: other instructions, nested branches, GRAPH with several sequences or step times, STL with indirect addressing.
 5. **Hardware, optional.** The reader lists no devices. A `tiadump devices` command (name, type, address, network) could be checked against TIA's Network overview.
 6. **OPC UA.** The server's settings, all security policies, the tags' access columns and the members' access are checked (sections 11 and 18), and the node ids of TIA's node set export are in the [research note](research/2026-11-20-tia-opc-ua-server-settings.md). Left: what TIA shows for a sample's tag stored as not accessible but visible, a combination TIA does not let a person make; and a project with a user-defined server interface, for what the journals and `OpcUaInterfaceData` hold.
 

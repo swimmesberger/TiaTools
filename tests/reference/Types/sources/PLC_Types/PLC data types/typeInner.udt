@@ -1,0 +1,10 @@
+TYPE "typeInner"
+VERSION : 0.1
+   STRUCT
+      flag : Bool := TRUE;   // A flag with a start value
+      count : Int := 7;   // A counter with a start value
+      value : Real := 2.5;   // A value with a start value
+   END_STRUCT;
+
+END_TYPE
+

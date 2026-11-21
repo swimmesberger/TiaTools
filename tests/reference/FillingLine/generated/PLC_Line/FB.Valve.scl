@@ -1,0 +1,41 @@
+﻿FUNCTION_BLOCK "Valve"
+TITLE = Valve with end switches
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Opens and closes a valve and checks that it reaches its end position in time.
+   VAR_INPUT 
+      open : Bool;   // Open the valve
+      opened : Bool;   // End switch: open
+      closed : Bool;   // End switch: closed
+      reset : Bool;   // Acknowledge a fault
+   END_VAR
+
+   VAR_OUTPUT 
+      output : Bool;   // Drives the valve
+      fault : Bool;   // An end position was not reached in time
+   END_VAR
+
+   VAR 
+      moveTimer {InstructionName := 'TON_TIME'; LibVersion := '1.0'} : TON_TIME;
+   END_VAR
+
+   VAR CONSTANT 
+      MOVE_TIME : Time := T#1S;   // How long the valve may take to move
+   END_VAR
+
+
+BEGIN
+	
+	 #output := #open AND NOT #fault;
+	
+	 // The valve is moving while it is not where it was told to go.
+	 #moveTimer(IN := (#output AND NOT #opened) OR (NOT #output AND NOT #closed),
+	            PT := #MOVE_TIME);
+	 IF #moveTimer.Q THEN
+	     #fault := TRUE;
+	 ELSIF #reset THEN
+	     #fault := FALSE;
+	 END_IF;
+	
+END_FUNCTION_BLOCK
+

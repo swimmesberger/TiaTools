@@ -1,0 +1,36 @@
+﻿FUNCTION_BLOCK "Conveyor"
+TITLE = Conveyor that holds a bottle at its end
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Runs a belt, and stops it while a bottle waits at the end for the next station.
+   VAR_INPUT 
+      enable : Bool;   // The line runs
+      bottleAtEnd : Bool;   // Photo eye at the end of the belt
+      nextReady : Bool;   // The next station can take the bottle
+      motorFeedback : Bool;   // Contactor is closed
+      reset : Bool;   // Acknowledge a fault
+   END_VAR
+
+   VAR_OUTPUT 
+      motorOn : Bool;   // Drives the motor
+      fault : Bool;   // The motor has a fault
+   END_VAR
+
+   VAR 
+      drive : "Motor";   // The belt's motor
+   END_VAR
+
+
+BEGIN
+	
+	 // A bottle at the end waits until the next station is ready for it.
+	 #drive(start := #enable AND (NOT #bottleAtEnd OR #nextReady),
+	        stop := NOT #enable OR (#bottleAtEnd AND NOT #nextReady),
+	        feedback := #motorFeedback,
+	        reset := #reset);
+	
+	 #motorOn := #drive.run;
+	 #fault := #drive.fault;
+	
+END_FUNCTION_BLOCK
+

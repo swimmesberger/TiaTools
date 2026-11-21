@@ -1,0 +1,18 @@
+FUNCTION_BLOCK "Pump"
+TITLE = Pump of the north side
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//One pump; the north PLC has a block of the same name with other text.
+   VAR_INPUT 
+      run : Bool;   // Run the pump
+   END_VAR
+
+   VAR_OUTPUT 
+      status : "typeStatus";   // What the pump does
+   END_VAR
+
+
+BEGIN
+	#status.running := #run;   // north
+END_FUNCTION_BLOCK
+

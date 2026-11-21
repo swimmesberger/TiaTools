@@ -1,0 +1,15 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Line	OB	1	SCL	ok	PLC_Line/OB.Main.scl		Main	
+PLC_Line	FC	1	SCL	ok	PLC_Line/FC.Scale.scl		Scale	
+PLC_Line	FB	1	SCL	ok	PLC_Line/FB.Motor.scl		Motor	
+PLC_Line	FB	2	SCL	ok	PLC_Line/FB.Valve.scl		Valve	
+PLC_Line	FB	3	SCL	ok	PLC_Line/FB.Conveyor.scl		Conveyor	
+PLC_Line	FB	4	SCL	ok	PLC_Line/FB.Filler.scl		Filler	
+PLC_Line	FB	5	SCL	ok	PLC_Line/FB.FillingLine.scl		FillingLine	
+PLC_Line	GlobalDB	1	DB	ok	PLC_Line/GlobalDB.Recipes.db		Recipes	
+PLC_Line	InstanceDB	2	DB	ok	PLC_Line/InstanceDB.LineData.db		LineData	
+PLC_Line	UDT		UDT	ok	PLC_Line/UDT.typeRecipe.udt		typeRecipe	
+PLC_Line	TAGS			ok		PLC_Line/TAGS.Default tag table.xml	Default tag table	
+PLC_Line	TAGS			ok		PLC_Line/TAGS.Inputs.xml	Inputs	
+PLC_Line	TAGS			ok		PLC_Line/TAGS.Operator.xml	Operator	
+PLC_Line	TAGS			ok		PLC_Line/TAGS.Outputs.xml	Outputs	

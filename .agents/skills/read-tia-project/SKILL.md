@@ -10,7 +10,7 @@ description: Answer questions about a Siemens PLC program from its TIA Portal ar
 
 - which blocks exist, with kind, number, language, folder and know-how flag
 - a block's interface: members, types, start values, comments
-- SCL source, as written, and FBD networks as a list of calls and wires
+- SCL and STL source, as written, and LAD, FBD and GRAPH logic as statements
 - tag tables
 - each PLC's OPC UA server: whether it is on, its settings and roles, and which data blocks, members and tags an OPC UA client could read or write (`tiadump opcua <archive>`, `--json` for every detail)
 
@@ -53,7 +53,7 @@ It is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on Window
    ```
 
    ```bash
-   grep -rn 'SomeVariable' ~/dumps/project --include='*.scl' --include='*.f_fbd'
+   grep -rn 'SomeVariable' ~/dumps/project --include='*.scl' --include='*.awl' --include='*.lad' --include='*.fbd' --include='*.f_fbd' --include='*.graph'
    ```
 
 4. **Follow calls by name.** A call names the block or its instance, so look the callee up in `index.tsv` again. For a quick look at one block, `tiadump show <archive> <name>` needs no dump.
@@ -72,7 +72,9 @@ Project/<PLC>/<folder path>/<block>.<kind>
 |---|---|
 | `index.tsv` | Every block, also the ones with no file. Columns: `object`, `environment`, `plc`, `kind`, `number`, `language`, `know-how` (`yes` or `no`), `file`, `name`. `file` is empty when nothing is stored for the block |
 | `.scl` | SCL source with comments and layout as written. After the leading comment lines it matches what TIA's *Generate source from blocks* writes. A protected block has at most its interface, and its body says it is closed |
-| `.f_fbd` | Interface, then FBD networks as part calls with their wires and operands. This layout is TiaTools' own, not text TIA would show |
+| `.awl` | An STL block, as TIA generates its source |
+| `.lad`, `.fbd`, `.f_fbd` | Interface, then each network's title, comment and logic as statements: `#motor := (#start OR #motor) AND NOT #stop;`, `IF #start THEN #latched := TRUE; END_IF;`, timers and calls as calls (`#delay(IN := #high, PT := T#2S);`), an edge as `P(signal, memory)`. TiaTools' own form, since TIA has no text for these |
+| `.graph` | Interface, then the sequence: `STEP n name` with its actions (`N: #valve`, `D: #lamp, T#2S`) and any supervision or interlock, `TRANSITION n name: from -> to WHEN condition`, and the permanent instructions before and after |
 | `.udt` | A user data type, with the start values its members are declared with |
 | `.db` | A data block. One of a UDT or FB names its type and lists the values set in it, as TIA does; the type's members follow as comments, with start values where they are known. A shared one declares its members and lists its values |
 | `.tags` | A tag table |
@@ -84,9 +86,9 @@ If the dump reports SCL tags without a rule, the reader met a token it does not 
 ## How far to trust it
 
 - SCL blocks, data blocks and UDTs match TIA's generated source byte for byte on the project they were compared on; another project can differ. When an answer really matters, say it should be checked in TIA.
-- FBD text is TiaTools' own layout, checked by eye on a sample only.
+- LAD, FBD and GRAPH text is TiaTools' own form, checked against TIA on invented blocks in every test run; STL matches TIA's generated source.
 - It is the code as written: nothing about what a running PLC does, or about changes made on site.
 - Start values in a `.db`'s trailing comment are partial: a member with no start value there may still have one on the PLC.
-- LAD, plain FBD, STL and GRAPH are untested.
+- LAD, FBD, STL and GRAPH were checked on invented blocks, not on a real project.
 
 The TiaTools README has the details, under "How far to trust the output".

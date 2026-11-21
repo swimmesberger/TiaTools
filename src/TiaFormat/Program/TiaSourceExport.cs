@@ -116,7 +116,12 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             "UDT" => ".udt",
             _ when block.Kind.StartsWith("DB", StringComparison.Ordinal) => ".db",
             _ when block.Language is "SCL" => ".scl",
+            // STL is written as TIA generates its source, which TIA names .awl; the others are named as TIA names their languages.
+            _ when block.Language is "STL" => ".awl",
+            _ when block.Language is "LAD" or "LAD_CLASSIC" => ".lad",
+            _ when block.Language is "FBD" or "FBD_CLASSIC" => ".fbd",
             _ when block.Language is null => ".txt",
+            _ when block.Language.StartsWith("GRAPH", StringComparison.Ordinal) => ".graph",
             _ => "." + Safe(block.Language.ToLowerInvariant()),
         };
         return _paths.Reserve(Path.Combine(ProgramFolder(block.Frame), Safe(block.Name) + extension), block.Frame.ObjectId);

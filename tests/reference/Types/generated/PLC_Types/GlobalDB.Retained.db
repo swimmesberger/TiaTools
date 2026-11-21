@@ -1,0 +1,19 @@
+﻿DATA_BLOCK "Retained"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR RETAIN
+      kept : DInt;   // Survives a power cycle
+      keptText : String[8];
+   END_VAR
+   VAR 
+      lost : DInt;   // Starts again from its start value
+   END_VAR
+
+
+BEGIN
+   kept := 42;
+   keptText := 'kept';
+   lost := 7;
+
+END_DATA_BLOCK
+
