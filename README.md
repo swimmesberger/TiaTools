@@ -21,7 +21,7 @@ A PLC program lives in a TIA Portal project, and reading one usually takes TIA P
 - **Search** across all source of every PLC in the project.
 - **Export** everything, a folder or one block as plain text files, for grep, diff or review.
 - **Close to TIA.** On a real project, 786 of 790 SCL blocks, data blocks and data types come out byte-identical to the source TIA Portal itself generates.
-- **Nothing changes.** It never writes to a project, and know-how protected blocks stay closed.
+- **Nothing changes.** It never writes to a project, and a know-how protected block holds only its ciphertext, so it is shown as encrypted.
 
 It reads project archives (`.zap*`), projects (`.ap*`) and global libraries (`.al*`). It has been tried with files from TIA Portal V15.1, V20 and V21.
 

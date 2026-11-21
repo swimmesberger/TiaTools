@@ -477,9 +477,9 @@ A path segment that is not a plain identifier is quoted. `BPIL/BPI` gives a call
 
 Note that **this table repeats names used in the block**, which is why a plain text search over a whole archive overcounts source occurrences (section 17).
 
-## 15. Know-how protection and what stays closed
+## 15. Know-how protection: read as encrypted
 
-Stays closed, by choice: this reader does not attempt it and does not need it.
+A protected block holds only its ciphertext, so there is nothing to render but the encrypted form; the reader reports it and reads on. Decryption is a separate capability it does not have (ADR 0011).
 
 - `Data` of a protected block starts `<EncryptedData Type="http://...`: report it and stop.
 - Still in clear on a protected block in the samples: name, kind, number, language, folder, `IsKnowHowProtected`, and an OB's event class (section 10). Some also have an interface and comments in clear: 93 of 607 protected block objects in A, 22 of 447 in B. The rest, Siemens system blocks among them, have none stored.

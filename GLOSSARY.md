@@ -84,7 +84,7 @@ What `tiadump opcua` writes per PLC: its OPC UA server's settings, roles and ser
 _Avoid_: OPC UA export, address space dump
 
 **Closed**:
-What a know-how protected block or an encrypted value is to TiaTools: reported, never opened.
+What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing more. Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable
 
 ## What TiaTools makes

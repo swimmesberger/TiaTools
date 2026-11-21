@@ -1,5 +1,10 @@
 # Update log
 
+## 2026-11-21
+
+* **Update**: the standing rule is reworded to match [ADR 0011](adr/0011-know-how-protection-stays-closed.md): [architecture](architecture.md) and [the format](FORMAT.md) section 15 describe protected blocks as read as encrypted, not kept closed by choice, and AGENTS.md and the glossary follow.
+* **Creation**: [ADR 0011](adr/0011-know-how-protection-stays-closed.md) records why know-how protection stays closed even though the encryption is genuine AES with no backdoor, and the conditions under which a decrypt-with-your-own-password feature would be allowed; behind it, a [source](sources/2026-11-21-tia-know-how-protection-no-backdoor.md) the maintainer trusts.
+
 ## 2026-11-20
 
 * **Update**: [spec 0007](../specs/0007-viewer-tree-filter.md) is approved and built with its plan: the viewer's tree filters by kind as well as by name, and marks the program cycle OB; [the format](FORMAT.md), section 10, says where an OB's event class is stored, checked on the demo project and two samples; the glossary gains event class and program cycle OB.
