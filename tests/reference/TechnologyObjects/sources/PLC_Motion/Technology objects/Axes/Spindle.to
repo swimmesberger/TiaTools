@@ -1,0 +1,8 @@
+type	TO_SpeedAxis
+version	8.0
+VirtualAxis.Mode	1
+Actor.InverseDirection	true
+LoadGear.Numerator	3
+LoadGear.Denominator	2
+DynamicLimits.MaxVelocity	2400
+DynamicDefaults.Acceleration	150

@@ -1,0 +1,6 @@
+type	PID_Temp
+version	1.1
+Config.InputUpperLimit	300
+Config.ActivateCooling	true
+Config.Output.Heat.PidUpperLimit	90
+Config.Output.Cool.PidLowerLimit	-80

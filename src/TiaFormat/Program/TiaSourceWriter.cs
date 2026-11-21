@@ -187,6 +187,51 @@ public static class TiaSourceWriter {
         }
     }
 
+    /// <summary>
+    /// Writes a technology object as text of our own (spec 0013): its kind and version, then each parameter as TIA's
+    /// parameter view names it, <c>DynamicLimits.MaxVelocity : LReal := 2400.0;</c>. Nothing TIA could import.
+    /// </summary>
+    public static void WriteTechnologyObject(TiaProgram program, TiaTechnologyObject technologyObject, PooledByteWriter output) {
+        output.Write("// TO number="u8);
+        output.Write(technologyObject.Number?.ToString(CultureInfo.InvariantCulture) ?? "-");
+        output.Write(" kind="u8);
+        output.Write(technologyObject.Kind);
+        output.Write(" version="u8);
+        output.Write(technologyObject.Version ?? "-");
+        output.Write(" know-how="u8);
+        output.Write(technologyObject.IsKnowHowProtected ? "yes"u8 : "no"u8);
+        output.Write(" plc="u8);
+        output.Write(program.PlcName(technologyObject.Frame) ?? "-");
+        output.Write("\n// folder: "u8);
+        output.Write(program.FolderPath(technologyObject.Frame));
+        output.Write("\nTECHNOLOGY_OBJECT \""u8);
+        output.Write(technologyObject.Name);
+        output.Write("\" : "u8);
+        output.Write(technologyObject.Kind);
+        output.Write("\n{ VERSION := '"u8);
+        output.Write(technologyObject.Version ?? "");
+        output.Write("'; NUMBER := "u8);
+        output.Write(technologyObject.Number?.ToString(CultureInfo.InvariantCulture) ?? "-");
+        output.Write(" }\n"u8);
+        var parameters = program.ReadParameters(technologyObject);
+        if (parameters.Count == 0 && technologyObject.IsKnowHowProtected) {
+            output.Write(ProtectedMarker);
+            output.Write((byte)'\n');
+        }
+        foreach (var parameter in parameters) {
+            output.Write("   "u8);
+            output.Write(parameter.Name);
+            output.Write(" : "u8);
+            output.Write(parameter.Type);
+            if (parameter.Value is { } value) {
+                output.Write(" := "u8);
+                output.Write(value);
+            }
+            output.Write(";\n"u8);
+        }
+        output.Write("END_TECHNOLOGY_OBJECT\n"u8);
+    }
+
     private static string ReturnType(IReadOnlyList<TiaMember> members) {
         foreach (var member in members) {
             if (member.Section == "Return") {

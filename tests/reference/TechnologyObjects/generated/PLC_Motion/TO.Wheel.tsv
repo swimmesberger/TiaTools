@@ -1,0 +1,64 @@
+parameter	type	value
+Sensor.Type	Int32	0
+Sensor.InverseDirection	Boolean	false
+Sensor.System	Int32	1
+Sensor.MountingMode	Int32	0
+Sensor.DataAdaption	Int32	0
+Sensor.ActualVelocityMode	Int32	0
+Sensor.Interface.Number	UInt32	1
+Sensor.Parameter.Resolution	Double	0.001
+Sensor.Parameter.StepsPerRevolution	UInt32	4096
+Sensor.Parameter.FineResolutionXist1	UInt32	11
+Sensor.Parameter.FineResolutionXist2	UInt32	9
+Sensor.Parameter.DeterminableRevolutions	UInt32	1
+Sensor.Parameter.DistancePerRevolution	Double	100
+Sensor.Parameter.BehaviorGx_XIST1	Int32	1
+Sensor.Parameter.ReferenceSpeed	Double	3000
+Sensor.Parameter.ReferenceVelocity	Double	120
+Sensor.PassiveHoming.Mode	Int32	0
+Sensor.PassiveHoming.SideInput	Boolean	true
+Sensor.PassiveHoming.Direction	Int32	2
+Sensor.PassiveHoming.SwitchLevel	Boolean	true
+CrossPlcSynchronousOperation.LocalLeadingValueDelayTime	Double	0
+Extrapolation.FollowingAxisDependentTime	Double	0
+Extrapolation.Settings.SystemDefinedExtrapolation	Int32	1
+Extrapolation.Settings.ExtrapolatedVelocityMode	Int32	1
+Extrapolation.PositionFilter.T1	Double	0
+Extrapolation.PositionFilter.T2	Double	0
+Extrapolation.VelocityFilter.T1	Double	0
+Extrapolation.VelocityFilter.T2	Double	0
+Extrapolation.VelocityTolerance.Range	Double	0
+Extrapolation.Hysteresis.Value	Double	0
+Mechanics.LeadScrew	Double	1
+LoadGear.Numerator	UInt32	1
+LoadGear.Denominator	UInt32	1
+Modulo.Enable	Boolean	true
+Modulo.Length	Double	720
+Modulo.StartValue	Double	0
+Homing.HomePosition	Double	0
+StandstillSignal.VelocityThreshold	Double	2.5
+StandstillSignal.MinDwellTime	Double	0.01
+_Properties.MotionType	Int32	0
+_Units.LengthUnit	UInt32	1013
+_Units.VelocityUnit	UInt32	1062
+_Sensor.Interface.Telegram	UInt32	0
+_Sensor.PassiveHoming.DigitalInputAddress		
+_Sensor.DataAdaptionOffline	Boolean	false
+_CrossPlcSynchronousOperation.Interface[1].AddressOut		
+CrossPlcSynchronousOperation.Interface[1].EnableLeadingValueOutput	Boolean	false
+_CrossPlcSynchronousOperation.ActivateLocalLeadingValueDelayTimeCalculation	Boolean	true
+_CrossPlcSynchronousOperation.Interface[2].AddressOut		
+CrossPlcSynchronousOperation.Interface[2].EnableLeadingValueOutput	Boolean	false
+_CrossPlcSynchronousOperation.Interface[3].AddressOut		
+CrossPlcSynchronousOperation.Interface[3].EnableLeadingValueOutput	Boolean	false
+_CrossPlcSynchronousOperation.Interface[4].AddressOut		
+CrossPlcSynchronousOperation.Interface[4].EnableLeadingValueOutput	Boolean	false
+_CrossPlcSynchronousOperation.Interface[5].AddressOut		
+CrossPlcSynchronousOperation.Interface[5].EnableLeadingValueOutput	Boolean	false
+_CrossPlcSynchronousOperation.Interface[6].AddressOut		
+CrossPlcSynchronousOperation.Interface[6].EnableLeadingValueOutput	Boolean	false
+_CrossPlcSynchronousOperation.Interface[7].AddressOut		
+CrossPlcSynchronousOperation.Interface[7].EnableLeadingValueOutput	Boolean	false
+_CrossPlcSynchronousOperation.Interface[8].AddressOut		
+CrossPlcSynchronousOperation.Interface[8].EnableLeadingValueOutput	Boolean	false
+_Properties.UseHighResolutionPositionValues	Boolean	false

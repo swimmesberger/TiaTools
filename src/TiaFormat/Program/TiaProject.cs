@@ -5,7 +5,7 @@ using TiaFormat.Storage;
 
 namespace TiaFormat.Program;
 
-/// <summary>Something a project lists and can show as text: a block or a tag table.</summary>
+/// <summary>Something a project lists and can show as text: a block, a tag table or a technology object.</summary>
 public sealed class TiaItem {
     /// <summary>The kind of a PLC's OPC UA report, which is shown like an item but is no part of the program.</summary>
     public const string OpcUaReportKind = "OPC UA";
@@ -15,6 +15,9 @@ public sealed class TiaItem {
 
     /// <summary>The kind of a PLC's safety report (spec 0012), shown like an item but no part of the program.</summary>
     public const string SafetyReportKind = "Safety";
+
+    /// <summary>The kind of a technology object (spec 0013); its own kind, such as TO_PositioningAxis, is its language.</summary>
+    public const string TechnologyObjectKind = "TO";
 
     internal TiaItem(string name, string kind, long? number, string? language, bool isClosed, string scope, bool isProject, TiaBlock? block, TiaTagTable? table) {
         Name = name;
@@ -49,6 +52,9 @@ public sealed class TiaItem {
     public TiaBlock? Block { get; }
 
     public TiaTagTable? Table { get; }
+
+    /// <summary>The technology object this item is, or null.</summary>
+    public TiaTechnologyObject? TechnologyObject { get; internal init; }
 
     /// <summary>A watch table or force table, of kind <c>Watch</c> or <c>Force</c>; else null.</summary>
     public TiaWatchTable? WatchTable { get; internal init; }
@@ -117,8 +123,8 @@ public readonly record struct TiaSearchResult(TiaItem Item, int Line, string Tex
 /// References come from source text only, so a closed block's calls are not among them. Safe for parallel reads.
 /// </summary>
 public sealed class TiaProject {
-    /// <summary>The order kinds are offered in: the blocks as TIA lists them, then tag tables and the OPC UA report.</summary>
-    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", "Watch", "Force", TiaItem.OpcUaReportKind, TiaItem.SafetyReportKind];
+    /// <summary>The order kinds are offered in: the blocks as TIA lists them, then tag tables, watch and force tables, technology objects and the OPC UA and safety reports.</summary>
+    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", "Watch", "Force", TiaItem.TechnologyObjectKind, TiaItem.OpcUaReportKind, TiaItem.SafetyReportKind];
 
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
@@ -149,7 +155,7 @@ public sealed class TiaProject {
 
     public TiaTreeNode Root { get; }
 
-    /// <summary>The blocks and tag tables: what is searched, referenced and exported.</summary>
+    /// <summary>The blocks, tag tables and technology objects: what is searched, referenced and exported.</summary>
     public List<TiaItem> Items { get; } = [];
 
     /// <summary>
@@ -171,6 +177,7 @@ public sealed class TiaProject {
         : key.ReportPlc is not null ? project.Report(key)
         : key.Table is { } table ? TiaDocumentBuilder.Build(table)
         : key.WatchTable is { } watch ? TiaDocumentBuilder.FromText(TiaWatchTables.Text(watch))
+        : key.TechnologyObject is { } technologyObject ? project.TechnologyObjectDocument(technologyObject)
         : TiaDocumentBuilder.Build(project.Program, key.Block!), this);
 
     /// <summary>A report's OPC UA configuration of its PLC, read once, when it is first asked for; null for any other item.</summary>
@@ -217,6 +224,13 @@ public sealed class TiaProject {
         var output = new StringWriter { NewLine = "\n" };
         TiaOpcUaWriter.WriteMarkdown(new TiaOpcUaReport([OpcUa(item)!]), TiaOpcUaWriter.Title(Path), output);
         return new TiaDocument(output.ToString(), []);
+    }
+
+    /// <summary>A technology object's text, as the dump writes it. It names nothing that leads elsewhere.</summary>
+    private TiaDocument TechnologyObjectDocument(TiaTechnologyObject technologyObject) {
+        using var output = new PooledByteWriter();
+        TiaSourceWriter.WriteTechnologyObject(Program, technologyObject, output);
+        return new TiaDocument(System.Text.Encoding.UTF8.GetString(output.WrittenSpan), []);
     }
 
     /// <summary>Makes all texts and the references between them. Without it references are empty; searching makes the texts itself.</summary>
@@ -498,6 +512,15 @@ public sealed class TiaProject {
             NoteProjectPlc(table.Frame, projectPlcs);
         }
         var safety = TiaSafety.PlcsWithSafetyProgram(Program);
+        foreach (var technologyObject in Program.TechnologyObjects) {
+            var environment = Program.Environment(technologyObject.Frame);
+            var item = new TiaItem(technologyObject.Name, TiaItem.TechnologyObjectKind, technologyObject.Number, technologyObject.Kind, false, ScopeOf(technologyObject.Frame), environment.Kind == "ProjectData", null, null) {
+                TechnologyObject = technologyObject,
+            };
+            Items.Add(item);
+            Place(HolderOf(technologyObject.Frame, root, libraries, plcs), Program.FolderPath(technologyObject.Frame), item);
+            NoteProjectPlc(technologyObject.Frame, projectPlcs);
+        }
         foreach (var (key, holder) in plcs) {
             if (projectPlcs.TryGetValue(key, out var plc)) {
                 var report = new TiaItem(TiaItem.OpcUaReportKind, TiaItem.OpcUaReportKind, null, null, false, key, true, null, null) { ReportPlc = plc };
@@ -579,6 +602,7 @@ public sealed class TiaProject {
         "SafetyResourcesFolder" => "Safety resources",
         "SafetyCompilerBlocksFolder" => "Safety compiler blocks",
         "WatchtablesFolder" => "Watch and force tables",
+        "TechnologicalParamFolder" => "Technology objects",
         _ => name,
     };
 

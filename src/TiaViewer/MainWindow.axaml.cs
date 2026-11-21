@@ -413,6 +413,7 @@ public sealed partial class MainWindow : Window {
         "Tags" => "tag tables",
         "Watch" => "watch tables",
         "Force" => "force tables",
+        TiaItem.TechnologyObjectKind => "technology objects",
         TiaItem.OpcUaReportKind => "the OPC UA entries",
         TiaItem.SafetyReportKind => "the safety entries",
         _ => kind + " blocks",
@@ -592,9 +593,10 @@ public sealed partial class MainWindow : Window {
                 Blocks = chosen is null ? null : block => chosen.Contains(block.Frame.Key),
                 TagTables = chosen is null ? null : table => chosen.Contains(table.Frame.Key),
                 WatchTables = chosen is null ? null : table => chosen.Contains(table.Frame.Key),
+                TechnologyObjects = chosen is null ? null : technologyObject => chosen.Contains(technologyObject.Frame.Key),
             }.Run());
             // The status bar has room for the gist; the tip has the rest.
-            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles + result.WatchFiles} files to \"{Path.GetFileName(target)}\"");
+            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles + result.WatchFiles + result.TechnologyObjectFiles} files to \"{Path.GetFileName(target)}\"");
             if (result.Failures.Count != 0) {
                 text += string.Create(CultureInfo.InvariantCulture, $", {result.Failures.Count} blocks failed");
             }
@@ -625,6 +627,9 @@ public sealed partial class MainWindow : Window {
         }
         if (node.Item?.WatchTable is { } watch) {
             chosen.Add(watch.Frame.Key);
+        }
+        if (node.Item?.TechnologyObject is { } technologyObject) {
+            chosen.Add(technologyObject.Frame.Key);
         }
         foreach (var child in node.Children) {
             Collect(child, chosen);

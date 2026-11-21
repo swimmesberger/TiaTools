@@ -87,7 +87,8 @@ public static class TiaFolderComparison {
         foreach (var line in File.ReadLines(Path.Combine(export, "manifest.tsv")).Skip(1)) {
             var columns = line.Split('\t');
             var (plc, kind, status, source, name) = (columns[0], columns[1], columns[4], columns[5], columns[7]);
-            if (kind == "TAGS") {
+            // Tag tables and technology objects have no generated source; they are compared by other means.
+            if (kind is "TAGS" or "TO") {
                 continue;
             }
             var key = (plc, Family(kind), name);
@@ -124,7 +125,7 @@ public static class TiaFolderComparison {
         foreach (var line in File.ReadLines(Path.Combine(dump, "index.tsv")).Skip(1)) {
             var columns = line.Split('\t');
             var (environment, plc, kind, knowHow, file, name) = (columns[1], columns[2], columns[3], columns[6], columns[7], columns[8]);
-            if (environment == "ProjectData" && knowHow == "no" && file.Length != 0 && !file.EndsWith(".f_fbd", StringComparison.Ordinal)) {
+            if (environment == "ProjectData" && kind != "TO" && knowHow == "no" && file.Length != 0 && !file.EndsWith(".f_fbd", StringComparison.Ordinal)) {
                 files[(plc, Family(kind), name)] = file;
             }
         }

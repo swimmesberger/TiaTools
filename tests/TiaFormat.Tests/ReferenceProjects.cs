@@ -49,7 +49,7 @@ internal static class ReferenceProjects {
 
     /// <summary>The blocks TIA exported as SimaticML instead of generating source for (spec 0009): LAD, FBD, their fail-safe forms (spec 0012) and GRAPH.</summary>
     public static HashSet<(string Plc, string Kind, string Name)> ExportedAsXml(string name) =>
-        [.. Manifest(name).Where(row => row.Kind is not ("TAGS" or "WATCH" or "FORCE") && row.Source.Length == 0 && row.Xml.Length != 0).Select(row => (row.Plc, row.Kind, row.Name))];
+        [.. Manifest(name).Where(row => row.Kind is not ("TAGS" or "WATCH" or "FORCE" or "TO") && row.Source.Length == 0 && row.Xml.Length != 0).Select(row => (row.Plc, row.Kind, row.Name))];
 
     /// <summary>
     /// Spec 0015: what differs between the project's watch and force tables as the reader reads them and as TIA exported
@@ -235,7 +235,8 @@ internal static class ReferenceProjects {
                     break;
             }
         }
-        foreach (var entry in known.Where(entry => entry.Kind != "xref" && !blocks.Any(block => block.Plc == entry.Plc && block.Kind == entry.Kind && block.Name == entry.Name))) {
+        // Technology objects in known.tsv are TechnologyObjectProblems's to check, cross references CrossReferenceProblems's.
+        foreach (var entry in known.Where(entry => entry.Kind is not ("xref" or "TO") && !blocks.Any(block => block.Plc == entry.Plc && block.Kind == entry.Kind && block.Name == entry.Name))) {
             problems.Add($"{project}: known.tsv lists {entry.Plc} {entry.Kind} {entry.Name}, which is in neither the archive nor TIA's export");
         }
         return problems;
@@ -359,6 +360,90 @@ internal static class ReferenceProjects {
             }
         }
         return problems;
+    }
+
+    /// <summary>
+    /// Spec 0013: each technology object TIA reported, by its kind, version and the value of every parameter TIA gives,
+    /// against the reader's. Parameters starting with <c>_</c> are settings outside the data block, and one whose value is
+    /// a device item names hardware; neither is a member. known.tsv lists, with kind TO, an object that TIA did not compile,
+    /// whose defaults are not in the archive, so only values stored on it are compared; and <c>object/parameter</c> where
+    /// Openness gives a value in other units than the data block holds. A listed difference that is gone is a problem too,
+    /// so the list stays true. Each problem names the project, the technology object, the parameter and both values.
+    /// </summary>
+    public static IReadOnlyList<string> TechnologyObjectProblems(string name, out int objects, out int compared) {
+        objects = 0;
+        compared = 0;
+        var program = new TiaProgram(TiaDatabase.Open(Archive(name)));
+        var known = Known(name).Where(entry => entry.Kind == "TO").ToList();
+        var problems = new List<string>();
+        foreach (var row in File.ReadLines(Path.Combine(Generated(name), "manifest.tsv")).Skip(1).Select(line => line.Split('\t')).Where(row => row[1] == "TO")) {
+            var (plc, kind, status, file, objectName, version) = (row[0], row[3], row[4], row[6], row[7], row[8]);
+            var what = $"{name}: {plc} technology object {objectName}";
+            if (status != "ok") {
+                problems.Add($"{what}: TIA's parameters were not exported ({row[8]})");
+                continue;
+            }
+            var technologyObject = program.TechnologyObjects.SingleOrDefault(candidate => candidate.Name == objectName && program.PlcName(candidate.Frame) == plc);
+            if (technologyObject is null) {
+                problems.Add($"{what}: not in the archive as the reader reads it");
+                continue;
+            }
+            objects++;
+            if (technologyObject.Kind != kind || technologyObject.Version != version) {
+                problems.Add($"{what}: ours {technologyObject.Kind} {technologyObject.Version}, TIA's {kind} {version}");
+            }
+            var notCompiled = known.Any(entry => entry.Plc == plc && entry.Name == objectName);
+            var withoutValue = 0;
+            var ours = program.ReadParameters(technologyObject).ToDictionary(parameter => parameter.Name);
+            foreach (var parameter in File.ReadLines(Path.Combine(Generated(name), file)).Skip(1).Select(line => line.Split('\t'))) {
+                var (parameterName, type, theirs) = (parameter[0], parameter[1], parameter[2]);
+                if (parameterName.StartsWith('_') || type.StartsWith("DeviceItem", StringComparison.Ordinal) || theirs.Length == 0) {
+                    continue;
+                }
+                if (!ours.TryGetValue(parameterName, out var our)) {
+                    problems.Add($"{what}, {parameterName}: not among the parameters the reader reads, TIA's `{theirs}`");
+                    continue;
+                }
+                if (our.Value is null && notCompiled) {
+                    withoutValue++;
+                    continue;
+                }
+                compared++;
+                var listed = known.Any(entry => entry.Plc == plc && entry.Name == objectName + "/" + parameterName);
+                var same = SameValue(our.Value, theirs);
+                if (same && listed) {
+                    problems.Add($"{what}, {parameterName}: matches TIA now; take it off known.tsv");
+                } else if (!same && !listed) {
+                    problems.Add($"{what}, {parameterName}: ours `{our.Value}`, TIA's `{theirs}`");
+                }
+            }
+            if (notCompiled && withoutValue == 0) {
+                problems.Add($"{what}: every parameter has a value now; take it off known.tsv");
+            }
+        }
+        return problems;
+    }
+
+    /// <summary>
+    /// A value as the reader writes it and as Openness gives it: numbers by value, also where ours is written in hex
+    /// (<c>16#07</c>, <c>DW#16#03000000</c>), truth values in either case.
+    /// </summary>
+    private static bool SameValue(string? ours, string theirs) {
+        if (ours is null) {
+            return false;
+        }
+        if (Number(ours) is { } a && Number(theirs) is { } b) {
+            return a == b || (float)a == (float)b;
+        }
+        return string.Equals(ours, theirs, StringComparison.OrdinalIgnoreCase);
+
+        static double? Number(string text) {
+            var hex = text.IndexOf("16#", StringComparison.Ordinal);
+            if (hex >= 0) {
+                return ulong.TryParse(text[(hex + 3)..].Replace("_", "", StringComparison.Ordinal), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var value) ? value : null;
+            }
+            return double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) ? number : null;
+        }
     }
 
     private static string FindRoot() {

@@ -63,6 +63,7 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
             "Tags" => "Export this tag table…",
             "Watch" => "Export this watch table…",
             "Force" => "Export this force table…",
+            TiaFormat.Program.TiaItem.TechnologyObjectKind => "Export this technology object…",
             _ => "Export this block…",
         }
         : Parent is null && Name != LibrariesName ? "Export this PLC…" : "Export this folder…";

@@ -11,7 +11,7 @@ namespace TiaDump;
 
 /// <summary>The command line. Reads an archive and never writes to it; protected source stays closed.</summary>
 internal sealed class TiaDumpCommands {
-    /// <summary>Lists the blocks of an archive.</summary>
+    /// <summary>Lists the blocks and technology objects of an archive.</summary>
     /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
     /// <param name="grep">Only blocks whose name matches this regular expression.</param>
     /// <param name="stubs">Also list references to blocks held elsewhere.</param>
@@ -29,11 +29,21 @@ internal sealed class TiaDumpCommands {
                 $"{program.PlcName(block.Frame),-24} {kind,-22} {block.Kind,-6} {block.Number,6} {(block.IsKnowHowProtected ? "KHP" : "   ")} {(block.IsStub ? "STUB" : "    ")} {block.Language,-10} {block.Name}  [{program.FolderPath(block.Frame)}]"));
             rows++;
         }
-        Console.Error.WriteLine($"{rows} blocks");
+        var objects = 0;
+        foreach (var technologyObject in program.TechnologyObjects) {
+            if (filter is not null && !filter.IsMatch(technologyObject.Name)) {
+                continue;
+            }
+            var (kind, _, _) = program.Environment(technologyObject.Frame);
+            Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
+                $"{program.PlcName(technologyObject.Frame),-24} {kind,-22} {"TO",-6} {technologyObject.Number,6} {(technologyObject.IsKnowHowProtected ? "KHP" : "   ")}      {technologyObject.Kind + " " + technologyObject.Version,-10} {technologyObject.Name}  [{program.FolderPath(technologyObject.Frame)}]"));
+            objects++;
+        }
+        Console.Error.WriteLine($"{rows} blocks, {objects} technology objects");
         return 0;
     }
 
-    /// <summary>Prints every block, watch table or force table of a name as text.</summary>
+    /// <summary>Prints every block, watch table, force table or technology object of a name as text.</summary>
     /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
     /// <param name="name">The block's name.</param>
     /// <param name="plc">Only the block of this PLC.</param>
@@ -59,6 +69,15 @@ internal sealed class TiaDumpCommands {
             }
             found = true;
             stdout.Write(System.Text.Encoding.UTF8.GetBytes(TiaWatchTables.Text(table)));
+        }
+        foreach (var technologyObject in program.TechnologyObjects) {
+            if (technologyObject.Name != name || (plc is not null && program.PlcName(technologyObject.Frame) != plc)) {
+                continue;
+            }
+            found = true;
+            output.Clear();
+            TiaSourceWriter.WriteTechnologyObject(program, technologyObject, output);
+            stdout.Write(output.WrittenSpan);
         }
         if (!found) {
             Console.Error.WriteLine($"No block or table named {name}.");
@@ -220,11 +239,12 @@ internal sealed class TiaDumpCommands {
             Blocks = filter is null ? null : block => filter.IsMatch(block.Name),
             TagTables = filter is null ? null : _ => false,
             WatchTables = filter is null ? null : _ => false,
+            TechnologyObjects = filter is null ? null : technologyObject => filter.IsMatch(technologyObject.Name),
             Raw = raw,
         }.Run();
         clock.Stop();
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
-            $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.WatchFiles} watch and force tables, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
+            $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.WatchFiles} watch and force tables, {result.TechnologyObjectFiles} technology objects, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
             $"{result.Bytes / 1024.0 / 1024.0:F1} MB written; opened in {opened.TotalMilliseconds:F0} ms, total {clock.Elapsed.TotalMilliseconds:F0} ms, {(GC.GetTotalAllocatedBytes(precise: true) - allocatedBefore) / 1024.0 / 1024.0:F0} MB allocated"));
         if (result.UnknownTags != 0) {

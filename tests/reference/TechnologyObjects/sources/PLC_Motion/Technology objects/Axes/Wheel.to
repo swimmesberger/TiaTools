@@ -1,0 +1,6 @@
+type	TO_ExternalEncoder
+version	8.0
+Sensor.Parameter.StepsPerRevolution	4096
+Modulo.Enable	true
+Modulo.Length	720
+StandstillSignal.VelocityThreshold	2.5

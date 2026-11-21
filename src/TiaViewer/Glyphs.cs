@@ -41,6 +41,7 @@ public static class Glyphs {
         "UDT" => Udt,
         "Tags" => Tags,
         "Watch" or "Force" => Watch,
+        TiaFormat.Program.TiaItem.TechnologyObjectKind => TechnologyObject,
         TiaFormat.Program.TiaItem.OpcUaReportKind => OpcUa,
         TiaFormat.Program.TiaItem.HardwareReportKind => Hardware,
         TiaFormat.Program.TiaItem.SafetyReportKind => Safety,
@@ -60,5 +61,6 @@ public static class Glyphs {
     private static readonly IBrush OpcUa = Brush.Parse("#0E7490");
     private static readonly IBrush Hardware = Brush.Parse("#475569");
     private static readonly IBrush Watch = Brush.Parse("#A16207");
+    private static readonly IBrush TechnologyObject = Brush.Parse("#B91C1C");
     private static readonly IBrush Other = Brush.Parse("#6B7280");
 }

@@ -1,0 +1,7 @@
+type	TO_SynchronousAxis
+version	8.0
+VirtualAxis.Mode	1
+Mechanics.LeadScrew	5
+DynamicLimits.MaxVelocity	900
+Modulo.Enable	true
+Modulo.Length	360

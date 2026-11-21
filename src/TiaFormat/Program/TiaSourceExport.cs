@@ -10,6 +10,9 @@ namespace TiaFormat.Program;
 public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures) {
     /// <summary>Watch and force table files.</summary>
     public int WatchFiles { get; init; }
+
+    /// <summary>The technology objects written, one <c>.to</c> file each (spec 0013).</summary>
+    public int TechnologyObjectFiles { get; init; }
 }
 
 /// <summary>Writes a program as readable files in a tree, environment / PLC / folder path / block, with an index.tsv of every block. Used by the command line and the viewer alike, so both write the same files.</summary>
@@ -29,6 +32,9 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
 
     /// <summary>Which watch and force tables to write, all if null.</summary>
     public Func<TiaWatchTable, bool>? WatchTables { get; init; }
+
+    /// <summary>Which technology objects to write, all if null.</summary>
+    public Func<TiaTechnologyObject, bool>? TechnologyObjects { get; init; }
 
     /// <summary>Also write each network as stored, next to its block. Never an encrypted part.</summary>
     public bool Raw { get; init; }
@@ -73,8 +79,11 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
 
         var tagFiles = WriteTagTables();
         var watchFiles = WriteWatchTables(index);
+        var technologyObjectFiles = WriteTechnologyObjects(index);
         File.WriteAllText(Path.Combine(root, "index.tsv"), index.ToString(), new UTF8Encoding(false));
-        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]) { WatchFiles = watchFiles };
+        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]) {
+            TechnologyObjectFiles = technologyObjectFiles,
+        };
     }
 
     private void WriteBlock(TiaBlock block, string path, PooledByteWriter output) {
@@ -132,6 +141,31 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             index.Append(CultureInfo.InvariantCulture,
                 $"{table.Frame.ObjectId}\t{environment.Kind}\t{program.PlcName(table.Frame)}\t{table.Kind}\t\t\tno\t{Path.GetRelativePath(root, path).Replace('\\', '/')}\t{table.Name}\n");
             count++;
+        }
+        return count;
+    }
+
+    /// <summary>Each technology object as a <c>.to</c> file in its folder, with a row of kind TO in the index, its type as the language.</summary>
+    private int WriteTechnologyObjects(StringBuilder index) {
+        var count = 0;
+        using var output = new PooledByteWriter();
+        foreach (var technologyObject in program.TechnologyObjects) {
+            if (TechnologyObjects is { } include && !include(technologyObject)) {
+                continue;
+            }
+            var path = _paths.Reserve(Path.Combine(ProgramFolder(technologyObject.Frame), Safe(technologyObject.Name) + ".to"), technologyObject.Frame.ObjectId);
+            try {
+                output.Clear();
+                TiaSourceWriter.WriteTechnologyObject(program, technologyObject, output);
+                WriteFile(path, output.WrittenSpan);
+                count++;
+            } catch (Exception e) when (e is TiaFormatException or ArgumentOutOfRangeException or IndexOutOfRangeException or InvalidDataException or IOException) {
+                _failures.Enqueue($"TO {technologyObject.Name} (object {technologyObject.Frame.ObjectId}): {e.Message}");
+                continue;
+            }
+            var environment = program.Environment(technologyObject.Frame);
+            index.Append(CultureInfo.InvariantCulture,
+                $"{technologyObject.Frame.ObjectId}\t{environment.Kind}\t{program.PlcName(technologyObject.Frame)}\tTO\t{technologyObject.Number}\t{technologyObject.Kind}\t{(technologyObject.IsKnowHowProtected ? "yes" : "no")}\t{Path.GetRelativePath(root, path).Replace('\\', '/')}\t{technologyObject.Name}\n");
         }
         return count;
     }
