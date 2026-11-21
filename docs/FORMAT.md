@@ -726,13 +726,13 @@ Where a project's devices, subnets and IO systems are stored. Found by reading e
 
 | Attribute | Holds |
 |---|---|
-| `ICoreAttributes.Name` | The name. An ET 200SP interface module's own submodule stores `_1`, and TIA names it as the module. **[S]** for the ET 200SP; that any `_<digits>` name works so is **[I]** |
+| `ICoreAttributes.Name` | The name. An ET 200SP interface module's own submodule stores `_1`, or the module's type with `_1` (`IM 155-6 PN HF_1`, subtype `ET200SP.IM.Submodule`), and TIA names it as the module. **[S]** for both, on `Hardware` and `Safety`; that any `_<digits>` name works so is **[I]** |
 | `IDeviceItemData.PositionNumber` | The slot: 0 a rack, 1 a CPU, 2 and up its modules; an interface 32768 and up, its ports after it. **[S]** |
-| `OrderNumber`, `FwVersion`, `InvariantTypeName` | For a device item plugged into the device: its order number, firmware and type name, as TIA shows them. **[S]** Built-in items store some too (a CPU display's order number, a bus adapter port's firmware), and TIA shows none of them. **[S]** An ET 200SP rack stores the placeholder `6ES5 710-8MAx1`, which TIA does not show; the reader leaves out an order number with a lowercase letter. **[S]** for this one, the rule **[I]** |
+| `OrderNumber`, `FwVersion`, `InvariantTypeName` | For a device item plugged into the device: its order number, firmware and type name, as TIA shows them. **[S]** Built-in items store some too (a CPU display's order number, a bus adapter port's firmware), and TIA shows none of them. **[S]** But an S7-1500 F-module's own submodule stores its type name, and TIA shows it: the reader shows a built-in item's type name when the item is no interface or port and its subtype extends its module's (`S71500.SM.DI.DI16` in `S71500.SM.DI`). **[S]** for the two F-modules of `Safety`, where a plain module's submodule stores none and an ET 200SP F-module's submodule, with its module's own subtype, shows none; the rule **[I]** An ET 200SP rack stores the placeholder `6ES5 710-8MAx1`, which TIA does not show; the reader leaves out an order number with a lowercase letter. **[S]** for this one, the rule **[I]** |
 | `InvariantTypeName` of a built-in interface or port | Its label: `X1`, `X3`, `X1 P1`. **[S]** for interfaces. TIA's own label of a port comes from its catalog and can differ: `P1R` for a ring port. **[S]** An ET 200SP's interface stores none, where TIA shows `X1`. **[S]** |
 | `DeviceItemType` | Bits: 0x2000 an interface, 0x4000 a port. **[I]** |
 
-**What TIA does not list.** Of the stored device items TIA lists none whose subtype starts with `Internal.` (an interface's IO controller and IO device objects), nor a CPU's proxy, common part, execution unit and licence manager (subtypes ending in `.CpuProxy`, `.CpuCommon`, `.CPUexecUnit`, `.LicenseManager`), nor its virtual communication interface, whose node has `INodeData.NodeFeatures` 2 where an interface TIA lists has 4. **[S]** on a 1516-3 PN/DP and a 1511-1 PN. Nothing stored marks them: TIA decides from its catalog, so for other CPUs the rule is **[I]**.
+**What TIA does not list.** Of the stored device items TIA lists none whose subtype starts with `Internal.` (an interface's IO controller and IO device objects), nor a CPU's proxy, common part, execution unit, F-execution unit and licence manager (subtypes ending in `.CpuProxy`, `.CpuCommon`, `.CPUexecUnit`, `.CPUFexecUnit`, `.LicenseManager`), nor its virtual communication interface, whose node has `INodeData.NodeFeatures` 2 where an interface TIA lists has 4. **[S]** on a 1516-3 PN/DP and a 1511-1 PN, and the F-execution unit on the 1516F-3 PN/DP of `Safety`; an unlisted item's system constants are its parent's. Nothing stored marks them: TIA decides from its catalog, so for other CPUs the rule is **[I]**.
 
 **I/O addresses** are dictionary expando values `AM_<n>_AddrData_<m>` (section 7.7) of the device item that has them, the submodule of a module. Each is the schema's structure `...Model.AddressItem` (section 7.4), after its u32 size: **[S]**, all 11 ranges of the reference project.
 
@@ -753,8 +753,8 @@ A device that is in no IO system has no address stored, where TIA reports start 
 |---|---|
 | `NodeIPAddress`, `NodeIPSubnetMask` | u32, the first byte the most significant: 3232235521 is 192.168.0.1 |
 | `NodeIPConfiguration` | 0 the IP address is set in the project, 3 it is set directly at the device, and the address still stored is not the one used. Other values **[?]** |
-| `PnNameOfStation` | The PROFINET device name; a generated one is stored as generated (`remote_pn_2`) |
-| `PnPnNoSAutoGenerate` | 1: the device name is generated from the device's name |
+| `PnNameOfStation` | The PROFINET device name as it was last generated or set |
+| `PnPnNoSAutoGenerate` | 1: the device name is generated, and TIA generates it from the current names, in lowercase: for an interface of a CPU, the CPU's name and the interface's, `plc_locked.profinet interface_1`; else the interface module's, `remote_pn_2`. What is stored may be older: a PLC renamed after its CPU was created keeps `plc_1.profinet interface_1`. **[S]** on `Hardware` and `Safety` |
 | `NodePBMpiAddress` | The PROFIBUS address |
 
 **Subnets** are `SubnetData`: `ICoreAttributes.Name`, `ISubnetData.NetType` (3 Ethernet, 1 PROFIBUS), `SubnetNodes` to the nodes on it, `Mastersystems` to its IO systems. **[S]**

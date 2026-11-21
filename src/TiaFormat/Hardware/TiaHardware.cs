@@ -115,7 +115,7 @@ public static class TiaHardware {
 
     /// <summary>
     /// Whether TIA lists a stored device item: internal objects of IO controllers and IO devices, and a CPU's proxy, common,
-    /// execution unit, licence manager and virtual communication interface it does not. Inferred from what TIA reports
+    /// execution unit, F-execution unit, licence manager and virtual communication interface it does not. Inferred from what TIA reports
     /// through Openness for the reference project; nothing stored says it.
     /// </summary>
     internal static bool IsListed(string? subtype, bool isVirtualInterface) {
@@ -129,6 +129,7 @@ public static class TiaHardware {
             && !subtype.EndsWith(".CpuProxy", StringComparison.Ordinal)
             && !subtype.EndsWith(".CpuCommon", StringComparison.Ordinal)
             && !subtype.EndsWith(".CPUexecUnit", StringComparison.Ordinal)
+            && !subtype.EndsWith(".CPUFexecUnit", StringComparison.Ordinal)
             && !subtype.EndsWith(".LicenseManager", StringComparison.Ordinal);
     }
 
@@ -233,20 +234,27 @@ public static class TiaHardware {
                 if (!IsListed(_db.ReadString(frame, _subtype), IsVirtualInterface(frame))) {
                     continue;
                 }
-                result.Add(Item(frame, parentName, parentPath, _deviceIds.Contains(parent)));
+                result.Add(Item(frame, parent, parentName, parentPath, _deviceIds.Contains(parent)));
             }
             return [.. result.OrderBy(item => item.Slot ?? long.MaxValue).ThenBy(item => item.TypeName == "Rack" ? 0 : 1).ThenBy(item => item.Name, StringComparer.Ordinal)];
         }
 
-        private TiaDeviceItem Item(in TiaFrame frame, string parentName, string parentPath, bool plugged) {
+        private TiaDeviceItem Item(in TiaFrame frame, ulong parentId, string parentName, string parentPath, bool plugged) {
             var stored = _db.ReadString(frame, _name) ?? "";
-            // An interface module's own submodule is stored as "_1", and TIA names it as the module.
-            var name = stored.Length > 1 && stored[0] == '_' && stored[1..].All(char.IsAsciiDigit) ? parentName : stored;
+            var subtype = _db.ReadString(frame, _subtype);
+            var parent = _items.TryGetValue(parentId, out var parentFrame) ? parentFrame : (TiaFrame?)null;
+            var parentSubtype = parent is { } owner ? _db.ReadString(owner, _subtype) : null;
+            // An interface module's own submodule is stored as "_1", or after the module's type ("IM 155-6 PN HF_1"), and
+            // TIA names it as the module.
+            var ownSubmodule = (stored.Length > 1 && stored[0] == '_' && stored[1..].All(char.IsAsciiDigit))
+                || (subtype?.EndsWith(".IM.Submodule", StringComparison.Ordinal) ?? false);
+            var name = ownSubmodule ? parentName : stored;
             var path = parentPath + PathSeparator + name;
             _paths[frame.ObjectId] = path;
             var nodes = Targets(frame, _nodes).ToList();
             var typeName = NonEmpty(_db.ReadString(frame, _typeName));
             var order = NonEmpty(_db.ReadString(frame, _order));
+            var connector = IsConnector(_db.ReadInteger(frame, _itemType));
             return new TiaDeviceItem(
                 name,
                 path,
@@ -254,11 +262,15 @@ public static class TiaHardware {
                 // A lowercase letter marks a placeholder, such as an ET 200SP rack's, which TIA does not show.
                 plugged && order is not null && !order.Any(char.IsAsciiLetterLower) ? order : null,
                 plugged ? NonEmpty(_db.ReadString(frame, _firmware)) : null,
-                plugged ? typeName : null,
-                plugged ? null : IsConnector(_db.ReadInteger(frame, _itemType)) ? typeName : null,
+                // A built-in item that is no interface or port, whose subtype extends its module's (S71500.SM.DI.DI16 in
+                // S71500.SM.DI), shows the type it stores, as an F-module's submodule does; a plain module's stores none.
+                plugged || (!connector && subtype is not null && parentSubtype is not null && subtype.StartsWith(parentSubtype + ".", StringComparison.Ordinal)) ? typeName : null,
+                plugged ? null : connector ? typeName : null,
                 Constants(frame),
                 IoAddresses(frame),
-                [.. nodes.Select(InterfaceAddress)],
+                // A generated PROFINET device name is the CPU's name and the interface's, or the interface module's name,
+                // in lowercase: what is stored was generated from the names at the time and may be out of date.
+                [.. nodes.Select(node => InterfaceAddress(node, (parent is { } holder && IsCpu(holder) ? parentName + "." + name : parentName).ToLowerInvariant()))],
                 Items(frame.ObjectId, name, path));
         }
 
@@ -340,7 +352,10 @@ public static class TiaHardware {
             return [.. result.OrderBy(address => address.Kind).ThenBy(address => address.StartByte)];
         }
 
-        private TiaInterfaceAddress InterfaceAddress(TiaFrame node) {
+        private bool IsCpu(in TiaFrame frame) =>
+            _db.Schema.FindObjectType(frame.TypeId)?.FullName.EndsWith(".S7ControllerTargetData", StringComparison.Ordinal) ?? false;
+
+        private TiaInterfaceAddress InterfaceAddress(TiaFrame node, string generatedName) {
             var kind = SubnetKind(_db.ReadInteger(node, _nodeType));
             var subnet = _db.TryGetTarget(node, _subnet, out var on) ? _db.ReadString(on, _name) : null;
             var name = _db.ReadString(node, _name) ?? "";
@@ -349,6 +364,7 @@ public static class TiaHardware {
             }
             // NodeIPConfiguration 3: "IP address is set directly at the device"; the address still stored is not the one used.
             var elsewhere = _db.ReadExpandoInteger(node, "NodeIPConfiguration") == 3;
+            var generated = _db.ReadExpandoInteger(node, "PnPnNoSAutoGenerate") is { } flag ? flag != 0 : (bool?)null;
             return new TiaInterfaceAddress(
                 name,
                 kind,
@@ -356,8 +372,8 @@ public static class TiaHardware {
                 elsewhere ? null : Ip(_db.ReadExpandoInteger(node, "NodeIPAddress")),
                 elsewhere ? null : Ip(_db.ReadExpandoInteger(node, "NodeIPSubnetMask")),
                 elsewhere,
-                _db.ReadExpandoString(node, "PnNameOfStation"),
-                _db.ReadExpandoInteger(node, "PnPnNoSAutoGenerate") is { } generated ? generated != 0 : null,
+                generated == true ? generatedName : _db.ReadExpandoString(node, "PnNameOfStation"),
+                generated,
                 null);
         }
 
