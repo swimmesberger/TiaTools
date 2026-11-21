@@ -1,0 +1,12 @@
+FUNCTION "UseRecipe" : Void
+TITLE = Runs the recipe
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+	IF "Recipe".active THEN
+	    "Recipe".count := "Recipe".count + 1;
+	    "Speed" := "Recipe".steps[1].target;
+	END_IF;
+	"Setpoint" := "Limit"(value := "Level", low := "Recipe".limits.low, high := "Recipe".limits.high);
+END_FUNCTION

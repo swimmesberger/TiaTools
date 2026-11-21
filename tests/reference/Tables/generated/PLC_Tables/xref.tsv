@@ -1,0 +1,270 @@
+object	source	source_type	source_address	source_path	reference	reference_type	reference_address	reference_path	device	relation	access	location	referenced_as	location_name	location_type	location_address
+block:Main	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	Uses	Call	@Main ▶ Program code				
+block:Main	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	Uses	Call	@Main ▶ Program code				
+block:Main	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	Sealed	SCL-Function	%FC4	PLC_Tables\Program blocks\Vault	PLC_Tables	Uses	Call	@Main ▶ Program code				
+block:Main	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	LadBoxesData	Instance DB of LadBoxes [FB11]	%DB3	PLC_Tables\Program blocks\Data	PLC_Tables	Uses	InstanceDB	@Main ▶ Program code				
+block:Main	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	StatusWord	Word	%MW30	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Read	@Main ▶ Program code				
+block:Main	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	StatusWord	Word	%MW30	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@Main ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	PLC_Tables	UsedBy	Call	@StlBasics ▶ NW4 (Jump over a call)				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Call	@UseRecipe ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Call	@LadBoxes ▶ NW7 (Call a function)				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	Sealed	SCL-Function	%FC4	PLC_Tables\Program blocks\Vault	PLC_Tables	UsedBy	Call	@Sealed ▶ ?				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	Call	@FbdBoxes ▶ NW7 (Call a function)				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	Limit	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Write	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	Limit	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Write	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	Limit	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Write	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	value	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Read	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	value	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Read	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	value	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Read	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	low	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Read	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	low	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Read	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	high	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Read	@Limit ▶ Program code				
+block:Limit	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	high	Int		PLC_Tables\Program blocks\Common\Limit	PLC_Tables	Uses	Read	@Limit ▶ Program code				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Call	@LadBoxes ▶ NW8 (Call a function block)				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Multiinstance	@"LadBoxes".pulser ▶ Data type				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	Call	@FbdBoxes ▶ NW8 (Call a function block)				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	Multiinstance	@"FbdBoxes".pulser ▶ Data type				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	trigger	Bool		PLC_Tables\Program blocks\Common\Pulse	PLC_Tables	Uses	Read	@Pulse ▶ Program code				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	trigger	Bool		PLC_Tables\Program blocks\Common\Pulse	PLC_Tables	Uses	Read	@Pulse ▶ Program code				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	q	Bool		PLC_Tables\Program blocks\Common\Pulse	PLC_Tables	Uses	Write	@Pulse ▶ Program code				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	last	Bool		PLC_Tables\Program blocks\Common\Pulse	PLC_Tables	Uses	Read	@Pulse ▶ Program code				
+block:Pulse	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	last	Bool		PLC_Tables\Program blocks\Common\Pulse	PLC_Tables	Uses	Write	@Pulse ▶ Program code				
+block:Tick	Tick	SCL-Function	%FC2	PLC_Tables\Program blocks\Common	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	PLC_Tables	UsedBy	Call	@Batch ▶ S-Mix action 				
+block:Tick	Tick	SCL-Function	%FC2	PLC_Tables\Program blocks\Common	Parts	Int	%MW12	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Read	@Tick ▶ Program code				
+block:Tick	Tick	SCL-Function	%FC2	PLC_Tables\Program blocks\Common	Parts	Int	%MW12	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@Tick ▶ Program code				
+block:LampDelay	LampDelay	Data block derived from IEC_TIMER	%DB1	PLC_Tables\Program blocks\Common	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	InstanceDB	@LadBoxes ▶ NW5 (Timer with its own data block)				
+block:LampDelay	LampDelay	Data block derived from IEC_TIMER	%DB1	PLC_Tables\Program blocks\Common	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	InstanceDB	@FbdBoxes ▶ NW5 (Timer with its own data block)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	done	Jump label		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Definition	@StlBasics ▶ NW4 (Jump over a call)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	done	Jump label		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Jump	@StlBasics ▶ NW4 (Jump over a call)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	start	Bool		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Read	@StlBasics ▶ NW1 (Latch with nesting)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	stop	Bool		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Read	@StlBasics ▶ NW1 (Latch with nesting)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	level	Int		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Read	@StlBasics ▶ NW2 (Compare)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	run	Bool		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Read	@StlBasics ▶ NW1 (Latch with nesting)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	run	Bool		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Write	@StlBasics ▶ NW1 (Latch with nesting)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	high	Bool		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Read	@StlBasics ▶ NW4 (Jump over a call)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	high	Bool		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Write	@StlBasics ▶ NW2 (Compare)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	total	Int		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Write	@StlBasics ▶ NW4 (Jump over a call)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	count	Int		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Read	@StlBasics ▶ NW3 (Count and transfer)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	count	Int		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Read	@StlBasics ▶ NW4 (Jump over a call)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	count	Int		PLC_Tables\Program blocks\Statement\StlBasics	PLC_Tables	Uses	Write	@StlBasics ▶ NW3 (Count and transfer)				
+block:StlBasics	StlBasics	STL-Function block	%FB2	PLC_Tables\Program blocks\Statement	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Call	@StlBasics ▶ NW4 (Jump over a call)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	skip	Jump label		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Definition	@LadLogic ▶ NW5 (Fault)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	skip	Jump label		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Jump	@LadLogic ▶ NW4 (Jump)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	start	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Read	@LadLogic ▶ NW1 (Start and stop)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	start	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Read	@LadLogic ▶ NW2 (Set and reset)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	start	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Read	@LadLogic ▶ NW3 (Rising edge)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	stop	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Read	@LadLogic ▶ NW1 (Start and stop)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	stop	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Read	@LadLogic ▶ NW2 (Set and reset)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	door	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Read	@LadLogic ▶ NW1 (Start and stop)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	door	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Read	@LadLogic ▶ NW4 (Jump)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	motor	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Read	@LadLogic ▶ NW1 (Start and stop)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	motor	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Write	@LadLogic ▶ NW1 (Start and stop)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	lamp	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Write	@LadLogic ▶ NW3 (Rising edge)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	fault	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Write	@LadLogic ▶ NW5 (Fault)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	latched	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Write	@LadLogic ▶ NW2 (Set and reset)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	latched	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	Write	@LadLogic ▶ NW2 (Set and reset)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	edgeMemory	Bool		PLC_Tables\Program blocks\Ladder\LadLogic	PLC_Tables	Uses	RW	@LadLogic ▶ NW3 (Rising edge)				
+block:LadLogic	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	Fault	Bool	%M0.0	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Read	@LadLogic ▶ NW5 (Fault)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	level	Int		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW1 (Move)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	level	Int		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW2 (Compare)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	level	Int		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW3 (Add)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	level	Int		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW7 (Call a function)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	count	Bool		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW5 (Timer with its own data block)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	count	Bool		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW6 (Counter)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	count	Bool		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW8 (Call a function block)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	reset	Bool		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW6 (Counter)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	high	Bool		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW4 (Timer)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	high	Bool		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Write	@LadBoxes ▶ NW2 (Compare)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	clamped	Int		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Write	@LadBoxes ▶ NW7 (Call a function)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	done	Bool		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Write	@LadBoxes ▶ NW4 (Timer)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	pulse	Bool		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Write	@LadBoxes ▶ NW8 (Call a function block)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	delay	TON_TIME		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Multiinstance	@LadBoxes ▶ NW4 (Timer)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	counter	CTU_INT		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Multiinstance	@LadBoxes ▶ NW6 (Counter)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	pulser	"Pulse"		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Multiinstance	@LadBoxes ▶ NW8 (Call a function block)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	copy	Int		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Read	@LadBoxes ▶ NW3 (Add)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	copy	Int		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Write	@LadBoxes ▶ NW1 (Move)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	sum	Int		PLC_Tables\Program blocks\Ladder\LadBoxes	PLC_Tables	Uses	Write	@LadBoxes ▶ NW3 (Add)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	PLC_Tables	UsedBy	Call	@Main ▶ Program code				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Call	@LadBoxes ▶ NW7 (Call a function)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Call	@LadBoxes ▶ NW8 (Call a function block)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Multiinstance	@"LadBoxes".pulser ▶ Data type				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	LampDelay	Data block derived from IEC_TIMER	%DB1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	InstanceDB	@LadBoxes ▶ NW5 (Timer with its own data block)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	LadBoxesData	Instance DB of LadBoxes [FB11]	%DB3	PLC_Tables\Program blocks\Data	PLC_Tables	TypeInstance	InstanceDB	@LadBoxesData ▶ Type				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	TON [V1.0]	Instruction			PLC_Tables	Uses	Call	@LadBoxes ▶ NW4 (Timer)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	TON [V1.0]	Instruction			PLC_Tables	Uses	Call	@LadBoxes ▶ NW5 (Timer with its own data block)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	CTU [V1.0]	Instruction			PLC_Tables	Uses	Call	@LadBoxes ▶ NW6 (Counter)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	Lamp	Bool	%Q0.1	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@LadBoxes ▶ NW5 (Timer with its own data block)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	Valve	Bool	%Q0.2	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@LadBoxes ▶ NW6 (Counter)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	Setpoint	Int	%MW10	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Read	@LadBoxes ▶ NW7 (Call a function)				
+block:LadBoxes	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	Parts	Int	%MW12	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@LadBoxes ▶ NW6 (Counter)				
+block:Mixed	Mixed	LAD-Function block	%FB12	PLC_Tables\Program blocks\Ladder	start	Bool		PLC_Tables\Program blocks\Ladder\Mixed	PLC_Tables	Uses	Read	@Mixed ▶ NW1 (Ladder)				
+block:Mixed	Mixed	LAD-Function block	%FB12	PLC_Tables\Program blocks\Ladder	start	Bool		PLC_Tables\Program blocks\Ladder\Mixed	PLC_Tables	Uses	Read	@Mixed ▶ NW2 (Structured text)				
+block:Mixed	Mixed	LAD-Function block	%FB12	PLC_Tables\Program blocks\Ladder	stop	Bool		PLC_Tables\Program blocks\Ladder\Mixed	PLC_Tables	Uses	Read	@Mixed ▶ NW2 (Structured text)				
+block:Mixed	Mixed	LAD-Function block	%FB12	PLC_Tables\Program blocks\Ladder	stop	Bool		PLC_Tables\Program blocks\Ladder\Mixed	PLC_Tables	Uses	Read	@Mixed ▶ NW3 (Statement list)				
+block:Mixed	Mixed	LAD-Function block	%FB12	PLC_Tables\Program blocks\Ladder	door	Bool		PLC_Tables\Program blocks\Ladder\Mixed	PLC_Tables	Uses	Read	@Mixed ▶ NW3 (Statement list)				
+block:Mixed	Mixed	LAD-Function block	%FB12	PLC_Tables\Program blocks\Ladder	motor	Bool		PLC_Tables\Program blocks\Ladder\Mixed	PLC_Tables	Uses	Write	@Mixed ▶ NW2 (Structured text)				
+block:Mixed	Mixed	LAD-Function block	%FB12	PLC_Tables\Program blocks\Ladder	lamp	Bool		PLC_Tables\Program blocks\Ladder\Mixed	PLC_Tables	Uses	Write	@Mixed ▶ NW1 (Ladder)				
+block:Mixed	Mixed	LAD-Function block	%FB12	PLC_Tables\Program blocks\Ladder	fault	Bool		PLC_Tables\Program blocks\Ladder\Mixed	PLC_Tables	Uses	Write	@Mixed ▶ NW3 (Statement list)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	skip	Jump label		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Definition	@FbdLogic ▶ NW5 (Fault)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	skip	Jump label		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Jump	@FbdLogic ▶ NW4 (Jump)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	start	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW1 (Start and stop)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	start	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW2 (Set and reset)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	start	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW3 (Edge)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	stop	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW1 (Start and stop)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	stop	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW2 (Set and reset)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	door	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW1 (Start and stop)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	door	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW3 (Edge)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	door	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW4 (Jump)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	motor	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Read	@FbdLogic ▶ NW1 (Start and stop)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	motor	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Write	@FbdLogic ▶ NW1 (Start and stop)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	motor	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Write	@FbdLogic ▶ NW5 (Fault)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	lamp	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Write	@FbdLogic ▶ NW2 (Set and reset)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	fault	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	Write	@FbdLogic ▶ NW3 (Edge)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	latched	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	RW	@FbdLogic ▶ NW2 (Set and reset)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	edgeMemory	Bool		PLC_Tables\Program blocks\Function\FbdLogic	PLC_Tables	Uses	RW	@FbdLogic ▶ NW3 (Edge)				
+block:FbdLogic	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	Fault	Bool	%M0.0	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Read	@FbdLogic ▶ NW5 (Fault)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	level	Int		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW1 (Move)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	level	Int		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW2 (Compare)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	level	Int		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW3 (Add)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	level	Int		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW7 (Call a function)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	count	Bool		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW5 (Timer with its own data block)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	count	Bool		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW6 (Counter)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	count	Bool		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW8 (Call a function block)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	reset	Bool		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW6 (Counter)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	high	Bool		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW4 (Timer)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	high	Bool		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW2 (Compare)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	clamped	Int		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW7 (Call a function)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	done	Bool		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW4 (Timer)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	pulse	Bool		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW8 (Call a function block)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	delay	TON_TIME		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Multiinstance	@FbdBoxes ▶ NW4 (Timer)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	counter	CTU_INT		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Multiinstance	@FbdBoxes ▶ NW6 (Counter)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	pulser	"Pulse"		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Multiinstance	@FbdBoxes ▶ NW8 (Call a function block)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	copy	Int		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW3 (Add)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	copy	Int		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW1 (Move)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	sum	Int		PLC_Tables\Program blocks\Function\FbdBoxes	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW3 (Add)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Call	@FbdBoxes ▶ NW7 (Call a function)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Call	@FbdBoxes ▶ NW8 (Call a function block)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Multiinstance	@"FbdBoxes".pulser ▶ Data type				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	LampDelay	Data block derived from IEC_TIMER	%DB1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	InstanceDB	@FbdBoxes ▶ NW5 (Timer with its own data block)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	TON [V1.0]	Instruction			PLC_Tables	Uses	Call	@FbdBoxes ▶ NW4 (Timer)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	TON [V1.0]	Instruction			PLC_Tables	Uses	Call	@FbdBoxes ▶ NW5 (Timer with its own data block)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	CTU [V1.0]	Instruction			PLC_Tables	Uses	Call	@FbdBoxes ▶ NW6 (Counter)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	Lamp	Bool	%Q0.1	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW5 (Timer with its own data block)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	Valve	Bool	%Q0.2	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW6 (Counter)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	Setpoint	Int	%MW10	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Read	@FbdBoxes ▶ NW7 (Call a function)				
+block:FbdBoxes	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	Parts	Int	%MW12	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@FbdBoxes ▶ NW6 (Counter)				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	start	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ T-Started NW1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	start	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ T-Restart NW1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	full	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ T-Ready NW1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	full	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ T-Empty NW1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	hot	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ T-Ready NW1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	quality	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ T-Good NW1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	quality	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ T-Bad NW1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	door	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ S-Heat C1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	overflow	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ S-Fill V1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	overflow	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ Permanent post instruction 1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	acknowledge	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ Permanent pre-instruction 1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	acknowledge	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ T-Acknowledged NW1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	level	Int		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Read	@Batch ▶ S-Mix action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	valve	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Fill action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	lamp	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ Permanent pre-instruction 1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	lamp	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Fill action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	lamp	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Heat action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	heater	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Heat action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	heater	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Mix action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	mixer	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Mix action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	drain	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Discharge action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	alarm	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Reject action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	alarm	Bool		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ Permanent post instruction 1				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	clamped	Int		PLC_Tables\Program blocks\Sequence\Batch	PLC_Tables	Uses	Write	@Batch ▶ S-Mix action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	Tick	SCL-Function	%FC2	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Call	@Batch ▶ S-Mix action 				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_StepPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Idle ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_StepPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Fill ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_StepPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Heat ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_StepPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Mix ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_StepPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Discharge ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_StepPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Reject ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_StepPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Done ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_TransitionPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Started ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_TransitionPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Ready ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_TransitionPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Good ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_TransitionPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Bad ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_TransitionPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Empty ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_TransitionPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Acknowledged ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_TransitionPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".Restart ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RTDataPlus_V6	PLC data type		PLC_Tables\PLC data types\System data types	PLC_Tables	Uses	Declaration	@"Batch".RT_DATA ▶ Data type				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_1_V6 [V1.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_2_V6 [V1.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_SUB_1_V6 [V1.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_SUB_2_V6 [V1.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_3_V6 [V1.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_4_V6 [V1.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_5_V6 [V1.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_SUB_3_V6 [V1.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Batch	Batch	GRAPH-Function block	%FB20	PLC_Tables\Program blocks\Sequence	G7_RT_Plus_6_V6 [V2.0]	Instruction			PLC_Tables	Uses	Call	@Batch				
+block:Recipe	"Recipe".active	Bool		PLC_Tables\Program blocks\Data\Recipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Read	@UseRecipe ▶ Program code				
+block:Recipe	"Recipe".count	Int		PLC_Tables\Program blocks\Data\Recipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Read	@UseRecipe ▶ Program code				
+block:Recipe	"Recipe".count	Int		PLC_Tables\Program blocks\Data\Recipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Write	@UseRecipe ▶ Program code				
+block:Recipe	"Recipe".steps	Array[1..3] of "RecipeStep"		PLC_Tables\Program blocks\Data\Recipe	RecipeStep	PLC data type		PLC_Tables\PLC data types	PLC_Tables	InstanceType	Declaration	@"Recipe".steps ▶ Data type				
+block:Recipe	"Recipe".steps[1].target	Real		PLC_Tables\Program blocks\Data\Recipe\steps\steps[1]	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Read	@UseRecipe ▶ Program code				
+block:Recipe	"Recipe".limits.low	Int		PLC_Tables\Program blocks\Data\Recipe\limits	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Read	@UseRecipe ▶ Program code				
+block:Recipe	"Recipe".limits.high	Int		PLC_Tables\Program blocks\Data\Recipe\limits	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Read	@UseRecipe ▶ Program code				
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	PLC_Tables	UsedBy	Call	@Main ▶ Program code				
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Call	@UseRecipe ▶ Program code				
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Recipe	Global DB	%DB2	PLC_Tables\Program blocks\Data	PLC_Tables	Uses	Read	@UseRecipe ▶ Program code		"Recipe".active	Bool	
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Recipe	Global DB	%DB2	PLC_Tables\Program blocks\Data	PLC_Tables	Uses	Read	@UseRecipe ▶ Program code		"Recipe".count	Int	
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Recipe	Global DB	%DB2	PLC_Tables\Program blocks\Data	PLC_Tables	Uses	Write	@UseRecipe ▶ Program code		"Recipe".count	Int	
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Recipe	Global DB	%DB2	PLC_Tables\Program blocks\Data	PLC_Tables	Uses	Read	@UseRecipe ▶ Program code		"Recipe".steps[1].target	Real	
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Recipe	Global DB	%DB2	PLC_Tables\Program blocks\Data	PLC_Tables	Uses	Read	@UseRecipe ▶ Program code		"Recipe".limits.low	Int	
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Recipe	Global DB	%DB2	PLC_Tables\Program blocks\Data	PLC_Tables	Uses	Read	@UseRecipe ▶ Program code		"Recipe".limits.high	Int	
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Level	Int	%IW2	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Read	@UseRecipe ▶ Program code				
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Setpoint	Int	%MW10	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@UseRecipe ▶ Program code				
+block:UseRecipe	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	Speed	Real	%MD20	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@UseRecipe ▶ Program code				
+block:LadBoxesData	LadBoxesData	Instance DB of LadBoxes [FB11]	%DB3	PLC_Tables\Program blocks\Data	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	InstanceType	InstanceDB	@LadBoxesData ▶ Type				
+block:LadBoxesData	LadBoxesData	Instance DB of LadBoxes [FB11]	%DB3	PLC_Tables\Program blocks\Data	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	PLC_Tables	UsedBy	InstanceDB	@Main ▶ Program code				
+block:LadBoxesData	"LadBoxesData".level	Int		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW1 (Move)	level			
+block:LadBoxesData	"LadBoxesData".level	Int		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW2 (Compare)	level			
+block:LadBoxesData	"LadBoxesData".level	Int		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW3 (Add)	level			
+block:LadBoxesData	"LadBoxesData".level	Int		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW7 (Call a function)	level			
+block:LadBoxesData	"LadBoxesData".count	Bool		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW5 (Timer with its own data block)	count			
+block:LadBoxesData	"LadBoxesData".count	Bool		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW6 (Counter)	count			
+block:LadBoxesData	"LadBoxesData".count	Bool		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW8 (Call a function block)	count			
+block:LadBoxesData	"LadBoxesData".reset	Bool		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW6 (Counter)	reset			
+block:LadBoxesData	"LadBoxesData".high	Bool		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW4 (Timer)	high			
+block:LadBoxesData	"LadBoxesData".high	Bool		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW2 (Compare)	high			
+block:LadBoxesData	"LadBoxesData".clamped	Int		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW7 (Call a function)	clamped			
+block:LadBoxesData	"LadBoxesData".done	Bool		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW4 (Timer)	done			
+block:LadBoxesData	"LadBoxesData".pulse	Bool		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW8 (Call a function block)	pulse			
+block:LadBoxesData	"LadBoxesData".delay	TON_TIME		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Multiinstance	@LadBoxes ▶ NW4 (Timer)	delay			
+block:LadBoxesData	"LadBoxesData".counter	CTU_INT		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Multiinstance	@LadBoxes ▶ NW6 (Counter)	counter			
+block:LadBoxesData	"LadBoxesData".pulser	"Pulse"		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Multiinstance	@LadBoxes ▶ NW8 (Call a function block)	pulser			
+block:LadBoxesData	"LadBoxesData".pulser	"Pulse"		PLC_Tables\Program blocks\Data\LadBoxesData	Pulse	SCL-Function block	%FB1	PLC_Tables\Program blocks\Common	PLC_Tables	InstanceType	Multiinstance	@"LadBoxes".pulser ▶ Data type	pulser			
+block:LadBoxesData	"LadBoxesData".copy	Int		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW3 (Add)	copy			
+block:LadBoxesData	"LadBoxesData".copy	Int		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW1 (Move)	copy			
+block:LadBoxesData	"LadBoxesData".sum	Int		PLC_Tables\Program blocks\Data\LadBoxesData	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW3 (Add)	sum			
+block:Sealed	Sealed	SCL-Function	%FC4	PLC_Tables\Program blocks\Vault	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	PLC_Tables	UsedBy	Call	@Main ▶ Program code				
+block:Sealed	Sealed	SCL-Function	%FC4	PLC_Tables\Program blocks\Vault	Limit	SCL-Function	%FC1	PLC_Tables\Program blocks\Common	PLC_Tables	Uses	Call	@Sealed ▶ ?				
+block:Sealed	Sealed	SCL-Function	%FC4	PLC_Tables\Program blocks\Vault	Level	Int	%IW2	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Read	@Sealed ▶ ?				
+block:Sealed	Sealed	SCL-Function	%FC4	PLC_Tables\Program blocks\Vault	Alarm	Bool	%M1.0	PLC_Tables\PLC tags\IO	PLC_Tables	Uses	Write	@Sealed ▶ ?				
+type:RecipeStep	RecipeStep	PLC data type		PLC_Tables\PLC data types	Recipe	Global DB	%DB2	PLC_Tables\Program blocks\Data	PLC_Tables	TypeInstance	Declaration	@"Recipe".steps ▶ Data type		"Recipe".steps	Array[1..3] of "RecipeStep"	
+tags:Default tag table	[no cross-reference service]
+tags:IO	[no cross-reference service]
+tag:Level	Level	Int	%IW2	PLC_Tables\PLC tags\IO	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Read	@UseRecipe ▶ Program code				
+tag:Level	Level	Int	%IW2	PLC_Tables\PLC tags\IO	Sealed	SCL-Function	%FC4	PLC_Tables\Program blocks\Vault	PLC_Tables	UsedBy	Read	@Sealed ▶ ?				
+tag:Lamp	Lamp	Bool	%Q0.1	PLC_Tables\PLC tags\IO	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW5 (Timer with its own data block)				
+tag:Lamp	Lamp	Bool	%Q0.1	PLC_Tables\PLC tags\IO	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	Write	@FbdBoxes ▶ NW5 (Timer with its own data block)				
+tag:Valve	Valve	Bool	%Q0.2	PLC_Tables\PLC tags\IO	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW6 (Counter)				
+tag:Valve	Valve	Bool	%Q0.2	PLC_Tables\PLC tags\IO	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	Write	@FbdBoxes ▶ NW6 (Counter)				
+tag:Fault	Fault	Bool	%M0.0	PLC_Tables\PLC tags\IO	LadLogic	LAD-Function block	%FB10	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadLogic ▶ NW5 (Fault)				
+tag:Fault	Fault	Bool	%M0.0	PLC_Tables\PLC tags\IO	FbdLogic	FBD-Function block	%FB13	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	Read	@FbdLogic ▶ NW5 (Fault)				
+tag:Setpoint	Setpoint	Int	%MW10	PLC_Tables\PLC tags\IO	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Write	@UseRecipe ▶ Program code				
+tag:Setpoint	Setpoint	Int	%MW10	PLC_Tables\PLC tags\IO	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Read	@LadBoxes ▶ NW7 (Call a function)				
+tag:Setpoint	Setpoint	Int	%MW10	PLC_Tables\PLC tags\IO	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	Read	@FbdBoxes ▶ NW7 (Call a function)				
+tag:Parts	Parts	Int	%MW12	PLC_Tables\PLC tags\IO	LadBoxes	LAD-Function block	%FB11	PLC_Tables\Program blocks\Ladder	PLC_Tables	UsedBy	Write	@LadBoxes ▶ NW6 (Counter)				
+tag:Parts	Parts	Int	%MW12	PLC_Tables\PLC tags\IO	FbdBoxes	FBD-Function block	%FB14	PLC_Tables\Program blocks\Function	PLC_Tables	UsedBy	Write	@FbdBoxes ▶ NW6 (Counter)				
+tag:Parts	Parts	Int	%MW12	PLC_Tables\PLC tags\IO	Tick	SCL-Function	%FC2	PLC_Tables\Program blocks\Common	PLC_Tables	UsedBy	Read	@Tick ▶ Program code				
+tag:Parts	Parts	Int	%MW12	PLC_Tables\PLC tags\IO	Tick	SCL-Function	%FC2	PLC_Tables\Program blocks\Common	PLC_Tables	UsedBy	Write	@Tick ▶ Program code				
+tag:Speed	Speed	Real	%MD20	PLC_Tables\PLC tags\IO	UseRecipe	SCL-Function	%FC3	PLC_Tables\Program blocks\Data	PLC_Tables	UsedBy	Write	@UseRecipe ▶ Program code				
+tag:StatusWord	StatusWord	Word	%MW30	PLC_Tables\PLC tags\IO	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	PLC_Tables	UsedBy	Read	@Main ▶ Program code				
+tag:StatusWord	StatusWord	Word	%MW30	PLC_Tables\PLC tags\IO	Main	SCL-Organization block	%OB1	PLC_Tables\Program blocks	PLC_Tables	UsedBy	Write	@Main ▶ Program code				
+tag:Alarm	Alarm	Bool	%M1.0	PLC_Tables\PLC tags\IO	Sealed	SCL-Function	%FC4	PLC_Tables\Program blocks\Vault	PLC_Tables	UsedBy	Write	@Sealed ▶ ?				

@@ -40,6 +40,7 @@ public static class Glyphs {
         "FC" or "SFC" => Fc,
         "UDT" => Udt,
         "Tags" => Tags,
+        "Watch" or "Force" => Watch,
         TiaFormat.Program.TiaItem.OpcUaReportKind => OpcUa,
         TiaFormat.Program.TiaItem.HardwareReportKind => Hardware,
         _ when kind?.StartsWith("DB", StringComparison.Ordinal) == true => Db,
@@ -54,5 +55,6 @@ public static class Glyphs {
     private static readonly IBrush Tags = Brush.Parse("#3F8B2E");
     private static readonly IBrush OpcUa = Brush.Parse("#0E7490");
     private static readonly IBrush Hardware = Brush.Parse("#475569");
+    private static readonly IBrush Watch = Brush.Parse("#A16207");
     private static readonly IBrush Other = Brush.Parse("#6B7280");
 }

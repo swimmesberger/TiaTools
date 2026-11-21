@@ -36,6 +36,26 @@ public sealed class TiaReferenceProjectTest {
 
     [Test]
     [MethodDataSource(nameof(Projects))]
+    public void EveryWatchAndForceTableEntryMatchesTiasExport(string project) {
+        ReferenceProjects.WatchTableProblems(project, out var compared).Should().BeEmpty();
+
+        if (project == "Tables") {
+            compared.Should().BePositive("the Tables project has watch and force tables to compare");
+        }
+    }
+
+    [Test]
+    [MethodDataSource(nameof(Projects))]
+    public void EveryCrossReferenceMatchesTias(string project) {
+        ReferenceProjects.CrossReferenceProblems(project, out var compared).Should().BeEmpty();
+
+        if (project == "Tables") {
+            compared.Should().BePositive("the Tables project has TIA's cross-reference list to compare");
+        }
+    }
+
+    [Test]
+    [MethodDataSource(nameof(Projects))]
     public void EveryTagMatchesTiasExport(string project) {
         ReferenceProjects.TagProblems(project).Should().BeEmpty();
     }

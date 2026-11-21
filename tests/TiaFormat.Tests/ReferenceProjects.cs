@@ -1,5 +1,6 @@
 using System.Xml.Linq;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using TiaFormat.Program;
 using TiaFormat.Storage;
 
@@ -48,7 +49,151 @@ internal static class ReferenceProjects {
 
     /// <summary>The blocks TIA exported as SimaticML instead of generating source for (spec 0009): LAD, FBD and GRAPH.</summary>
     public static HashSet<(string Plc, string Kind, string Name)> ExportedAsXml(string name) =>
-        [.. Manifest(name).Where(row => row.Kind != "TAGS" && row.Source.Length == 0 && row.Xml.Length != 0).Select(row => (row.Plc, row.Kind, row.Name))];
+        [.. Manifest(name).Where(row => row.Kind is not ("TAGS" or "WATCH" or "FORCE") && row.Source.Length == 0 && row.Xml.Length != 0).Select(row => (row.Plc, row.Kind, row.Name))];
+
+    /// <summary>
+    /// Spec 0015: what differs between the project's watch and force tables as the reader reads them and as TIA exported
+    /// them, entry by entry: name or address, display format, triggers, value and comment, and comment lines; and every
+    /// table only one side has. TIA's export gives no address beside a name, and no selection box, so neither is compared.
+    /// </summary>
+    public static IReadOnlyList<string> WatchTableProblems(string name, out int compared) {
+        compared = 0;
+        var program = new TiaProgram(TiaDatabase.Open(Archive(name)));
+        var ours = TiaWatchTables.Read(program)
+            .Where(table => program.Environment(table.Frame).Kind == "ProjectData")
+            .ToDictionary(table => (program.PlcName(table.Frame) ?? "", table.Kind == TiaWatchTableKind.Force ? "FORCE" : "WATCH", table.Name));
+        var problems = new List<string>();
+        var seen = new HashSet<(string, string, string)>();
+        foreach (var row in Manifest(name).Where(row => row.Kind is "WATCH" or "FORCE")) {
+            var key = (row.Plc, row.Kind, row.Name);
+            seen.Add(key);
+            var what = $"{name}: {row.Plc} {row.Kind} {row.Name}";
+            if (!ours.TryGetValue(key, out var table)) {
+                problems.Add($"{what}: not in the archive as the reader reads it");
+                continue;
+            }
+            var force = row.Kind == "FORCE";
+            var mine = table.Entries.Select(entry => DescribeEntry(entry, force)).ToList();
+            var theirs = ExportedEntries(Path.Combine(Generated(name), row.Xml), force);
+            if (mine.Count != theirs.Count) {
+                problems.Add(string.Create(CultureInfo.InvariantCulture, $"{what}: {mine.Count} entries read, {theirs.Count} in TIA's export"));
+            }
+            foreach (var (index, (ourEntry, theirEntry)) in mine.Zip(theirs).Index()) {
+                compared++;
+                if (ourEntry != theirEntry) {
+                    problems.Add(string.Create(CultureInfo.InvariantCulture, $"{what}, entry {index + 1}: ours `{ourEntry}`, TIA's `{theirEntry}`"));
+                }
+            }
+        }
+        foreach (var key in ours.Keys.Where(key => !seen.Contains(key) && ours[key].Entries.Count != 0)) {
+            problems.Add($"{name}: {key.Item1} {key.Item2} {key.Item3}: not in TIA's export");
+        }
+        return problems;
+    }
+
+    /// <summary>
+    /// Spec 0015: the cross references of every block TIA listed in xref.tsv, as the reader reads them from XRef.db and as
+    /// TIA's CrossReferenceService gave them, each written as `user | used | access | place`. TIA's list names the data
+    /// block where its user's rows use a member, and the member in the data block's rows, so both are compared; the place
+    /// is the network of a LAD, FBD or STL block, and nothing for SCL and GRAPH, which TIA gives no network number. Rows
+    /// that differ for a reason known.tsv gives, with kind `xref` and the row as the name, are excused.
+    /// </summary>
+    public static IReadOnlyList<string> CrossReferenceProblems(string name, out int compared) {
+        compared = 0;
+        var problems = new List<string>();
+        var files = Directory.GetDirectories(Generated(name)).Select(folder => Path.Combine(folder, "xref.tsv")).Where(File.Exists).ToList();
+        if (files.Count == 0) {
+            return problems;
+        }
+        var program = new TiaProgram(TiaDatabase.Open(Archive(name)));
+        var list = TiaCrossReferences.Read(program);
+        if (list is null) {
+            return [$"{name}: XRef.db could not be read"];
+        }
+        if (!list.IsCurrent) {
+            problems.Add($"{name}: XRef.db does not belong to the database");
+        }
+        var theirs = new HashSet<string>(StringComparer.Ordinal);
+        var users = new HashSet<(string Plc, string Block)>();
+        foreach (var file in files) {
+            var plc = Path.GetFileName(Path.GetDirectoryName(file)!);
+            var all = File.ReadLines(file).Skip(1).Select(line => line.Split('\t')).Where(row => row.Length >= 13).ToList();
+            // A tag's rows name the blocks that use it, as their own rows do: both are compared.
+            foreach (var row in all.Where(row => row[0].StartsWith("tag:", StringComparison.Ordinal) && row[10] == "UsedBy")) {
+                theirs.Add($"{plc} {row[5]} | {row[1]} | {row[11]} | {PlaceOf(row[12])}");
+            }
+            var rows = all.Where(row => row[0].StartsWith("block:", StringComparison.Ordinal)).ToList();
+            users.UnionWith(rows.Select(row => (plc, row[0]["block:".Length..])));
+            // An instance data block's rows list its function block's uses of its own members again, as members of the block.
+            var instances = rows.Where(row => row[10] == "InstanceType" && row[11] == "InstanceDB" && row[1] == row[0]["block:".Length..])
+                .Select(row => (Db: row[1], Fb: row[5])).ToHashSet();
+            foreach (var row in rows) {
+                var block = row[0]["block:".Length..];
+                var (source, reference, type, relation, access, location) = (row[1], row[5], row[6], row[10], row[11], row[12]);
+                if (type == "Jump label") {
+                    continue;
+                }
+                var place = PlaceOf(location);
+                if (relation == "Uses" && source == block) {
+                    theirs.Add($"{plc} {block} | {Regex.Replace(reference, @" \[V[0-9.]+\]$", "")} | {access} | {place}");
+                } else if (relation == "UsedBy" && source != block) {
+                    var own = instances.Contains((block, reference)) && source.StartsWith("\"" + block + "\".", StringComparison.Ordinal);
+                    theirs.Add($"{plc} {reference} | {(own ? source[(block.Length + 3)..] : source)} | {access} | {place}");
+                }
+            }
+        }
+        var ours = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var reference in list.References) {
+            var plc = program.PlcName(reference.User.Frame) ?? "";
+            if (!users.Contains((plc, reference.User.Name)) || program.Environment(reference.User.Frame).Kind != "ProjectData") {
+                continue;
+            }
+            var place = reference.Network is { } network && reference.User.Language is not ("SCL" or null) && !reference.User.Language.StartsWith("GRAPH", StringComparison.Ordinal)
+                ? string.Create(CultureInfo.InvariantCulture, $"NW{network}") : "";
+            var used = reference.Used.DisplayName(reference.User.Frame.Key);
+            ours.Add($"{plc} {reference.User.Name} | {used} | {reference.Access} | {place}");
+            if (reference.Used.Member is not null && reference.Used.Key != reference.User.Frame.Key) {
+                ours.Add($"{plc} {reference.User.Name} | {reference.Used.Name} | {reference.Access} | {place}");
+            }
+        }
+        var known = Known(name).Where(entry => entry.Kind == "xref").Select(entry => entry.Name).ToHashSet(StringComparer.Ordinal);
+        foreach (var row in theirs.Order(StringComparer.Ordinal)) {
+            compared++;
+            if (!ours.Contains(row) && !known.Remove("TIA's: " + row)) {
+                problems.Add($"{name}: only TIA's list has `{row}`");
+            }
+        }
+        foreach (var row in ours.Where(row => !theirs.Contains(row)).Order(StringComparer.Ordinal)) {
+            if (!known.Remove("ours: " + row)) {
+                problems.Add($"{name}: only the reader has `{row}`");
+            }
+        }
+        problems.AddRange(known.Select(row => $"{name}: known.tsv lists `{row}`, which no longer differs; take it off"));
+        return problems;
+
+        static string PlaceOf(string location) {
+            var network = Regex.Match(location, @"▶ NW(\d+)");
+            return network.Success ? "NW" + network.Groups[1].Value : "";
+        }
+    }
+
+    private static string DescribeEntry(TiaWatchEntry entry, bool force) => entry.IsCommentLine
+        ? $"comment | {entry.Comment}"
+        : $"{entry.Name ?? entry.Address} | {entry.Format} | {entry.MonitorTrigger} | {(force ? "" : entry.ModifyTrigger)} | {entry.Value} | {entry.Comment}";
+
+    private static List<string> ExportedEntries(string file, bool force) {
+        var table = XDocument.Load(file).Root!.Elements().Single(element => element.Name.LocalName.StartsWith("SW.WatchAndForceTables.", StringComparison.Ordinal));
+        return [.. table.Elements("ObjectList").Elements().Select(entry => {
+            var attributes = entry.Element("AttributeList");
+            string? Value(string element) => attributes?.Element(element)?.Value is { Length: > 0 } text ? text : null;
+            var comment = entry.Elements("ObjectList").Elements("MultilingualText").Where(text => (string?)text.Attribute("CompositionName") == "Comment")
+                .Descendants("Text").Select(text => text.Value).FirstOrDefault(text => text.Length != 0);
+            if (entry.Name.LocalName == "SW.WatchAndForceTables.PlcTableCommentEntry") {
+                return $"comment | {comment}";
+            }
+            return $"{Value("Name") ?? Value("Address")} | {Value("DisplayFormat")} | {Value("MonitorTrigger")} | {(force ? "" : Value("ModifyTrigger"))} | {Value(force ? "ForceValue" : "ModifyValue")} | {comment}";
+        })];
+    }
 
     private sealed record ManifestRow(string Plc, string Kind, string Language, string Source, string Xml, string Name);
 
@@ -61,6 +206,10 @@ internal static class ReferenceProjects {
     public static IReadOnlyList<string> Problems(string project, IReadOnlyList<TiaComparedBlock> blocks, IReadOnlyList<KnownBlock> known, IReadOnlySet<(string Plc, string Kind, string Name)>? exportedAsXml = null) {
         var problems = new List<string>();
         foreach (var block in blocks) {
+            // Watch and force tables are compared entry by entry (spec 0015), not as source.
+            if (block.Kind is "WATCH" or "FORCE") {
+                continue;
+            }
             if (block.Outcome == TiaComparisonOutcome.NoGeneratedSource && exportedAsXml is not null && exportedAsXml.Contains((block.Plc, block.Kind, block.Name))) {
                 continue;
             }
@@ -86,7 +235,7 @@ internal static class ReferenceProjects {
                     break;
             }
         }
-        foreach (var entry in known.Where(entry => !blocks.Any(block => block.Plc == entry.Plc && block.Kind == entry.Kind && block.Name == entry.Name))) {
+        foreach (var entry in known.Where(entry => entry.Kind != "xref" && !blocks.Any(block => block.Plc == entry.Plc && block.Kind == entry.Kind && block.Name == entry.Name))) {
             problems.Add($"{project}: known.tsv lists {entry.Plc} {entry.Kind} {entry.Name}, which is in neither the archive nor TIA's export");
         }
         return problems;

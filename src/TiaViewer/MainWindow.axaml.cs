@@ -308,8 +308,14 @@ public sealed partial class MainWindow : Window {
         UsedByCount.Text = usedBy.Count.ToString(CultureInfo.InvariantCulture);
         UsesCount.Text = uses.Count.ToString(CultureInfo.InvariantCulture);
         var closed = item is null || project is null ? 0 : project.ClosedBlocksAround(item);
-        ClosedNote.Text = closed == 0 ? "" : string.Create(CultureInfo.InvariantCulture, $"{closed} blocks on this PLC are closed. What they call or use is not known, so this list may be incomplete.");
-        ClosedNote.IsVisible = closed != 0;
+        // Spec 0015, FR-009: references found in the text say so.
+        var note = project is null || !project.ReferencesFromText ? ""
+            : "These come from the text: the archive holds no cross-reference list of TIA's that belongs to it, so some uses may be missed.";
+        if (closed != 0) {
+            note += string.Create(CultureInfo.InvariantCulture, $" {closed} blocks on this PLC are closed. What they call or use is not known, so this list may be incomplete.");
+        }
+        ClosedNote.Text = note.Trim();
+        ClosedNote.IsVisible = note.Length != 0;
     }
 
     private void ShowHeading(TiaItem item) {
@@ -399,6 +405,8 @@ public sealed partial class MainWindow : Window {
         "DB" => "data blocks",
         "UDT" => "PLC data types",
         "Tags" => "tag tables",
+        "Watch" => "watch tables",
+        "Force" => "force tables",
         TiaItem.OpcUaReportKind => "the OPC UA entries",
         _ => kind + " blocks",
     };
@@ -576,9 +584,10 @@ public sealed partial class MainWindow : Window {
             var result = await Task.Run(() => new TiaSourceExport(project.Program, target) {
                 Blocks = chosen is null ? null : block => chosen.Contains(block.Frame.Key),
                 TagTables = chosen is null ? null : table => chosen.Contains(table.Frame.Key),
+                WatchTables = chosen is null ? null : table => chosen.Contains(table.Frame.Key),
             }.Run());
             // The status bar has room for the gist; the tip has the rest.
-            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles} files to \"{Path.GetFileName(target)}\"");
+            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles + result.WatchFiles} files to \"{Path.GetFileName(target)}\"");
             if (result.Failures.Count != 0) {
                 text += string.Create(CultureInfo.InvariantCulture, $", {result.Failures.Count} blocks failed");
             }
@@ -606,6 +615,9 @@ public sealed partial class MainWindow : Window {
         }
         if (node.Item?.Table is { } table) {
             chosen.Add(table.Frame.Key);
+        }
+        if (node.Item?.WatchTable is { } watch) {
+            chosen.Add(watch.Frame.Key);
         }
         foreach (var child in node.Children) {
             Collect(child, chosen);

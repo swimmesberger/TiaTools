@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21"/>
+  <SW.WatchAndForceTables.PlcForceTable ID="0">
+    <AttributeList>
+      <Name>Force table</Name>
+    </AttributeList>
+    <ObjectList>
+      <SW.WatchAndForceTables.PlcForceTableEntry ID="1" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>Bool</DisplayFormat>
+          <ForceValue>TRUE</ForceValue>
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"Valve":P</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="2" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="3" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Keep the inlet open</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcForceTableEntry>
+      <SW.WatchAndForceTables.PlcForceTableEntry ID="4" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>Bool</DisplayFormat>
+          <ForceValue>FALSE</ForceValue>
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"DoorClosed":P</Name>
+        </AttributeList>
+      </SW.WatchAndForceTables.PlcForceTableEntry>
+    </ObjectList>
+  </SW.WatchAndForceTables.PlcForceTable>
+</Document>

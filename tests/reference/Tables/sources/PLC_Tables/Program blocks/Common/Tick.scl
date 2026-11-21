@@ -1,0 +1,9 @@
+FUNCTION "Tick" : Void
+TITLE = Counts a part
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+	"Parts" := "Parts" + 1;
+END_FUNCTION
+

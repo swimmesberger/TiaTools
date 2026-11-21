@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using TiaFormat.Hardware;
+using System.Globalization;
 using TiaFormat.Storage;
 
 namespace TiaFormat.Program;
@@ -46,6 +47,9 @@ public sealed class TiaItem {
 
     public TiaTagTable? Table { get; }
 
+    /// <summary>A watch table or force table, of kind <c>Watch</c> or <c>Force</c>; else null.</summary>
+    public TiaWatchTable? WatchTable { get; internal init; }
+
     /// <summary>A PLC's OPC UA report or the project's hardware: not searched, referenced, counted or exported.</summary>
     public bool IsReport => Kind is OpcUaReportKind or HardwareReportKind;
 
@@ -88,7 +92,16 @@ public enum TiaReferenceKind : byte {
 }
 
 /// <summary>One line of one item that refers to another item. Line counts from 0.</summary>
-public readonly record struct TiaReference(TiaItem From, TiaItem To, TiaReferenceKind Kind, int Line, string Text);
+public readonly record struct TiaReference(TiaItem From, TiaItem To, TiaReferenceKind Kind, int Line, string Text) {
+    /// <summary>The access in TIA's terms, such as Read, Write, Call or Monitor; null for a reference found in the text.</summary>
+    public string? Access { get; init; }
+
+    /// <summary>What in <see cref="To"/> is used: a tag of a tag table, or a data block member such as <c>steps[1].target</c>.</summary>
+    public string? Target { get; init; }
+
+    /// <summary>The network of <see cref="From"/> the use is in, as TIA's cross-reference list gives it; null if it gives none.</summary>
+    public int? Network { get; init; }
+}
 
 /// <summary>A place in an item. Line counts from 0.</summary>
 public readonly record struct TiaLocation(TiaItem Item, int Line);
@@ -102,7 +115,7 @@ public readonly record struct TiaSearchResult(TiaItem Item, int Line, string Tex
 /// </summary>
 public sealed class TiaProject {
     /// <summary>The order kinds are offered in: the blocks as TIA lists them, then tag tables and the OPC UA report.</summary>
-    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", TiaItem.OpcUaReportKind];
+    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", "Watch", "Force", TiaItem.OpcUaReportKind];
 
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
@@ -152,6 +165,7 @@ public sealed class TiaProject {
         key.IsHardware ? project.HardwareText()
         : key.ReportPlc is not null ? project.Report(key)
         : key.Table is { } table ? TiaDocumentBuilder.Build(table)
+        : key.WatchTable is { } watch ? TiaDocumentBuilder.FromText(TiaWatchTables.Text(watch))
         : TiaDocumentBuilder.Build(project.Program, key.Block!), this);
 
     /// <summary>A report's OPC UA configuration of its PLC, read once, when it is first asked for; null for any other item.</summary>
@@ -205,12 +219,137 @@ public sealed class TiaProject {
                 _closed[item.Scope] = _closed.GetValueOrDefault(item.Scope) + 1;
             }
         }
+        // TIA's own list where the archive holds one that belongs to it (spec 0015); else what the text names.
+        var list = TiaCrossReferences.Read(Program);
+        if (list is { IsCurrent: true }) {
+            AddCrossReferences(list);
+        } else {
+            ReferencesFromText = true;
+            foreach (var item in Items) {
+                if (item.Block is not null && !item.IsClosed) {
+                    AddReferences(item);
+                }
+            }
+        }
         foreach (var item in Items) {
-            if (item.Block is not null && !item.IsClosed) {
-                AddReferences(item);
+            if (item.WatchTable is not null) {
+                AddWatchTableReferences(item);
             }
         }
         _indexed = true;
+    }
+
+    /// <summary>
+    /// Whether the references come from the text, because the archive holds no cross-reference list of TIA's that belongs
+    /// to it: then a closed block's uses are unknown and some uses may be missed (spec 0015, FR-009).
+    /// </summary>
+    public bool ReferencesFromText { get; private set; }
+
+    private void AddCrossReferences(TiaCrossReferences list) {
+        var items = Items.Where(item => item.Block is not null).ToDictionary(item => item.Block!.Frame.Key);
+        var seen = new HashSet<(TiaItem, TiaItem, string?, string?, int?)>();
+        foreach (var reference in list.References) {
+            if (!items.TryGetValue(reference.User.Frame.Key, out var from) || reference.Used.Key == reference.User.Frame.Key) {
+                continue;
+            }
+            TiaItem to;
+            string? target = reference.Used.Member;
+            string needle;
+            if (reference.Used.Kind == "Tag") {
+                if (Resolve(from, reference.Used.Name) is not { } tag) {
+                    continue;
+                }
+                to = tag.Item;
+                target = reference.Used.Name;
+                needle = "\"" + reference.Used.Name + "\"";
+            } else if (items.TryGetValue(reference.Used.Key, out var block)) {
+                to = block;
+                needle = "\"" + reference.Used.Name + "\"";
+            } else {
+                // A system instruction is no item of the project.
+                continue;
+            }
+            if (!seen.Add((from, to, target, reference.Access, reference.Network))) {
+                continue;
+            }
+            var document = Document(from);
+            var line = from.IsClosed ? 0
+                : target is not null && reference.Used.Kind != "Tag" && PlaceLine(document, from.Block!, reference.Network, needle + "." + target) is var member && member >= 0 ? member
+                : PlaceLine(document, from.Block!, reference.Network, needle) is var named && named >= 0 ? named
+                : PlaceLine(document, from.Block!, reference.Network, null);
+            var kind = reference.Access is "Call" ? TiaReferenceKind.Call : TiaReferenceKind.Use;
+            var text = from.IsClosed ? "(closed)" : document.LineText(line).Trim();
+            AddReference(new TiaReference(from, to, kind, line, text) { Access = reference.Access, Target = target, Network = reference.Network });
+        }
+    }
+
+    /// <summary>
+    /// The line of a use: the first line holding the needle in the network the list gives, or -1; without a needle, that
+    /// network's first line. A LAD or FBD network starts at its <c>// ---- network n</c> line, an STL one at its n-th
+    /// <c>NETWORK</c>, the rest at <c>BEGIN</c>.
+    /// </summary>
+    private static int PlaceLine(TiaDocument document, TiaBlock block, int? network, string? needle) {
+        var begin = Enumerable.Range(0, document.LineCount).FirstOrDefault(line => document.LineText(line) == "BEGIN");
+        var start = begin;
+        if (network is { } number) {
+            var heading = string.Create(CultureInfo.InvariantCulture, $"// ---- network {number} ");
+            var counted = 0;
+            for (var line = begin; line < document.LineCount; line++) {
+                var text = document.LineText(line);
+                if (text.StartsWith(heading, StringComparison.Ordinal) || (block.Language == "STL" && text == "NETWORK" && ++counted == number)) {
+                    start = line;
+                    break;
+                }
+            }
+        }
+        if (needle is null) {
+            return start;
+        }
+        for (var line = start + 1; line < document.LineCount; line++) {
+            var text = document.LineText(line);
+            if (line > start + 1 && (text.StartsWith("// ---- network ", StringComparison.Ordinal) || text == "NETWORK")) {
+                break;
+            }
+            if (text.Contains(needle, StringComparison.Ordinal)) {
+                return line;
+            }
+        }
+        return -1;
+    }
+
+    /// <summary>Each entry of a watch or force table uses the tag or data block it names: Monitor, and Modify or Force when it has a value.</summary>
+    private void AddWatchTableReferences(TiaItem item) {
+        var table = item.WatchTable!;
+        var document = Document(item);
+        for (var index = 0; index < table.Entries.Count; index++) {
+            var entry = table.Entries[index];
+            if (entry.Name is not { Length: > 1 } name || name[0] != '"' || name.IndexOf('"', 1) is not (> 1 and var close)) {
+                continue;
+            }
+            var global = name[1..close];
+            if (Resolve(item, global) is not { } location) {
+                continue;
+            }
+            var rest = name[(close + 1)..];
+            var target = location.Item.Table is not null ? global : rest.StartsWith('.') ? rest[1..] : null;
+            var line = index + 1;
+            foreach (var access in WatchAccesses(table.Kind, entry)) {
+                AddReference(new TiaReference(item, location.Item, TiaReferenceKind.Use, line, document.LineText(line).Trim()) { Access = access, Target = target });
+            }
+        }
+    }
+
+    /// <summary>The accesses TIA's list gives a watch or force table entry (FORMAT.md section 21).</summary>
+    internal static IEnumerable<string> WatchAccesses(TiaWatchTableKind kind, TiaWatchEntry entry) {
+        yield return "Monitor";
+        if (entry.Value is not null) {
+            yield return kind == TiaWatchTableKind.Force ? "Force" : "Modify";
+        }
+    }
+
+    private void AddReference(TiaReference reference) {
+        (_to.TryGetValue(reference.To, out var into) ? into : _to[reference.To] = []).Add(reference);
+        (_from.TryGetValue(reference.From, out var outOf) ? outOf : _from[reference.From] = []).Add(reference);
     }
 
     /// <summary>What a name in this item means, or null: a block, or a tag or constant at its line.</summary>
@@ -224,7 +363,7 @@ public sealed class TiaProject {
     public IReadOnlyList<TiaReference> ReferencesFrom(TiaItem item) => _from.TryGetValue(item, out var list) ? list : [];
 
     /// <summary>How many blocks around this item are closed: what they refer to is not known.</summary>
-    public int ClosedBlocksAround(TiaItem item) => item.IsReport ? 0 : _closed.GetValueOrDefault(item.Scope);
+    public int ClosedBlocksAround(TiaItem item) => item.IsReport || !ReferencesFromText ? 0 : _closed.GetValueOrDefault(item.Scope);
 
     /// <summary>Lines holding the text, whatever its case, the project's own before a library's.</summary>
     public IReadOnlyList<TiaSearchResult> Search(string text, int limit = 2000) {
@@ -331,6 +470,17 @@ public sealed class TiaProject {
             Place(HolderOf(table.Frame, root, libraries, plcs), Program.FolderPath(table.Frame), item);
             NoteProjectPlc(table.Frame, projectPlcs);
         }
+        foreach (var table in TiaWatchTables.Read(Program)) {
+            if (table.Entries.Count == 0) {
+                continue;
+            }
+            var environment = Program.Environment(table.Frame);
+            var kind = table.Kind == TiaWatchTableKind.Force ? "Force" : "Watch";
+            var item = new TiaItem(table.Name, kind, null, null, false, ScopeOf(table.Frame), environment.Kind == "ProjectData", null, null) { WatchTable = table };
+            Items.Add(item);
+            Place(HolderOf(table.Frame, root, libraries, plcs), Program.FolderPath(table.Frame), item);
+            NoteProjectPlc(table.Frame, projectPlcs);
+        }
         foreach (var (key, holder) in plcs) {
             if (projectPlcs.TryGetValue(key, out var plc)) {
                 var report = new TiaItem(TiaItem.OpcUaReportKind, TiaItem.OpcUaReportKind, null, null, false, key, true, null, null) { ReportPlc = plc };
@@ -406,6 +556,7 @@ public sealed class TiaProject {
         "SystemBlocksFolder" => "System blocks",
         "SafetyResourcesFolder" => "Safety resources",
         "SafetyCompilerBlocksFolder" => "Safety compiler blocks",
+        "WatchtablesFolder" => "Watch and force tables",
         _ => name,
     };
 

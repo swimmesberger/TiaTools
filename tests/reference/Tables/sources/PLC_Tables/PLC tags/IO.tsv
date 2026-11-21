@@ -1,0 +1,14 @@
+Start	Bool	%I0.0	Start button
+Stop	Bool	%I0.1	Stop button, normally closed
+DoorClosed	Bool	%I0.2	Door switch
+Level	Int	%IW2	Tank level in percent
+Motor	Bool	%Q0.0	Motor contactor
+Lamp	Bool	%Q0.1	Signal lamp
+Valve	Bool	%Q0.2	Inlet valve
+Fault	Bool	%M0.0	Collected fault
+StartEdge	Bool	%M0.1	Edge memory of Start
+Setpoint	Int	%MW10	Level setpoint
+Parts	Int	%MW12	Parts counted
+Speed	Real	%MD20	Conveyor speed
+StatusWord	Word	%MW30	Status bits
+Alarm	Bool	%M1.0	Set by the sealed block

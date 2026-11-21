@@ -33,7 +33,7 @@ internal sealed class TiaDumpCommands {
         return 0;
     }
 
-    /// <summary>Prints every block of a name as source text.</summary>
+    /// <summary>Prints every block, watch table or force table of a name as text.</summary>
     /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
     /// <param name="name">The block's name.</param>
     /// <param name="plc">Only the block of this PLC.</param>
@@ -52,8 +52,16 @@ internal sealed class TiaDumpCommands {
             TiaSourceWriter.Write(program, block, output);
             stdout.Write(output.WrittenSpan);
         }
+        // A watch or force table is shown by its name too, as its .watch or .force file.
+        foreach (var table in TiaWatchTables.Read(program)) {
+            if (table.Name != name || table.Entries.Count == 0 || (plc is not null && program.PlcName(table.Frame) != plc)) {
+                continue;
+            }
+            found = true;
+            stdout.Write(System.Text.Encoding.UTF8.GetBytes(TiaWatchTables.Text(table)));
+        }
         if (!found) {
-            Console.Error.WriteLine($"No block named {name}.");
+            Console.Error.WriteLine($"No block or table named {name}.");
             return 1;
         }
         return 0;
@@ -150,6 +158,22 @@ internal sealed class TiaDumpCommands {
         return 0;
     }
 
+    /// <summary>
+    /// Lists cross references, one use per line: who uses what, with the access, network and line. They come from TIA's
+    /// cross-reference list in the archive when it belongs to it, else from the text; the first line says which.
+    /// </summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="name">Only uses of, or by, the block, tag, table or member of this name.</param>
+    /// <param name="plc">Only uses in this PLC.</param>
+    [Command("xref")]
+    public int CrossReferences([Argument] string archive, [Argument] string? name = null, string? plc = null) {
+        var output = new StringWriter { NewLine = "\n" };
+        TiaCrossReferenceWriter.Write(TiaProject.Open(archive), output, name, plc);
+        using var stdout = Console.OpenStandardOutput();
+        stdout.Write(System.Text.Encoding.UTF8.GetBytes(output.ToString()));
+        return 0;
+    }
+
     /// <summary>Compares a dump with what TIA generated, block by block, and exits with 1 if any text differs.</summary>
     /// <param name="dump">A folder written by the dump command.</param>
     /// <param name="export">A folder written by tools/TiaOpennessExport.</param>
@@ -174,11 +198,12 @@ internal sealed class TiaDumpCommands {
         var result = new TiaSourceExport(program, output) {
             Blocks = filter is null ? null : block => filter.IsMatch(block.Name),
             TagTables = filter is null ? null : _ => false,
+            WatchTables = filter is null ? null : _ => false,
             Raw = raw,
         }.Run();
         clock.Stop();
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
-            $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
+            $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.WatchFiles} watch and force tables, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
             $"{result.Bytes / 1024.0 / 1024.0:F1} MB written; opened in {opened.TotalMilliseconds:F0} ms, total {clock.Elapsed.TotalMilliseconds:F0} ms, {(GC.GetTotalAllocatedBytes(precise: true) - allocatedBefore) / 1024.0 / 1024.0:F0} MB allocated"));
         if (result.UnknownTags != 0) {

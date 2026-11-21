@@ -1,0 +1,23 @@
+﻿FUNCTION "Limit" : Int
+TITLE = Clamps a value
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      value : Int;
+      low : Int;
+      high : Int;
+   END_VAR
+
+
+BEGIN
+	
+	 IF #value < #low THEN
+	     #Limit := #low;
+	 ELSIF #value > #high THEN
+	     #Limit := #high;
+	 ELSE
+	     #Limit := #value;
+	 END_IF;
+	
+END_FUNCTION
+

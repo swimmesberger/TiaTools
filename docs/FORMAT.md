@@ -8,7 +8,7 @@ status: stable
 
 Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers), the OPC UA configuration and the hardware. `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Seven reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run; one of them, `Hardware`, for the hardware (section 19). Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Eight reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run; `Hardware` among them for the hardware (section 19), `Tables` for watch and force tables and the cross-reference list (sections 20 and 21). Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -31,7 +31,7 @@ Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 8
 | `System/PEData.plf` | The database: this document. |
 | `System/PEData.idx` | Index over it (section 9). Not needed to read the file; useful as a check. |
 | `*.ap20`, `*.al15_1` at the top | UTF-8 XML: `Type`, `Name`, `ProjectCompatibilityVersion`/`ProjectVersion`, an icon. |
-| `XRef/XRef.db` | SQLite cross references: tables `parts`, `objs`, `rels`, `addrs`. Their binary columns are not decoded. **[?]** |
+| `XRef/XRef.db` | SQLite: TIA's cross-reference list, section 21. **[S]** |
 | `Vci/Vci.db` | SQLite, empty in both V20 samples. |
 | `AdditionalFiles/`, `Logs/` | Plain files; `GSD` device descriptions among them. |
 
@@ -534,6 +534,7 @@ A protected block holds only its ciphertext, so there is nothing to render but t
 - `Data` of a protected block starts `<EncryptedData Type="http://...`: report it and stop.
 - Still in clear on a protected block in the samples: name, kind, number, language, folder, `IsKnowHowProtected`, and an OB's event class (section 10). Some also have an interface and comments in clear: 93 of 607 protected block objects in A, 22 of 447 in B. The rest, Siemens system blocks among them, have none stored.
 - Their identifier parts are in clear (209 in A, 88 in B). The reader takes only type codes from them for its table and never renders them.
+- TIA's cross-reference list holds a protected block's uses in clear, its own members' and their places included (section 21). The reader shows which other objects it uses and how, and nothing of the rest (ADR 0015).
 - `ICoreAttributes.Protection` is a separate attribute. Use `IsKnowHowProtected` for the flag.
 
 ## 16. Reader recipe
@@ -597,15 +598,17 @@ Tag tables, from TIA's export of them: all 208 tags and constants in them agree 
 
 **The reference projects.** Six small projects TIA Portal V21 built from sources written for this repository, committed in `tests/reference` with the source TIA generated and its export of each tag table ([spec 0008](../specs/0008-reference-projects.md)). The library's tests compare the reader with them in every run. They hold every elementary type with start values, arrays, nested UDTs, a DB of a UDT, a retained DB and a standard-access DB, an FB with every interface section and constants and its instance DB, a multi-instance, text in German, French, Japanese and Chinese with string escapes, two PLCs with folders four deep, and one know-how protected block. All 34 blocks TIA generated source for are identical, the protected one is closed and shows nothing of its body, and all 27 tags agree in name, type, address, comment and external access. These are new programs, so unlike A's comparison they test the rules on something they were not worked out from.
 
+The sixth, `Languages` ([spec 0009](../specs/0009-logic-languages.md)), holds blocks TIA takes no text source for, imported as SimaticML written for it and compiled by TIA: LAD and FBD with contacts in series and in parallel, negated contacts, inputs and outputs, set and reset coils and boxes, edges, a jump to a label, a move, a comparison, an addition, a timer as a multi-instance and with a data block of its own, a counter, a call of an FC and of an FB; a LAD block with an SCL and an STL network; an STL block with bit logic in brackets, load and transfer, arithmetic, a jump and a call; and a GRAPH block with a simultaneous and an alternative branch, a jump, actions with the qualifiers N, S, R and D, an event, an interlocked action, an assignment and a call, a supervision, an interlock and permanent instructions before and after. Its STL block and the timer's data block are identical to TIA's generated source; its 27 LAD and FBD networks and its GRAPH sequence give the same statement form from the archive as from TIA's SimaticML export (section 13). Invented blocks test the rules on the forms TIA writes, not on the habits of a real program.
+
 The seventh, `Hardware` ([spec 0010](../specs/0010-hardware.md)), holds hardware TIA built through Openness from an invented description: two CPUs, four S7-1500 modules, four ET 200SP devices on PROFINET and one on PROFIBUS, two PROFINET subnets and one PROFIBUS subnet, three IO systems, a device in a device group, one device in no IO system, a start address and a PROFINET device name set by hand, and an IP address set at the device. Its build writes, beside the generated source, what TIA reports about the hardware through Openness, and the tests compare the reader with it (section 19): all 7 devices, all 73 device items TIA lists with their slots, order numbers, firmware and type names, all 11 I/O address ranges, all 9 interfaces' subnets, IP addresses, masks and PROFINET device names, the 3 subnets and the 3 IO systems with their numbers, IO controllers and IO devices agree, and every hardware identifier that a system constant holds sits where TIA puts it.
 
-The sixth, `Languages` ([spec 0009](../specs/0009-logic-languages.md)), holds blocks TIA takes no text source for, imported as SimaticML written for it and compiled by TIA: LAD and FBD with contacts in series and in parallel, negated contacts, inputs and outputs, set and reset coils and boxes, edges, a jump to a label, a move, a comparison, an addition, a timer as a multi-instance and with a data block of its own, a counter, a call of an FC and of an FB; a LAD block with an SCL and an STL network; an STL block with bit logic in brackets, load and transfer, arithmetic, a jump and a call; and a GRAPH block with a simultaneous and an alternative branch, a jump, actions with the qualifiers N, S, R and D, an event, an interlocked action, an assignment and a call, a supervision, an interlock and permanent instructions before and after. Its STL block and the timer's data block are identical to TIA's generated source; its 27 LAD and FBD networks and its GRAPH sequence give the same statement form from the archive as from TIA's SimaticML export (section 13). Invented blocks test the rules on the forms TIA writes, not on the habits of a real program.
+The eighth, `Tables` ([spec 0015](../specs/0015-tables-and-cross-references.md)), holds a copy of the `Languages` program with a global data block of a UDT, an FC using its members, an instance data block called from `Main`, and a protected FC that calls another and writes a tag; and two watch tables and the force table, imported as SimaticML: entries on tags, data block members, an array element, an address with no tag, five display formats, three triggers, values, comments and a comment line, and a table in a folder. All 14 entries agree with TIA's export of the tables (section 19), and 169 rows of TIA's cross-reference list, from each block's and each tag's side, with the list the reader reads from `XRef.db` (section 21).
 
 The text is the same after compiling. TIA exports SimaticML only for a compiled block, so a retrieved copy was compiled block by block, with every block that is not fail-safe, and closed unsaved. It refuses to compile the whole PLC without permission for the safety program. That gave SimaticML for all 319 UDTs, 85 of 92 open DBs, 194 of 379 open SCL blocks, and the same table as above.
 
 **What this does not cover.** FBD networks: all 48 in the project are `F_FBD`, so they stay uncompiled and TIA exports none of them. Protected blocks, by choice. LAD, plain FBD, STL and GRAPH: none in the project are open.
 
-**Values still not decoded, by design or not understood**: `0x80000016` in 6 HMI objects of B; 24 keys unknown in an HMI `StyleData` simple expando; `XRef.db`; `MetaId`; `0x70003` to `0x70006`. In the V15.1 library 12 `DataBlockData` objects do not fit the schema for some attributes (`Subtype`, `Culture`, `Password`, `Version`, `ITagAddress`), whichever of its three schemas is used: an offset leads out of the frame. A reader must treat such a value as absent. **[?]**
+**Values still not decoded, by design or not understood**: `0x80000016` in 6 HMI objects of B; 24 keys unknown in an HMI `StyleData` simple expando; `XRef.db`'s `addrs` table and some access codes (section 21); `MetaId`; `0x70003` to `0x70006`. In the V15.1 library 12 `DataBlockData` objects do not fit the schema for some attributes (`Subtype`, `Culture`, `Password`, `Version`, `ITagAddress`), whichever of its three schemas is used: an offset leads out of the frame. A reader must treat such a value as absent. **[?]**
 
 **Whole-archive search against this reader.** `TCON_IP_v4` in A: 153 in decoded values, 118 of them identifier parts, 14 TIA task card settings, 10 interface payloads, and **0 in source text**; it is the declared type of 4 members in 3 blocks. So a text hit says little about code. `ActiveEstablished` in A: 23, of which 12 in source (2 blocks), 7 identifiers, 4 interfaces. B: 60 and 11, 3 in source (1 block). `TCON_IP_v4_SEC` and `ActivateSecureConn` occur nowhere in either, decoded values and source alike.
 
@@ -726,6 +729,82 @@ A device that is in no IO system has no address stored, where TIA reports start 
 
 The CPU's common part also holds `EncryptedPassword*` and similar keys; the reader reads only the attributes named here, and `tiadump inspect` withholds those.
 
+## 20. Watch and force tables
+
+Read on the reference project `Tables` ([spec 0015](../specs/0015-tables-and-cross-references.md)), whose tables TIA V21 imported from SimaticML; every entry of its two watch tables and its force table agrees with TIA's export of them in every test run (section 17). **[S]** unless marked.
+
+Objects of `Siemens.Simatic.Lang.Model.Debugging`:
+
+| Type | Is |
+|---|---|
+| `VarTableData` | A watch table: `ICoreAttributes.Name`, in a `FolderData` by `AggregatingFolder` |
+| `VarTableForceData` | The force table, one per PLC, named `Force table`, present and empty in a new PLC |
+| `VarItemContainerData` | The table's lines, by `AggregatedVarItemContainer`; its simple expando (section 7.7) holds their comments |
+| `VarItemData` | By `AggregatedVarItems` from the container: `IVarItemAttributes.ItemData` is the lines, as XML |
+
+The PLC's folder of tables is stored as `WatchtablesFolder`; the folders below it are the user's. A table also has `IVarTableAttributeData.VarTableLayout`, the editor's columns, and an identifier table through `CoreObject2IdentContainer` that leads to the tags and data blocks its lines name; the reader needs neither.
+
+`ItemData`, in the namespace `http://www.siemens.com/automation/2010/IECPL`:
+
+```xml
+<VarItems Version="14.0"><VarLines>
+  <VarLine UId="23" Format="Dec_signed" RefId="2" Mute="False" IsCommentLine="False">
+    <Address>%MW10</Address><Name>"Setpoint"</Name>
+    <MonitorValue ValueUId="0" TriggerName="Smart" Checked="True" />
+    <UserValue ValueUId="24" TriggerName="Smart" Checked="False" ValueRefId="3">10#50</UserValue>
+  </VarLine>
+  <VarLine UId="29" IsCommentLine="True" />
+  <VarLine UId="40" />
+</VarLines></VarItems>
+```
+
+- One `VarLine` per line in the editor's order. The last, with only a `UId`, is the empty line the editor offers for the next entry; it is no entry.
+- `Name` is the operand as written, `"Recipe".limits.high` or `"Valve":P`; `Address` is its absolute address, stored for a tag and empty for a data block member. An entry on an address with no tag has an empty `Name`. TIA's export gives the name, or the address only when there is no name.
+- `Format` is the display format. Stored names that differ from the export's: `Dec_signed` is `DEC_signed`, `Real` is `Float`; `Bool`, `Hex` and `Bin` are the same. `Dec_unsigned` and `Dec_sequence` are mapped the same way **[I]**; any other is passed through as stored **[U]**.
+- `MonitorValue/@TriggerName` is the monitor trigger, `UserValue/@TriggerName` the modify trigger of a watch table. Stored `Smart` is the export's `Permanent`, `BeginOnce` is `OnceOnlyAtStart`, `EndCyclic` is `PermanentAtEnd`; `BeginCyclic`, `EndOnce`, `StopOnce` and `StopCyclic` are taken to be the other triggers by the same pattern **[I]**. A force table's value has `Now`, which the export does not give.
+- `UserValue`'s text is the modify value, or the force value of a force table. A decimal value is stored with `10#` before it, which the export leaves out. `UserValue/@Checked` is the box beside the value **[I]**: TIA's import refuses to set it and its export does not give it, so every reference entry stores `False`.
+- A comment line has `IsCommentLine="True"` and nothing else.
+- Comments are not in the XML: the container's simple expando has one core text per commented line, under the line's `UId` written as a decimal number, the same form as interface member comments.
+
+## 21. The cross-reference list: `XRef/XRef.db`
+
+TIA's cross-reference list lies beside the database as a SQLite file ([sqlite.org/fileformat2](https://www.sqlite.org/fileformat2.html)), which the reader reads with a reader of that format of its own (ADR 0014): table b-trees, records and overflow pages, UTF-8 only, no indexes. Read on the seven reference projects, and compared on `Tables` with TIA's own list through Openness's `CrossReferenceService`: 169 rows agree in every test run, by user, object used, access and network (section 17). **[S]** unless marked.
+
+**Does it belong to the database?** `XRef.db`'s table `info` holds `version` (10) and `savepointID`, a GUID. The database's `Siemens.Automation.ObjectFrame.CorePersistenceInfo` holds in `IPersistenceInfoAttributes.ProjectSavePoint` a string `XRef` followed by the same GUID as a string (section 7.2), beside one for `Vci`. The two agree in all seven reference archives and in two more the build wrote outside the repository: one saved after a block changed without a compile, and one after compiling it again. TIA rewrote the list in both, before any compile: the uses the change removed were gone. A list whose GUID differs from the database's is not the program's, and the reader takes the references from the text instead. The array's layout is not decoded; the reader finds the string `XRef` in the object's body and reads the string after it. **[I]**
+
+| Table | Holds |
+|---|---|
+| `parts` | `binary`: `OG`, u32 type id, u64 object id, an object of the database. One row is `00`. |
+| `objs` | `scopeObject` (the PLC), `primaryObject` (a part) and `subObject`: `00` for the object itself, else u32 member ids, a path into its interface |
+| `rels` | One use: `left` uses `right` (both `objs`), with `leftType`, `rightType`, `location`, `rightFilter` and `relationInfo` |
+| `addrs` | A tag's absolute address: `obj`, `type` (`0x1080`), `range` (the memory area) and `firstBit`, `lastBit`. Not read. **[I]** |
+
+**Member ids.** A `subObject` id is the `ID` of a member in its block's interface XML (section 11), decimal there and u32 here: `ID="51"` is `33 00 00 00`. The next id names a member of that member's struct, UDT or FB type. A function's return value is named after the function, as TIA's list names it.
+
+**Array indexes** are in `rightFilter`: `02`, a count, then per index a u16 segment of the path counted from 1 and an i32 index. `02 01 01 00 01 00 00 00` makes `steps.target` `steps[1].target`. One index on one segment was seen. **[I]**
+
+**`relationInfo`**: the low half is 1 for a use, 2 for its inverse. The high half is the access, in TIA's terms:
+
+| Code | Access | |
+|---|---|---|
+| `0x1`, `0x2`, `0x3` | Read, Write, RW | `RW` is an edge contact's or coil's memory bit |
+| `0x6` | Declaration | a member declared of a UDT, from the interface |
+| `0xC` | Call | of a block or a system instruction |
+| `0xF` | Multiinstance | a member that is an FB or system instruction instance |
+| `0x10` | InstanceDB | a data block of its own, as a call's instance; the inverse row leads from the data block to its FB |
+| `0x5`, `0x8` | Definition, Jump | a label and a jump to it: not read |
+| `0x21`, `0x4` with low half `0x80` | | among system blocks only: not read **[?]** |
+
+**`location`**: u32 network or compile unit, counted from 1 (TIA's `NW` number in LAD, FBD and STL; 1 in SCL); u32 UId of the part or token in its stored form (section 13, section 12); then the right object's kind and, for a declaration, the member's id again. A network of 0 is the interface: the second number is the id of the member declared there. For GRAPH the unit is no network TIA names; its list says step or transition instead. **[I]**
+
+**Kinds** in `leftType` and `rightType`: `0x1000` OB, `0x1010` FC, `0x1020` FB, `0x1060` DB, `0x1065` system instruction, `0x1080` tag, `0x10B0` UDT, `0x1100` label, `0x1110` data block member, `0x1120` interface member, `0x1125` UDT member. The reader goes by the part's object type instead. **[I]**
+
+**What TIA derives.** TIA's list shows a call of an FB where the list holds only the use of its instance data block, and a call of an FB or system instruction where it holds only the use of a multi-instance member; the reader derives both the same way. A system instruction is an `IECPLInstructionProxyData`, named by its `ICoreAttributes.Author` (`TON`); TIA adds its version (`TON [V1.0]`). Some rows occur twice.
+
+**Closed blocks.** The list holds a closed block's rows as an open block's, in clear: its calls, its reads and writes of tags, and of its own members with their token UIds. TIA's own list shows its uses of other objects with the place `?` and none of its own members. The reader shows the same (ADR 0015).
+
+**Not in it**: watch and force tables. Neither the list nor TIA's `CrossReferenceService`, asked for a block, a data block or a tag, names one. The reader lists a table's entries as uses of what they name, with the access `Monitor`, and `Modify` or `Force` for an entry with a value: names of TIA's `Access` type, but no output of TIA's to compare with. **[I]**
+
 ## Open questions
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
@@ -735,16 +814,17 @@ What is left of the comparison with TIA Portal, most important first. [Comparing
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, FBD, STL and GRAPH in a real program.** The reference project `Languages` checks each on invented blocks (section 13), but no sample has any unprotected, so a real program's habits are untried: other instructions, nested branches, GRAPH with several sequences or step times, STL with indirect addressing.
 5. **Hardware beyond the reference project.** Section 19 rests on one invented project of S7-1500 and ET 200SP devices: other families, GSD devices, HMI devices, a module whose inputs and outputs share one range, IP addresses from DHCP, and a real project's hardware are untried, and which device items TIA leaves out comes from its catalog, not the file. Module parameters are not read.
-6. **OPC UA.** The server's settings, all security policies, the tags' access columns and the members' access are checked (sections 11 and 18), and the node ids of TIA's node set export are in the [research note](research/2026-11-20-tia-opc-ua-server-settings.md). Left: what TIA shows for a sample's tag stored as not accessible but visible, a combination TIA does not let a person make; and a project with a user-defined server interface, for what the journals and `OpcUaInterfaceData` hold.
+6. **Cross references in a real program.** The list is read and checked on invented blocks (section 21). Untried: whether a real archive's list always belongs to its database, the places of uses in GRAPH, arrays of several dimensions and accesses through pointers. The `addrs` table, TIA's overlapping accesses, is not read.
+7. **OPC UA.** The server's settings, all security policies, the tags' access columns and the members' access are checked (sections 11 and 18), and the node ids of TIA's node set export are in the [research note](research/2026-11-20-tia-opc-ua-server-settings.md). Left: what TIA shows for a sample's tag stored as not accessible but visible, a combination TIA does not let a person make; and a project with a user-defined server interface, for what the journals and `OpcUaInterfaceData` hold.
 
 ## This repository's reader
 
-`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and the booleans, integers, strings, dates and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them; it reads one structure, the hardware's I/O address (section 19), by its offsets. For the OPC UA roles (section 18) it has a reader of the .NET binary serialization format that only reads values and creates no type the stream names.
+`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and the booleans, integers, strings, dates and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them; it reads one structure, the hardware's I/O address (section 19), by its offsets. For the OPC UA roles (section 18) it has a reader of the .NET binary serialization format that only reads values and creates no type the stream names, and for the cross-reference list (section 21) a reader of the SQLite file format that reads tables and writes nothing.
 
 ```bash
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, `devices` section 19, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks, `show` also watch and force tables, `xref` lists cross references (section 21), `dump --raw` adds each network as stored, `opcua` reports section 18, `devices` section 19, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db`, `.tags`, `.watch` and `.force` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.

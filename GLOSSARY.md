@@ -59,6 +59,18 @@ _Avoid_: main OB, entry point, OB1 (as a name for the class)
 A table of a PLC's tags and constants with their types, addresses and values.
 _Avoid_: symbol table, variable list
 
+**Watch table**:
+A table of a PLC's operands to monitor and modify while the PLC runs, each entry with its name or address, display format, triggers, modify value and comment.
+_Avoid_: variable table, VAT, watch list
+
+**Force table**:
+The one table per PLC of inputs and outputs to force while it runs, each entry with its name or address, display format, force value and comment.
+_Avoid_: force list
+
+**Cross reference**:
+One use of an object, a block, tag, data block or member, by another object, with its access (read, write, call, instance, type, monitor, ...) and its place. TIA's cross-reference list, kept in the archive as `XRef.db`, holds those of the program; uses by watch and force tables are read from the tables.
+_Avoid_: usage, xref (outside the format page), reference alone when the access matters
+
 **Master copy**:
 A copy of blocks kept in a project or global library for reuse; it can hold a whole other program, so one block name can occur several times for one PLC.
 _Avoid_: template, library block
@@ -88,7 +100,7 @@ One unit of a LAD, FBD or STL block's logic, with its own number, title and comm
 _Avoid_: rung, segment, compile unit (outside the format page)
 
 **Closed**:
-What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing more. Decryption is a separate capability it does not have (ADR 0011).
+What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing of its body; which other objects it uses, as TIA's cross-reference list keeps in clear, is shown (ADR 0015). Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable
 
 ## Hardware

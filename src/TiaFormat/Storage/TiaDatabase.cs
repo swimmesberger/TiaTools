@@ -60,11 +60,50 @@ public sealed class TiaDatabase {
     /// <summary>The current object of each id, in file order.</summary>
     public ReadOnlySpan<TiaFrame> Frames => _frames;
 
+    /// <summary>A frame's body after its 44 byte header, as stored.</summary>
+    public ReadOnlySpan<byte> Body(in TiaFrame frame) => _data.AsSpan(frame.Offset + FrameHeadSize, frame.Size - FrameHeadSize);
+
     /// <summary>Product version, such as 2000 for V20.</summary>
     public int ProductMajor => BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(24));
 
     /// <summary>Opens a <c>.zap*</c> archive, a project or library folder, or a <c>PEData.plf</c> itself.</summary>
-    public static TiaDatabase Open(string path, bool verifyHashes = false) => Parse(ReadPlf(path), verifyHashes);
+    public static TiaDatabase Open(string path, bool verifyHashes = false) {
+        var database = Parse(ReadPlf(path), verifyHashes);
+        database.SourcePath = path;
+        return database;
+    }
+
+    /// <summary>What the database was opened from, an archive, folder, project file or <c>PEData.plf</c>; null when parsed from memory.</summary>
+    public string? SourcePath { get; private set; }
+
+    /// <summary>
+    /// Another file of the project a database is opened from, by its path in the project folder, such as
+    /// <c>XRef/XRef.db</c>, read whole; null if the project has none. The archive or folder is only read.
+    /// </summary>
+    public static byte[]? ReadProjectFile(string path, string relative) {
+        if (Path.GetExtension(path).StartsWith(".zap", StringComparison.OrdinalIgnoreCase) && File.Exists(path)) {
+            using var zip = ZipFile.OpenRead(path);
+            var entry = zip.Entries.FirstOrDefault(e => ("/" + e.FullName.Replace('\\', '/')).EndsWith("/" + relative, StringComparison.OrdinalIgnoreCase));
+            if (entry is null) {
+                return null;
+            }
+            var bytes = new byte[entry.Length];
+            using var stream = entry.Open();
+            stream.ReadExactly(bytes);
+            return bytes;
+        }
+        string? folder;
+        if (Directory.Exists(path)) {
+            folder = path;
+        } else if (Path.GetFileName(path).Equals("PEData.plf", StringComparison.OrdinalIgnoreCase)) {
+            // System/PEData.plf: the project folder is the one above System.
+            folder = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(path)));
+        } else {
+            folder = Path.GetDirectoryName(Path.GetFullPath(path));
+        }
+        var file = folder is null ? null : Path.Combine(folder, relative);
+        return file is not null && File.Exists(file) ? ReadShared(file) : null;
+    }
 
     /// <summary>Reads a database held in memory; the array is kept, not copied.</summary>
     public static TiaDatabase Parse(byte[] data, bool verifyHashes = false) {

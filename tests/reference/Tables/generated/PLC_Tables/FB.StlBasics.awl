@@ -1,0 +1,57 @@
+﻿FUNCTION_BLOCK "StlBasics"
+TITLE = Statement list basics
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Bit logic, load and transfer, arithmetic, a jump and a call.
+   VAR_INPUT 
+      start : Bool;
+      stop : Bool;
+      level : Int;
+   END_VAR
+
+   VAR_OUTPUT 
+      run : Bool;
+      high : Bool;
+      total : Int;
+   END_VAR
+
+   VAR 
+      count : Int;
+   END_VAR
+
+
+BEGIN
+NETWORK
+TITLE = Latch with nesting
+//Runs from start until stop, nested in brackets.
+      A(;
+      O #start;
+      O #run;
+      );
+      AN #stop;
+      = #run;
+NETWORK
+TITLE = Compare
+      L #level;
+      L 80;
+      >I;
+      = #high ;// above 80 percent
+NETWORK
+TITLE = Count and transfer
+      L #count;
+      L 1;
+      +I;
+      T #count;
+NETWORK
+TITLE = Jump over a call
+      A #high;
+      JC done;
+      CALL "Limit"
+      (  value                       := #count , 
+         low                         := 0 , 
+         high                        := 100 , 
+         Ret_Val                     := #total
+      );
+done:      NOP 0;
+END_FUNCTION_BLOCK
+
