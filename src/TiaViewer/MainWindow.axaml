@@ -146,6 +146,9 @@
                 <!-- A PLC's OPC UA configuration, shown in the editor's place. -->
                 <local:OpcUaView x:Name="OpcUaPanel" Grid.Row="1" IsVisible="False" Background="{DynamicResource Viewer.Source}" />
 
+                <!-- An HMI device's entry as a table (spec 0011), shown in the editor's place. -->
+                <local:HmiView x:Name="HmiPanel" Grid.Row="1" IsVisible="False" Background="{DynamicResource Viewer.Source}" />
+
                 <Border x:Name="PanelsLine" Grid.Row="2" Background="{DynamicResource Viewer.Line}" />
                 <GridSplitter x:Name="PanelsSplitter" Grid.Row="2" ResizeDirection="Rows" Margin="0,-3" MinHeight="0" Background="Transparent" ZIndex="1" />
 

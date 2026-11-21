@@ -114,6 +114,7 @@ public sealed partial class MainWindow : Window {
         };
 
         OpcUaPanel.Open += OpenFromOpcUa;
+        HmiPanel.Open += OpenFromHmi;
         OpcUaPanel.Said += text => {
             Status.Text = text;
             ShowFolderButton.IsVisible = false;
@@ -158,6 +159,7 @@ public sealed partial class MainWindow : Window {
             HeadingBar.IsVisible = false;
             Editor.IsVisible = false;
             OpcUaPanel.IsVisible = false;
+            HmiPanel.IsVisible = false;
             ShowPanels(true);
             Editor.Document = new TextDocument();
             ShowWelcome(project.Root.Name, $"Choose a block on the left.\n{Command} + click a name in the source to follow it.", canOpen: false);
@@ -221,6 +223,13 @@ public sealed partial class MainWindow : Window {
         }
     }
 
+    /// <summary>Opens the PLC tag or data block an HMI tag reads, as following it in the source would.</summary>
+    private void OpenFromHmi(TiaHmiPlcLink link) {
+        if (_project?.Resolve(link) is { } location) {
+            Navigate(location.Item, location.Line);
+        }
+    }
+
     /// <summary>Follows the name at a position in the text, if it leads somewhere.</summary>
     public bool FollowAt(int offset) {
         if (_project is not { } project || _current is not { } current) {
@@ -251,16 +260,19 @@ public sealed partial class MainWindow : Window {
             if (project.OpcUa(item) is { } opcUa) {
                 OpcUaPanel.Show(opcUa, () => project.OpcUaNodes(item)!);
             }
+            if (project.HmiDevice(item) is { } device) {
+                HmiPanel.Show(device, item.HmiPart, item.Name);
+            }
             if (!keepLists) {
                 ShowPlaces(item);
             }
         }
         Welcome.IsVisible = false;
-        // A PLC's OPC UA configuration has a view of its own; its text stays in the editor for copying. An HMI entry is
-        // its text (spec 0011).
+        // A PLC's OPC UA configuration and an HMI entry have views of their own; their text stays in the editor for copying.
         var isOpcUa = item.Kind == TiaItem.OpcUaReportKind;
-        Editor.IsVisible = !isOpcUa;
+        Editor.IsVisible = !item.IsReport;
         OpcUaPanel.IsVisible = isOpcUa;
+        HmiPanel.IsVisible = item.IsHmi;
         ShowPanels(!item.IsReport);
         ShowHeading(item);
         var clamped = Math.Clamp(line, 0, document.LineCount - 1);
