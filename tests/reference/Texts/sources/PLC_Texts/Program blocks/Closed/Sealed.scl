@@ -1,0 +1,18 @@
+FUNCTION_BLOCK "Sealed"
+TITLE = Sealed leak watch
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      leak : Bool;
+      pressure : Int;
+   END_VAR
+
+   VAR
+      leakAlarm : Program_Alarm;
+   END_VAR
+
+
+BEGIN
+	// SealedBodyMustStayClosed
+	#leakAlarm(SIG := #leak, SD_1 := #pressure);
+END_FUNCTION_BLOCK

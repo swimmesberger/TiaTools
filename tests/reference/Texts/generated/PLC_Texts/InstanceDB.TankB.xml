@@ -1,0 +1,253 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21" />
+  <DocumentInfo>
+    <Created>2026-11-21T13:26:58.8131274Z</Created>
+    <ExportSetting>WithDefaults</ExportSetting>
+    <InstalledProducts>
+      <Product>
+        <DisplayName>Totally Integrated Automation Portal</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </Product>
+      <Product>
+        <DisplayName>STEP 7 Professional</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </Product>
+      <OptionPackage>
+        <DisplayName>STEP 7 Safety</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </OptionPackage>
+      <OptionPackage>
+        <DisplayName>Tech WebApplication</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </OptionPackage>
+      <Product>
+        <DisplayName>WinCC Basic/Comfort/Advanced</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </Product>
+      <Product>
+        <DisplayName>WinCC Unified</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </Product>
+    </InstalledProducts>
+  </DocumentInfo>
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <AutoNumber>true</AutoNumber>
+      <DBAccessibleFromOPCUA>true</DBAccessibleFromOPCUA>
+      <DBAccessibleFromWebserver>true</DBAccessibleFromWebserver>
+      <HeaderAuthor />
+      <HeaderFamily />
+      <HeaderName />
+      <HeaderVersion>0.1</HeaderVersion>
+      <InstanceOfName>Tank</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface>
+        <Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+          <Section Name="Input">
+            <Member Name="level" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+              <AttributeList>
+                <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+              </AttributeList>
+            </Member>
+            <Member Name="high" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+              <AttributeList>
+                <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+              </AttributeList>
+            </Member>
+            <Member Name="low" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+              <AttributeList>
+                <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+              </AttributeList>
+            </Member>
+            <Member Name="state" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+              <AttributeList>
+                <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+              </AttributeList>
+            </Member>
+          </Section>
+          <Section Name="Output" />
+          <Section Name="InOut" />
+          <Section Name="Static">
+            <Member Name="highAlarm" Datatype="Program_Alarm" Version="1.0" Accessibility="Public">
+              <AttributeList>
+                <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+              </AttributeList>
+              <Sections>
+                <Section Name="Base">
+                  <Sections Datatype="ALARM_BASE" Version="1.0">
+                    <Section Name="Input" />
+                    <Section Name="Output" />
+                    <Section Name="InOut" />
+                    <Section Name="Static">
+                      <Member Name="Alarm_ID" Datatype="Event_ID" Version="1.0">
+                        <Sections>
+                          <Section Name="None">
+                            <Member Name="ALID" Datatype="Word" />
+                            <Member Name="ARID" Datatype="Word" />
+                          </Section>
+                        </Sections>
+                      </Member>
+                      <Member Name="HANDLE" Datatype="DWord" />
+                    </Section>
+                  </Sections>
+                </Section>
+                <Section Name="Input">
+                  <Member Name="SIG" Datatype="Bool" />
+                  <Member Name="TIMESTAMP" Datatype="LDT" />
+                  <Member Name="SD_1" Datatype="Variant" />
+                  <Member Name="SD_2" Datatype="Variant" />
+                  <Member Name="SD_3" Datatype="Variant" />
+                  <Member Name="SD_4" Datatype="Variant" />
+                  <Member Name="SD_5" Datatype="Variant" />
+                  <Member Name="SD_6" Datatype="Variant" />
+                  <Member Name="SD_7" Datatype="Variant" />
+                  <Member Name="SD_8" Datatype="Variant" />
+                  <Member Name="SD_9" Datatype="Variant" />
+                  <Member Name="SD_10" Datatype="Variant" />
+                </Section>
+                <Section Name="Output">
+                  <Member Name="Error" Datatype="Bool" />
+                  <Member Name="Status" Datatype="Word" />
+                </Section>
+                <Section Name="InOut" />
+                <Section Name="Static">
+                  <Member Name="SD_0" Datatype="AssocValue_0" Version="1.0">
+                    <Sections>
+                      <Section Name="None">
+                        <Member Name="Syntax" Datatype="UInt" />
+                        <Member Name="Aap" Datatype="Byte" />
+                      </Section>
+                    </Sections>
+                  </Member>
+                  <Member Name="SIG_Edge_History" Datatype="Bool" />
+                  <Member Name="INIT_FB_State" Datatype="DWord" />
+                </Section>
+              </Sections>
+            </Member>
+            <Member Name="lowAlarm" Datatype="Program_Alarm" Version="1.0" Accessibility="Public">
+              <AttributeList>
+                <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+                <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+              </AttributeList>
+              <Sections>
+                <Section Name="Base">
+                  <Sections Datatype="ALARM_BASE" Version="1.0">
+                    <Section Name="Input" />
+                    <Section Name="Output" />
+                    <Section Name="InOut" />
+                    <Section Name="Static">
+                      <Member Name="Alarm_ID" Datatype="Event_ID" Version="1.0">
+                        <Sections>
+                          <Section Name="None">
+                            <Member Name="ALID" Datatype="Word" />
+                            <Member Name="ARID" Datatype="Word" />
+                          </Section>
+                        </Sections>
+                      </Member>
+                      <Member Name="HANDLE" Datatype="DWord" />
+                    </Section>
+                  </Sections>
+                </Section>
+                <Section Name="Input">
+                  <Member Name="SIG" Datatype="Bool" />
+                  <Member Name="TIMESTAMP" Datatype="LDT" />
+                  <Member Name="SD_1" Datatype="Variant" />
+                  <Member Name="SD_2" Datatype="Variant" />
+                  <Member Name="SD_3" Datatype="Variant" />
+                  <Member Name="SD_4" Datatype="Variant" />
+                  <Member Name="SD_5" Datatype="Variant" />
+                  <Member Name="SD_6" Datatype="Variant" />
+                  <Member Name="SD_7" Datatype="Variant" />
+                  <Member Name="SD_8" Datatype="Variant" />
+                  <Member Name="SD_9" Datatype="Variant" />
+                  <Member Name="SD_10" Datatype="Variant" />
+                </Section>
+                <Section Name="Output">
+                  <Member Name="Error" Datatype="Bool" />
+                  <Member Name="Status" Datatype="Word" />
+                </Section>
+                <Section Name="InOut" />
+                <Section Name="Static">
+                  <Member Name="SD_0" Datatype="AssocValue_0" Version="1.0">
+                    <Sections>
+                      <Section Name="None">
+                        <Member Name="Syntax" Datatype="UInt" />
+                        <Member Name="Aap" Datatype="Byte" />
+                      </Section>
+                    </Sections>
+                  </Member>
+                  <Member Name="SIG_Edge_History" Datatype="Bool" />
+                  <Member Name="INIT_FB_State" Datatype="DWord" />
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Interface>
+      <Name>TankB</Name>
+      <Namespace />
+      <Number>2</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

@@ -195,11 +195,15 @@ internal static class Program {
         static void Count(Dictionary<string, int> counts, string what) => counts[what] = counts.TryGetValue(what, out var count) ? count + 1 : 1;
     }
 
-    private static int Export(Project project, string output, bool blockXml = true, bool crossReferences = false) {
+    private static int Export(Project project, string output, bool blockXml = true, bool crossReferences = false, bool texts = true) {
         Directory.CreateDirectory(output);
         using var manifest = new StreamWriter(Path.Combine(output, "manifest.tsv"), false, new UTF8Encoding(false)) { AutoFlush = true };
         manifest.WriteLine("plc\tobject\tnumber\tlanguage\tstatus\tsource\txml\tname\tnote");
-        var exporter = new Exporter(output, manifest, blockXml);
+        var exporter = new Exporter(output, manifest, blockXml, texts);
+        if (texts) {
+            // Spec 0014: the languages and alarm classes, in files of their own beside the manifest, which lists blocks only.
+            exporter.ExportProject(project);
+        }
         foreach (var plc in Plcs(project)) {
             Console.WriteLine($"PLC {plc.Name}");
             exporter.ExportPlc(plc);
@@ -367,6 +371,9 @@ internal static class Program {
         var project = portal.Projects.Create(new DirectoryInfo(work), name);
         try {
             var refused = 0;
+            // Spec 0014: a project with languages.txt gets its languages first, and has its texts exported.
+            var texts = ReferenceTexts.SetLanguages(project, Path.Combine(folder, "sources"));
+            var cultures = project.LanguageSettings.ActiveLanguages.Select(language => language.Culture.Name).ToList();
             // With a hardware description the devices come from it, and each PLC folder names a CPU it created (spec 0010);
             // without one, each PLC folder gets a CPU of its own.
             var hardware = Path.Combine(folder, "sources", "hardware.tsv");
@@ -389,11 +396,11 @@ internal static class Program {
                     Console.WriteLine($"refused {plcName}: hardware.tsv creates no PLC of that name");
                     continue;
                 }
-                refused += BuildPlc(plc, plcFolder);
+                refused += BuildPlc(plc, plcFolder, work, cultures);
             }
             // HMI devices come after the PLCs their tags read (spec 0011).
             foreach (var hmiFolder in sourceFolders.Where(Hmi.IsHmiFolder)) {
-                refused += Hmi.Build(project, hmiFolder, BuildPlc);
+                refused += Hmi.Build(project, hmiFolder, (plc, sources) => BuildPlc(plc, sources, work, cultures));
             }
             if (refused != 0) {
                 Console.Error.WriteLine($"{name}: {refused} sources refused; its files stay as they were.");
@@ -403,7 +410,8 @@ internal static class Program {
             var archived = Path.Combine(work, "out");
             project.Archive(new DirectoryInfo(archived), name + ".zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
             var generated = Path.Combine(work, "generated");
-            Export(project, generated, blockXml: false, crossReferences: true);
+            // Only SimaticML lists every language's text, so a project with several languages exports it for every block.
+            Export(project, generated, blockXml: texts, crossReferences: true, texts: texts);
             HardwareReport.Write(project, Path.Combine(generated, "hardware.tsv"));
             SafetyReport.Write(project, Path.Combine(generated, "safety"));
             Hmi.Export(project, generated);
@@ -494,19 +502,19 @@ internal static class Program {
 
     /// <summary>
     /// Tag tables, then the types and blocks in the order order.txt gives, each in the folder its file is in: a text source
-    /// generated, a block in SimaticML (.xml) imported. Then the PLC is compiled, the watch and force tables imported,
-    /// and protect.txt's blocks are protected.
+    /// generated, a block in SimaticML (.xml) imported. Then block texts.tsv's titles and comments are set, the PLC is
+    /// compiled, its text lists and alarm texts are imported and it is compiled again, the watch and force tables are
+    /// imported, and protect.txt's blocks are protected.
     /// </summary>
-    private static int BuildPlc(PlcSoftware plc, string sources) {
+    private static int BuildPlc(PlcSoftware plc, string sources, string work, IReadOnlyList<string> cultures) {
         var tags = Path.Combine(sources, "PLC tags");
         foreach (var file in Directory.Exists(tags) ? Directory.GetFiles(tags, "*.tsv").OrderBy(file => file, StringComparer.Ordinal) : Enumerable.Empty<string>()) {
             var table = plc.TagTableGroup.TagTables.Create(Path.GetFileNameWithoutExtension(file));
             foreach (var line in File.ReadAllLines(file, Encoding.UTF8).Where(line => line.Length != 0)) {
                 var fields = line.Split('\t');
                 var tag = table.Tags.Create(fields[0], fields[1], fields[2]);
-                if (fields.Length > 3) {
-                    tag.Comment.Items.First().Text = fields[3];
-                }
+                // A comment is plain text, or culture=text fields in a project with several languages.
+                ReferenceTexts.SetText(tag.Comment, fields.Skip(3));
             }
         }
 
@@ -575,9 +583,17 @@ internal static class Program {
         // A safety program's F-runtime groups and settings (spec 0012), before compiling, which they change.
         refused += SafetyBuilder.Configure(plc, sources);
         if (refused == 0) {
+            // Openness makes a block inconsistent when its texts change after a compile, so they are set before it.
+            ReferenceTexts.SetBlockTexts(plc, sources, name => FindBlock(plc.BlockGroup, name));
             // TIA exports SimaticML only for a compiled block; a compile error counts as a refused source, unless accept.tsv
             // names it: a technology object without its hardware still compiles into the image the reader takes defaults from.
             refused += Compile(plc, Accepted(sources));
+        }
+        if (refused == 0) {
+            // An alarm text can take a text from a text list, so the lists come first; TIA checks the references on compiling.
+            refused += ReferenceTexts.ImportTextLists(plc, sources, work, cultures);
+            refused += refused == 0 ? ReferenceTexts.ImportAlarmTexts(plc, sources, work, cultures) : 0;
+            refused += refused == 0 ? Compile(plc) : 0;
         }
         refused += ImportTables(plc, sources);
 
@@ -657,7 +673,7 @@ internal static class Program {
     }
 }
 
-internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml) {
+internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml, bool texts) {
     private readonly HashSet<string> _taken = new(StringComparer.OrdinalIgnoreCase);
 
     public int Written { get; private set; }
@@ -672,6 +688,19 @@ internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml
         TagTables(plc, folder, plc.TagTableGroup);
         WatchAndForceTables(plc, folder, plc.WatchAndForceTableGroup);
         TechnologyObjects(plc, folder, plc.TechnologicalObjectGroup.TechnologicalObjects, plc.TechnologicalObjectGroup.Groups);
+        if (texts) {
+            ReferenceTexts.ExportPlc(plc, folder, Other);
+        }
+    }
+
+    public void ExportProject(Project project) => ReferenceTexts.ExportProject(project, root, Other);
+
+    /// <summary>An export that is no block: written, or counted as failed and printed, never listed in the manifest.</summary>
+    private void Other(string what, Action action) {
+        var notes = new List<string>();
+        if (Attempt(notes, what, action).Length == 0) {
+            Console.WriteLine($"failed: {what}: {notes.Single()}");
+        }
     }
 
     private void WatchAndForceTables(PlcSoftware plc, string folder, PlcWatchAndForceTableGroup group) {

@@ -1,0 +1,6 @@
+# One value per entry and one range: the alarm text of Tank's lowAlarm takes its state from here.
+ListRange	Decimal
+Comment	de-DE=Zustände des Behälters	en-US=States of the tank	fr-FR=États du réservoir
+0	0	de-DE=Ruhe	en-US=Idle	fr-FR=Repos
+1	1	de-DE=Füllen	en-US=Filling	fr-FR=Remplissage
+2	9	de-DE=Störung	en-US=Fault	fr-FR=Défaut

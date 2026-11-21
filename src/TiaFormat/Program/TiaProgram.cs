@@ -29,9 +29,19 @@ public sealed partial class TiaProgram {
     private readonly TiaRelationHandle _udtSupervisions, _blockSupervisions;
     private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _unitComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _isGeneratedFrom, _tagContent;
     private readonly Lazy<Dictionary<int, string>> _typeCodes;
+    private readonly IReadOnlyList<int> _preference;
 
-    public TiaProgram(TiaDatabase database) {
+    /// <summary>
+    /// Reads the program with its titles and comments in <paramref name="language"/>, a project language such as de-DE,
+    /// or in the editing language if none is given (spec 0014). Throws <see cref="TiaLanguageException"/> for a language
+    /// that is not a project language.
+    /// </summary>
+    public TiaProgram(TiaDatabase database, string? language = null) {
         _db = database;
+        Languages = TiaLanguages.Read(database);
+        Language = language is null ? Languages.Editing : Languages.Find(language);
+        // A file that names no languages keeps the old order, English first.
+        _preference = Languages.All.Count == 0 ? [1033] : Languages.Preference(Language);
         var s = database.Schema;
         _name = s.Attribute(Core, "Name");
         _comment = s.Attribute(Core, "Comment");
@@ -85,6 +95,15 @@ public sealed partial class TiaProgram {
 
     public TiaDatabase Database => _db;
 
+    /// <summary>The project languages, and which are the editing and the reference language.</summary>
+    public TiaLanguages Languages { get; }
+
+    /// <summary>The language titles and comments are read in; null if the file names no languages.</summary>
+    public TiaLanguage? Language { get; }
+
+    /// <summary>The LCIDs a text is looked for in, in order, before any other language that has text (FR-004).</summary>
+    public IReadOnlyList<int> TextPreference => _preference;
+
     /// <summary>Every block object, stubs and protected blocks included.</summary>
     public IReadOnlyList<TiaBlock> Blocks { get; }
 
@@ -114,7 +133,7 @@ public sealed partial class TiaProgram {
 
     /// <summary>The block comment, or null.</summary>
     public string? BlockComment(TiaBlock block) =>
-        _db.TryGetTarget(block.Frame, _blockComment, out var text) ? _db.ReadCoreText(text, _text) : null;
+        _db.TryGetTarget(block.Frame, _blockComment, out var text) ? _db.ReadCoreText(text, _text, _preference) : null;
 
     /// <summary>The block's header fields, as a source file's AUTHOR, FAMILY, NAME and VERSION show them.</summary>
     public TiaBlockHeader Header(TiaBlock block) => new(
@@ -253,9 +272,9 @@ public sealed partial class TiaProgram {
             result.Add(new TiaNetwork(
                 (int)(_db.ReadInteger(unit, _unitRef) ?? 0),
                 _db.ReadString(unit, _unitLanguage) ?? "",
-                _db.ReadCoreText(unit, _comment),
+                _db.ReadCoreText(unit, _comment, _preference),
                 FormOf(data.Span),
-                _db.TryGetTarget(unit, _unitComment, out var comment) ? _db.ReadCoreText(comment, _text) : null));
+                _db.TryGetTarget(unit, _unitComment, out var comment) ? _db.ReadCoreText(comment, _text, _preference) : null));
         }
         return result;
     }
@@ -393,7 +412,7 @@ public sealed partial class TiaProgram {
         }
         var context = new InterfaceContext { Parts = PositionalParts(root), IsDataBlock = block.Kind.StartsWith("DB", StringComparison.Ordinal) };
         if (_db.TryGetTarget(block.Frame, _comments, out var comments)) {
-            context.Comments = _db.ReadSimpleExpandoTexts(comments);
+            context.Comments = _db.ReadSimpleExpandoTexts(comments, _preference);
         }
         foreach (var part in context.Parts) {
             if (_db.TryGetFrame(part, out var frame) && _db.ReadString(frame, _partKind) == "Values") {
@@ -484,7 +503,7 @@ public sealed partial class TiaProgram {
                         _db.ReadString(tag, _tagType),
                         _db.ReadString(tag, _tagAddress),
                         value,
-                        _db.ReadCoreText(tag, _comment)) {
+                        _db.ReadCoreText(tag, _comment, _preference)) {
                         ExternalAccess = accessible switch {
                             null => null,
                             false => TiaExternalAccess.None,
@@ -518,7 +537,7 @@ public sealed partial class TiaProgram {
                 _db.ReadInteger(frame, _number),
                 _db.ReadString(frame, _language),
                 _db.ReadBoolean(frame, _protected),
-                _db.ReadCoreText(frame, _comment)) {
+                _db.ReadCoreText(frame, _comment, _preference)) {
                 EventClass = kind == "OB" ? EventClassOf(subtype) : null,
             });
         }

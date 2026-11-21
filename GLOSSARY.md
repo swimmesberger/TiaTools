@@ -147,6 +147,34 @@ _Avoid_: diagnostic block, supervision block
 An S7-300 or S7-400 CPU, as opposed to an S7-1500 or S7-1200: its blocks have standard access only, and its STL has S5 timers and counters.
 _Avoid_: old PLC, legacy CPU
 
+**Project language**:
+A language the project keeps its texts in, such as de-DE; every title, comment, alarm text and text list entry has a text per project language, which may be empty.
+_Avoid_: culture (outside the format page), locale, translation
+
+**Editing language**:
+The project language a person types texts in, and the one TIA's generated source and TiaTools write by default.
+_Avoid_: default language, main language, UI language
+
+**Reference language**:
+The project language TIA shows beside the editing language for translating; the reader falls back to it when a text is empty in the language written. Not to be confused with a reference project.
+_Avoid_: source language, base language
+
+**Program alarm**:
+An alarm a PLC program raises by calling `Program_Alarm` on an instance in an FB: its alarm class, priority and texts are configured, not coded.
+_Avoid_: message, PLC alarm (as a name for this kind), event
+
+**Associated value**:
+A value a program alarm passes with its signal (`SD_1` to `SD_10`), which its texts show through a placeholder.
+_Avoid_: process value, parameter, accompanying value
+
+**Alarm class**:
+A project-wide class of alarms, such as Acknowledgement, that says among other things whether an alarm must be acknowledged.
+_Avoid_: alarm type, category
+
+**Text list**:
+A PLC's table of texts by value or range of values, in every project language, from which an alarm text can take a text.
+_Avoid_: enum, lookup table, string list
+
 **Closed**:
 What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing of its body; which other objects it uses, as TIA's cross-reference list keeps in clear, is shown (ADR 0015). Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable
@@ -240,6 +268,10 @@ _Avoid_: extract, decompile, backup
 **Generated source**:
 The text TIA Portal writes with *Generate source from blocks*, which a dump matches for SCL blocks, data blocks and UDTs.
 _Avoid_: export, SimaticML (which is TIA's XML export, a different thing)
+
+**Texts table**:
+The table a dump writes per PLC of every title, comment, alarm text and text list entry, one column per project language, as stored and with no fallback (spec 0014).
+_Avoid_: translation table, language export
 
 **Statement form**:
 The text TiaTools writes for a LAD or FBD network or a GRAPH sequence, which TIA has no text for: its logic as SCL-like assignments and calls, a form of our own (ADR 0013).
