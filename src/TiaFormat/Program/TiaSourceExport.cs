@@ -16,6 +16,9 @@ public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected
 
     /// <summary>The files written for HMI devices (spec 0011).</summary>
     public int HmiFiles { get; init; }
+
+    /// <summary>The texts tables, alarm tables and text list tables written, one of each per PLC that has any (spec 0014).</summary>
+    public int TextFiles { get; init; }
 }
 
 /// <summary>Writes a program as readable files in a tree, environment / PLC / folder path / block, with an index.tsv of every block. Used by the command line and the viewer alike, so both write the same files.</summary>
@@ -41,6 +44,9 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
 
     /// <summary>Also write each HMI device's connections, tag tables, alarms and screens, in a folder of the device beside the PLCs.</summary>
     public bool HmiDevices { get; init; } = true;
+
+    /// <summary>Write each PLC's texts table and its tables of alarms and text lists (spec 0014).</summary>
+    public bool Texts { get; init; } = true;
 
     /// <summary>Also write each network as stored, next to its block. Never an encrypted part.</summary>
     public bool Raw { get; init; }
@@ -87,11 +93,47 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
         var watchFiles = WriteWatchTables(index);
         var technologyObjectFiles = WriteTechnologyObjects(index);
         var hmiFiles = HmiDevices ? WriteHmiDevices() : 0;
+        var textFiles = Texts ? WriteTexts() : 0;
         File.WriteAllText(Path.Combine(root, "index.tsv"), index.ToString(), new UTF8Encoding(false));
         return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]) {
             TechnologyObjectFiles = technologyObjectFiles,
             HmiFiles = hmiFiles,
+            TextFiles = textFiles,
         };
+    }
+
+    /// <summary>
+    /// Per PLC of the project: texts.tsv, every title and comment in every project language, and alarms.tsv and
+    /// textlists.tsv where it has program alarms or text lists (spec 0014). Written next to the PLC's folders.
+    /// </summary>
+    private int WriteTexts() {
+        var alarms = new TiaAlarms(program);
+        var rows = TiaTexts.Rows(program, alarms);
+        var alarmList = alarms.Alarms();
+        var lists = alarms.TextLists();
+        var count = 0;
+        var plcs = rows.Select(row => row.Plc).Concat(alarmList.Select(alarm => alarm.Plc)).Concat(lists.Select(list => list.Plc))
+            .Where(plc => plc.Length != 0).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
+        foreach (var plc in plcs) {
+            var folder = Path.Combine(root, "Project", Safe(plc));
+            count += Table("texts.tsv", output => TiaTexts.WriteTexts(rows, plc, program.Languages, output));
+            var plcAlarms = alarmList.Where(alarm => alarm.Plc == plc).ToList();
+            if (plcAlarms.Count != 0) {
+                count += Table("alarms.tsv", output => TiaTexts.WriteAlarms(plcAlarms, program.Languages, output));
+            }
+            var plcLists = lists.Where(list => list.Plc == plc).ToList();
+            if (plcLists.Count != 0) {
+                count += Table("textlists.tsv", output => TiaTexts.WriteTextLists(plcLists, program.Languages, output));
+            }
+
+            int Table(string name, Action<TextWriter> write) {
+                using var text = new StringWriter(CultureInfo.InvariantCulture) { NewLine = "\n" };
+                write(text);
+                WriteFile(_paths.Reserve(Path.Combine(folder, name), 0), Encoding.UTF8.GetBytes(text.ToString()));
+                return 1;
+            }
+        }
+        return count;
     }
 
     private void WriteBlock(TiaBlock block, string path, PooledByteWriter output) {

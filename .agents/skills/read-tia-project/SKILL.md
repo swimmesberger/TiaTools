@@ -14,6 +14,8 @@ description: Answer questions about a Siemens PLC program from its TIA Portal ar
 - tag tables, watch tables and the force table
 - cross references: who calls a block, who reads or writes a tag or data block member, in which network and line (`tiadump xref <archive> <name>`)
 - technology objects: axes, PID controllers, counters, with their kind, version and every value of their data block (`TO` in `index.tsv`, a `.to` file each)
+- titles and comments in each project language: block sources are in the editing language (`--language <culture>` on `show` and `dump` for another; `tiadump languages <archive>` lists them), and the dump's `texts.tsv` has every text with a column per language
+- program alarms and text lists: `tiadump alarms <archive>` lists each alarm with its FB and member, instance data blocks, class, the operand each associated value (`@1%d@` in a text is `SD_1`) is wired to, and its texts; `tiadump textlists <archive>` lists each text list (`@2%t#Name@` in an alarm text takes its text from the list `Name`)
 - each PLC's OPC UA server: whether it is on, its settings and roles, and which data blocks, members and tags an OPC UA client could read or write (`tiadump opcua <archive>`, `--json` for every detail)
 - the hardware: devices, racks and modules with order number, firmware and I/O addresses, interfaces with IP address and PROFINET device name or PROFIBUS address, subnets, and which IO devices belong to which IO controller (`tiadump devices <archive>`, `--json` for the same as JSON). To find where an address such as `%I10.0` comes from, look for the module whose range holds byte 10 in the PLC's own devices or its IO systems' IO devices; a system constant such as `Local~DI_Main` names the module the program addresses
 - each HMI device: its connections, which PLC tags and data block members its HMI tags read, its HMI alarms and their triggers, and its screens with their bound tags (`tiadump hmi <archive>`, `--json` for every detail)
@@ -68,6 +70,7 @@ It is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on Window
 ```text
 index.tsv
 Project/<PLC>/<folder path>/<block>.<kind>
+Project/<PLC>/texts.tsv, alarms.tsv, textlists.tsv
 <master copy>--<id>/<PLC>/<folder path>/<block>.<kind>
 ```
 
@@ -83,6 +86,8 @@ Project/<PLC>/<folder path>/<block>.<kind>
 | `.tags` | A tag table |
 | `.watch`, `.force` | A watch table or the force table: per entry its name and address, display format, triggers that are not the default, value (`:=`) and comment |
 | `.to` | A technology object: `TECHNOLOGY_OBJECT "Feed" : TO_PositioningAxis`, its version and number, then each member of its data block as TIA's parameter view names it, with its value: `PositionLimits_SW.MaxPosition : LReal := 750.0;`. TiaTools' own form. A member without a value is one TIA left at its default in an object it never compiled |
+| `texts.tsv` | Every text of the PLC, `object`, `place`, then a column per project language, as stored: empty where a language has none. `\t`, `\n`, `\\` stand for a tab, line break and backslash |
+| `alarms.tsv`, `textlists.tsv` | The PLC's program alarms and text lists, as `tiadump alarms` and `tiadump textlists` print them |
 
 Each block file starts with comment lines giving kind, number, language, know-how flag, PLC and folder.
 

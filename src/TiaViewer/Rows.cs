@@ -36,12 +36,12 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
     public bool IsHolder => Node.Item is null;
 
     /// <summary>
-    /// A PLC's OPC UA report or an HMI entry is shown like a block, but not exported; nor is an HMI device or folder,
-    /// which holds nothing else.
+    /// A PLC's OPC UA report, its table of alarms or text lists, or an HMI entry is shown like a block, but not exported on
+    /// its own; nor is an HMI device or folder, which holds nothing else.
     /// </summary>
-    public bool CanExport => Node.Item is not { IsReport: true } && !(IsHolder && ItemsBelow() == 0 && HmiBelow() != 0);
+    public bool CanExport => Node.Item is not ({ IsReport: true } or { IsTable: true }) && !(IsHolder && ItemsBelow() == 0 && HmiBelow() != 0);
 
-    public string CopyLabel => Node.Item is { IsReport: true } ? "Copy report" : "Copy source";
+    public string CopyLabel => Node.Item is { IsReport: true } ? "Copy report" : Node.Item is { IsTable: true } ? "Copy table" : "Copy source";
 
     public bool IsClosed => Node.Item?.IsClosed ?? false;
 

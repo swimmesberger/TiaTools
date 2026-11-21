@@ -47,9 +47,12 @@ internal sealed class TiaDumpCommands {
     /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
     /// <param name="name">The block's name.</param>
     /// <param name="plc">Only the block of this PLC.</param>
+    /// <param name="language">Titles and comments in this project language, such as de-DE; the editing language if not given.</param>
     [Command("show")]
-    public int Show([Argument] string archive, [Argument] string name, string? plc = null) {
-        var program = new TiaProgram(TiaDatabase.Open(archive));
+    public int Show([Argument] string archive, [Argument] string name, string? plc = null, string? language = null) {
+        if (Open(TiaDatabase.Open(archive), language) is not { } program) {
+            return 1;
+        }
         using var output = new PooledByteWriter();
         using var stdout = Console.OpenStandardOutput();
         var found = false;
@@ -247,12 +250,15 @@ internal sealed class TiaDumpCommands {
     /// <param name="grep">Only blocks whose name matches this regular expression; leaves out tag tables and HMI devices.</param>
     /// <param name="raw">Also write each network as stored, next to the block (never encrypted parts).</param>
     /// <param name="verify">Check every frame's hash on opening.</param>
+    /// <param name="language">Titles and comments in this project language, such as de-DE; the editing language if not given. The texts tables hold every language either way.</param>
     [Command("dump")]
-    public int Dump([Argument] string archive, [Argument] string output, string? grep = null, bool raw = false, bool verify = false) {
+    public int Dump([Argument] string archive, [Argument] string output, string? grep = null, bool raw = false, bool verify = false, string? language = null) {
         var clock = Stopwatch.StartNew();
         var allocatedBefore = GC.GetTotalAllocatedBytes(precise: true);
         var database = TiaDatabase.Open(archive, verify);
-        var program = new TiaProgram(database);
+        if (Open(database, language) is not { } program) {
+            return 1;
+        }
         var opened = clock.Elapsed;
         var filter = grep is null ? null : new Regex(grep, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         // A filter on block names leaves the tag tables out.
@@ -262,11 +268,12 @@ internal sealed class TiaDumpCommands {
             WatchTables = filter is null ? null : _ => false,
             TechnologyObjects = filter is null ? null : technologyObject => filter.IsMatch(technologyObject.Name),
             HmiDevices = filter is null,
+            Texts = filter is null,
             Raw = raw,
         }.Run();
         clock.Stop();
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
-            $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.HmiFiles} HMI files, {result.WatchFiles} watch and force tables, {result.TechnologyObjectFiles} technology objects, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
+            $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.TextFiles} text tables, {result.HmiFiles} HMI files, {result.WatchFiles} watch and force tables, {result.TechnologyObjectFiles} technology objects, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
             $"{result.Bytes / 1024.0 / 1024.0:F1} MB written; opened in {opened.TotalMilliseconds:F0} ms, total {clock.Elapsed.TotalMilliseconds:F0} ms, {(GC.GetTotalAllocatedBytes(precise: true) - allocatedBefore) / 1024.0 / 1024.0:F0} MB allocated"));
         if (result.UnknownTags != 0) {
@@ -276,5 +283,76 @@ internal sealed class TiaDumpCommands {
             Console.Error.WriteLine(failure);
         }
         return result.Failures.Count == 0 ? 0 : 1;
+    }
+
+    /// <summary>Lists the project languages, marking the editing and the reference language.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    [Command("languages")]
+    public int Languages([Argument] string archive) {
+        var languages = TiaLanguages.Read(TiaDatabase.Open(archive));
+        if (languages.All.Count == 0) {
+            Console.Error.WriteLine("The file names no project languages.");
+            return 1;
+        }
+        foreach (var language in languages.All) {
+            Console.Out.WriteLine(languages.Describe(language));
+        }
+        return 0;
+    }
+
+    /// <summary>Prints every title, comment, alarm text and text list entry of each PLC, a column per project language.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="plc">Only this PLC.</param>
+    [Command("texts")]
+    public int Texts([Argument] string archive, string? plc = null) {
+        var program = new TiaProgram(TiaDatabase.Open(archive));
+        var rows = TiaTexts.Rows(program, new TiaAlarms(program));
+        return PerPlc(rows.Select(row => row.Plc), plc, name => TiaTexts.WriteTexts(rows, name, program.Languages, Console.Out));
+    }
+
+    /// <summary>Prints each PLC's program alarms: where each is declared, its instances, class, associated values and texts in every project language.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="plc">Only this PLC.</param>
+    [Command("alarms")]
+    public int Alarms([Argument] string archive, string? plc = null) {
+        var program = new TiaProgram(TiaDatabase.Open(archive));
+        var alarms = new TiaAlarms(program).Alarms();
+        return PerPlc(alarms.Select(alarm => alarm.Plc), plc, name => TiaTexts.WriteAlarms([.. alarms.Where(alarm => alarm.Plc == name)], program.Languages, Console.Out));
+    }
+
+    /// <summary>Prints each PLC's text lists: every entry in every project language, and the alarms that use each list.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="plc">Only this PLC.</param>
+    [Command("textlists")]
+    public int TextLists([Argument] string archive, string? plc = null) {
+        var program = new TiaProgram(TiaDatabase.Open(archive));
+        var lists = new TiaAlarms(program).TextLists();
+        return PerPlc(lists.Select(list => list.Plc), plc, name => TiaTexts.WriteTextLists([.. lists.Where(list => list.Plc == name)], program.Languages, Console.Out));
+    }
+
+    /// <summary>The program in a language the user named, or null after saying which languages there are.</summary>
+    private static TiaProgram? Open(TiaDatabase database, string? language) {
+        try {
+            return new TiaProgram(database, language);
+        } catch (TiaLanguageException e) {
+            Console.Error.WriteLine(e.Message);
+            return null;
+        }
+    }
+
+    /// <summary>Writes a table per PLC, each after a line naming its PLC when there are several; 1 if there is nothing to write.</summary>
+    private static int PerPlc(IEnumerable<string> plcs, string? only, Action<string> write) {
+        var names = plcs.Where(name => name.Length != 0 && (only is null || name == only)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+        if (names.Count == 0) {
+            Console.Error.WriteLine(only is null ? "Nothing to list." : $"Nothing to list for a PLC named {only}.");
+            return 1;
+        }
+        foreach (var name in names) {
+            if (names.Count > 1) {
+                Console.Out.WriteLine("== " + name);
+            }
+            write(name);
+        }
+        return 0;
     }
 }

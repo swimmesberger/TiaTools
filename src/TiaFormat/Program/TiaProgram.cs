@@ -366,6 +366,65 @@ public sealed partial class TiaProgram {
     }
 
     /// <summary>Writes a compile unit exactly as stored, unless it is encrypted.</summary>
+    /// <summary>
+    /// Every title and comment of a block in every language stored (spec 0014): its title and comment, each network's
+    /// title and comment, and each member's comment by its name, in interface order. Places with no text in any language are left out.
+    /// </summary>
+    public IReadOnlyList<TiaPlacedText> BlockTexts(TiaBlock block) {
+        var result = new List<TiaPlacedText>();
+        Add("title", _db.ReadCoreTexts(block.Frame, _comment));
+        Add("comment", _db.TryGetTarget(block.Frame, _blockComment, out var comment) ? _db.ReadCoreTexts(comment, _text) : []);
+        foreach (var unit in CompileUnits(block)) {
+            var number = (_db.ReadInteger(unit, _unitRef) ?? 0).ToString(CultureInfo.InvariantCulture);
+            Add($"network {number} title", _db.ReadCoreTexts(unit, _comment));
+            Add($"network {number} comment", _db.TryGetTarget(unit, _unitComment, out var unitComment) ? _db.ReadCoreTexts(unitComment, _text) : []);
+        }
+        if (_db.TryGetTarget(block.Frame, _comments, out var comments)) {
+            // Comments are stored by the member's id path, 53:51; the place names it as a source does, Config.Max.
+            var names = new Dictionary<string, string>(StringComparer.Ordinal);
+            var order = new List<string>();
+            Name(ReadInterface(block), "");
+            var stored = _db.ReadSimpleExpandoAllTexts(comments);
+            foreach (var path in order) {
+                if (stored.TryGetValue(path, out var texts)) {
+                    Add("member " + names[path], texts);
+                }
+            }
+            foreach (var (path, texts) in stored.Where(pair => !names.ContainsKey(pair.Key)).OrderBy(pair => pair.Key, StringComparer.Ordinal)) {
+                Add("member " + path, texts);
+            }
+
+            void Name(IReadOnlyList<TiaMember> members, string prefix) {
+                foreach (var member in members) {
+                    names[member.Path] = prefix + member.Name;
+                    order.Add(member.Path);
+                    Name(member.Children, prefix + member.Name + ".");
+                }
+            }
+        }
+        return result;
+
+        void Add(string place, IReadOnlyList<TiaText> texts) {
+            if (texts.Any(text => text.Text.Length != 0)) {
+                result.Add(new TiaPlacedText(place, texts));
+            }
+        }
+    }
+
+    /// <summary>Each tag's comment of a tag table in every language stored, by the tag's name; tags with none are left out.</summary>
+    public IReadOnlyList<TiaPlacedText> TagTexts(TiaTagTable table) {
+        var result = new List<TiaPlacedText>();
+        foreach (var relation in _db.EnumerateRelations(table.Frame)) {
+            if (_tagContent.Matches(relation.RelationId) && _db.TryGetFrame(relation.Target, out var tag)) {
+                var texts = _db.ReadCoreTexts(tag, _comment);
+                if (texts.Any(text => text.Text.Length != 0)) {
+                    result.Add(new TiaPlacedText("tag " + (_db.ReadString(tag, _name) ?? ""), texts));
+                }
+            }
+        }
+        return result;
+    }
+
     public void WriteRawNetwork(TiaBlock block, int index, PooledByteWriter output) {
         using var data = _db.ReadBlob(CompileUnits(block)[index], _unitData);
         if (FormOf(data.Span) != "EncryptedData") {

@@ -160,7 +160,7 @@ The project language TIA shows beside the editing language for translating; the 
 _Avoid_: source language, base language
 
 **Program alarm**:
-An alarm a PLC program raises by calling `Program_Alarm` on an instance in an FB: its alarm class, priority and texts are configured, not coded.
+An alarm a PLC program raises by calling `Program_Alarm` on an instance in an FB: its alarm class, priority and texts are configured, not coded. The FB declares it once, as the alarm type; each instance data block of the FB holds an instance alarm, whose texts and class are its own where set, else its type's.
 _Avoid_: message, PLC alarm (as a name for this kind), event
 
 **Associated value**:
