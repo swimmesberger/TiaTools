@@ -58,6 +58,8 @@ internal static class Program {
                 return CompiledCopy(args[1], args[2]);
             case "reference" when args.Length >= 3:
                 return References(args[1], args.Skip(2).ToList());
+            case "catalog" when args.Length >= 2:
+                return Catalog(args.Skip(1));
             default:
                 Console.Error.WriteLine("""
                     usage:
@@ -66,12 +68,23 @@ internal static class Program {
                       TiaOpennessExport archive <.zap> <empty dir> <out> retrieve a copy, export it, close it unsaved
                       TiaOpennessExport compiled-copy <.ap21> <out>      compile a retrieved copy, export it, close it unsaved
                       TiaOpennessExport reference <empty dir> <folder>... build reference projects again from their sources
+                      TiaOpennessExport catalog <text>...                list hardware catalog entries that match, for hardware.tsv
 
                     Keep <empty dir> short, such as C:\\Users\\me\\tc: TIA refuses to retrieve into a long path, and only says
                     "Unable to retrieve the project". An export refuses blocks that are not compiled; source generation does not.
                     """);
                 return 1;
         }
+    }
+
+    private static int Catalog(IEnumerable<string> texts) {
+        using var portal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
+        foreach (var text in texts) {
+            foreach (var entry in portal.HardwareCatalog.Find(text)) {
+                Console.WriteLine(string.Join("\t", text, entry.TypeIdentifier, entry.TypeName, (entry.Description ?? "").Replace('\n', ' ').Replace('\r', ' ')));
+            }
+        }
+        return 0;
     }
 
     private static int Probe() {
@@ -251,10 +264,24 @@ internal static class Program {
         var project = portal.Projects.Create(new DirectoryInfo(work), name);
         try {
             var refused = 0;
+            // With a hardware description the devices come from it, and each PLC folder names a CPU it created (spec 0010);
+            // without one, each PLC folder gets a CPU of its own.
+            var hardware = Path.Combine(folder, "sources", "hardware.tsv");
+            if (File.Exists(hardware)) {
+                refused += HardwareBuilder.Build(portal, project, hardware);
+            }
             foreach (var plcFolder in Directory.GetDirectories(Path.Combine(folder, "sources")).OrderBy(path => path, StringComparer.Ordinal)) {
                 var plcName = Path.GetFileName(plcFolder);
-                var device = project.Devices.CreateWithItem(cpu, plcName, plcName);
-                refused += BuildPlc(device.DeviceItems.SelectMany(Software).Single(), plcFolder);
+                if (!File.Exists(hardware)) {
+                    project.Devices.CreateWithItem(cpu, plcName, plcName);
+                }
+                var plc = Plcs(project).FirstOrDefault(candidate => candidate.Name == plcName);
+                if (plc is null) {
+                    refused++;
+                    Console.WriteLine($"refused {plcName}: hardware.tsv creates no PLC of that name");
+                    continue;
+                }
+                refused += BuildPlc(plc, plcFolder);
             }
             if (refused != 0) {
                 Console.Error.WriteLine($"{name}: {refused} sources refused; its files stay as they were.");
@@ -265,6 +292,7 @@ internal static class Program {
             project.Archive(new DirectoryInfo(archived), name + ".zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
             var generated = Path.Combine(work, "generated");
             Export(project, generated, blockXml: false);
+            HardwareReport.Write(project, Path.Combine(generated, "hardware.tsv"));
 
             File.Copy(Path.Combine(archived, name + ".zap21"), Path.Combine(folder, name + ".zap21"), overwrite: true);
             var target = Path.Combine(folder, "generated");

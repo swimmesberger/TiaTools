@@ -114,6 +114,7 @@ public sealed partial class MainWindow : Window {
         };
 
         OpcUaPanel.Open += OpenFromOpcUa;
+        DevicesPanel.Open += OpenConstant;
         OpcUaPanel.Said += text => {
             Status.Text = text;
             ShowFolderButton.IsVisible = false;
@@ -158,6 +159,7 @@ public sealed partial class MainWindow : Window {
             HeadingBar.IsVisible = false;
             Editor.IsVisible = false;
             OpcUaPanel.IsVisible = false;
+            DevicesPanel.IsVisible = false;
             ShowPanels(true);
             Editor.Document = new TextDocument();
             ShowWelcome(project.Root.Name, $"Choose a block on the left.\n{Command} + click a name in the source to follow it.", canOpen: false);
@@ -221,6 +223,15 @@ public sealed partial class MainWindow : Window {
         }
     }
 
+    /// <summary>Opens a system constant the devices view names, in its PLC's tag table.</summary>
+    private void OpenConstant(string plc, string name) {
+        if (_project?.Resolve(plc, name) is { } location) {
+            Navigate(location.Item, location.Line);
+        } else {
+            Status.Text = name + " is in no tag table of " + plc + ".";
+        }
+    }
+
     /// <summary>Follows the name at a position in the text, if it leads somewhere.</summary>
     public bool FollowAt(int offset) {
         if (_project is not { } project || _current is not { } current) {
@@ -251,14 +262,18 @@ public sealed partial class MainWindow : Window {
             if (project.OpcUa(item) is { } opcUa) {
                 OpcUaPanel.Show(opcUa, () => project.OpcUaNodes(item)!);
             }
+            if (project.Hardware(item) is { } hardware) {
+                DevicesPanel.Show(hardware);
+            }
             if (!keepLists) {
                 ShowPlaces(item);
             }
         }
         Welcome.IsVisible = false;
-        // A PLC's OPC UA configuration has a view of its own; its text stays in the editor for copying.
+        // A PLC's OPC UA configuration and the project's hardware have views of their own; their text stays in the editor for copying.
         Editor.IsVisible = !item.IsReport;
-        OpcUaPanel.IsVisible = item.IsReport;
+        OpcUaPanel.IsVisible = item.IsReport && !item.IsHardware;
+        DevicesPanel.IsVisible = item.IsHardware;
         ShowPanels(!item.IsReport);
         ShowHeading(item);
         var clamped = Math.Clamp(line, 0, document.LineCount - 1);

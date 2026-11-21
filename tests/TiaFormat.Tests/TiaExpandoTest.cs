@@ -43,6 +43,7 @@ public sealed class TiaExpandoTest {
           <Relation name="CurrentInterface" id="0x00222003" cardinality="1"><Target ref="Siemens.Simatic.Lang.Model.Structures.InterfaceVersionRootData"/></Relation>
         </ObjectType>
         </Namespace><Namespace name="N">
+        <Structure name="Pair" id="0x0010602a"><Element name="First" type="xs:uint" /><Element name="Second" type="xs:ushort" /></Structure>
         """;
 
     /// <summary>Key table: 12 bytes, u32 count, then u32 key, varint length of the name alone, name, u32 value type.</summary>
@@ -111,7 +112,7 @@ public sealed class TiaExpandoTest {
         var file = new TiaFileBuilder(Schema);
         file.WriteSystem(0x70002, 7, Mapping((Root, 8), (DataBlock, 9)));
         file.WriteSystem(0x70011, 8, KeyTable((1, "ValuesCRC", 0x80000013), (3, "Values", 0x8000000E)));
-        file.WriteSystem(0x70011, 9, KeyTable((2, "NonRetain", 0x80000001), (5, "DBAccessibleFromOPCUA", 0x80000001), (6, "DBAccessibleFromWebserver", 0x80000001)));
+        file.WriteSystem(0x70011, 9, KeyTable((2, "NonRetain", 0x80000001), (5, "DBAccessibleFromOPCUA", 0x80000001), (6, "DBAccessibleFromWebserver", 0x80000001), (7, "Pair", 0x0010602A)));
         return file;
     }
 
@@ -159,4 +160,18 @@ public sealed class TiaExpandoTest {
     [Test]
     public void ADataBlockOpenToOutsideAccessHasOnlyItsUsualAttribute() =>
         DataBlockWith((5, 1, null), (6, 1, null)).Should().Contain("\n{ S7_Optimized_Access := 'TRUE' }\n");
+
+    [Test]
+    public void AStructureValueIsReadFromItsSizeOnWithItsElementsInline() {
+        var file = NewFile();
+        byte[] pair = [10, 0, 0, 0, 0x2A, 0, 0, 0, 7, 0];
+        file.WriteObject(DataBlock, 1, [Core("Db", "DB"), Expando((2, 1, null), (7, null, pair))]);
+        file.Commit();
+        var database = TiaDatabase.Parse(file.ToArray());
+        database.TryGetFrame(new TiaObjectKey(DataBlock, 1), out var frame).Should().BeTrue();
+
+        database.ReadExpandoStructure(frame, "Pair").ToArray().Should().Equal(pair);
+        database.ReadExpandoStructure(frame, "NonRetain").IsEmpty.Should().BeTrue("a boolean is no structure");
+        database.ReadExpandoStructure(frame, "Missing").IsEmpty.Should().BeTrue();
+    }
 }

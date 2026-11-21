@@ -1,0 +1,2 @@
+Start_Partner	Bool	%I0.0	An input of the partner
+Lamp_Partner	Bool	%Q0.0	First output of Outputs_P

@@ -91,6 +91,48 @@ _Avoid_: rung, segment, compile unit (outside the format page)
 What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing more. Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable
 
+## Hardware
+
+**Device**:
+One station of the project's hardware, such as an S7-1500 station with its CPU or an ET 200SP IO device; it holds device items. A PLC is the program of a CPU in a device.
+_Avoid_: station, node, hardware (for one device)
+
+**Device item**:
+Anything in a device: a rack, a module, a submodule, an interface or a port, nested as TIA's device view nests them.
+_Avoid_: component, part
+
+**Module**:
+A device item plugged into a slot of a rack, with an order number: a CPU, an interface module, an I/O module, a server module.
+_Avoid_: card, board
+
+**Interface**:
+A device item that connects a device to a subnet, such as a PROFINET interface `X1` or a DP interface `X3`, with its addresses there: IP address, subnet mask and PROFINET device name, or PROFIBUS address. A port is a socket of an interface.
+_Avoid_: node (TIA's name for the addresses' object, kept to the format page), port
+
+**Subnet**:
+A PROFINET/Industrial Ethernet or PROFIBUS network that connects interfaces.
+_Avoid_: network (a block's network is something else), bus
+
+**IO system**:
+The IO devices an IO controller exchanges I/O with over one subnet: a PROFINET IO system or a DP master system, with a name and a number.
+_Avoid_: master system (except in TIA's name DP master system), IO network
+
+**IO controller**:
+The interface that owns an IO system, such as a CPU's PROFINET interface or its DP interface as DP master.
+_Avoid_: master
+
+**IO device**:
+A device assigned to an IO system, as a PROFINET IO device or a DP slave.
+_Avoid_: slave, remote I/O, field device
+
+**I/O address**:
+A range of a device item's inputs or outputs in the process image: its kind, input or output, its first byte and its length, as in `I 10..13`.
+_Avoid_: logical address, peripheral address
+
+**Hardware identifier**:
+The number TIA gives a device item so the program can address it, held in a system constant such as `Local~DI_Main`.
+_Avoid_: HW ID (in prose), LADDR
+
 ## What TiaTools makes
 
 **Dump**:

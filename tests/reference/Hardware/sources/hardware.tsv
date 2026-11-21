@@ -1,0 +1,40 @@
+# Invented hardware of the reference project Hardware (spec 0010), applied row by row in this order; docs/comparing-with-tia.md has the rows' fields.
+subnet	PN/IE_1	Ethernet
+subnet	PN/IE_2	Ethernet
+subnet	PROFIBUS_1	Profibus
+device	Controller	6ES7 516-3AN02-0AB0	V2.9
+module	Controller	2	6ES7 521-1BL00-0AB0		DI_Main	I=10
+module	Controller	3	6ES7 522-1BL01-0AB0		DQ_Main
+module	Controller	4	6ES7 531-7KF00-0AB0		AI_Main
+module	Controller	5	6ES7 532-5HD00-0AB0		AQ_Main
+interface	Controller	PROFINET interface_1	PN/IE_1	192.168.0.1	255.255.255.0	controller
+interface	Controller	PROFINET interface_2	PN/IE_2	192.168.1.1	255.255.255.0	auto
+ipelsewhere	Controller	PROFINET interface_2
+interface	Controller	DP interface_1	PROFIBUS_1	2
+iosystem	Controller	PROFINET interface_1	Line IO system	100
+iosystem	Controller	DP interface_1	Line DP system	1
+device	Remote_PN_1	6ES7 155-6AU01-0BN0
+module	Remote_PN_1	1	6ES7 131-6BF01-0BA0		Inputs_1
+module	Remote_PN_1	2	6ES7 132-6BF01-0BA0		Outputs_1
+module	Remote_PN_1	3	6ES7 134-6GD01-0BA1		Analog_1
+interface	Remote_PN_1	PROFINET interface	PN/IE_1	192.168.0.10	255.255.255.0	remote-pn-one
+iodevice	Remote_PN_1	PROFINET interface	Line IO system
+device	Remote_PN_2	6ES7 155-6AU01-0BN0
+module	Remote_PN_2	1	6ES7 131-6BF01-0BA0		Inputs_2
+interface	Remote_PN_2	PROFINET interface	PN/IE_1	192.168.0.11	255.255.255.0	auto
+iodevice	Remote_PN_2	PROFINET interface	Line IO system
+device	Remote_DP	6ES7 155-6BU01-0CN0
+module	Remote_DP	1	6ES7 131-6BF01-0BA0		Inputs_DP
+module	Remote_DP	2	6ES7 132-6BF01-0BA0		Outputs_DP
+interface	Remote_DP	Remote_DP	PROFIBUS_1	3
+iodevice	Remote_DP	Remote_DP	Line DP system
+device	Partner	6ES7 511-1AK02-0AB0
+interface	Partner	PROFINET interface_1	PN/IE_1	192.168.0.2	255.255.255.0	partner
+iosystem	Partner	PROFINET interface_1	Partner IO system	101
+device	Partner_IO	6ES7 155-6AU01-0BN0
+module	Partner_IO	1	6ES7 132-6BF01-0BA0		Outputs_P
+interface	Partner_IO	PROFINET interface	PN/IE_1	192.168.0.20	255.255.255.0	auto
+iodevice	Partner_IO	PROFINET interface	Partner IO system
+device	Spare_PN	6ES7 155-6AU01-0BN0		Line/Cell
+module	Spare_PN	1	6ES7 131-6BF01-0BA0		Inputs_S
+interface	Spare_PN	PROFINET interface	PN/IE_1	192.168.0.30	255.255.255.0	spare

@@ -51,6 +51,14 @@ public sealed class TiaSchema {
 
     public string? FindRelationName(uint id) => _relationNames.GetValueOrDefault(id);
 
+    private FrozenDictionary<uint, TiaValueType>? _valuesById;
+
+    /// <summary>A value type by its id, as a dictionary expando's key table names it (section 7.7 of the format page).</summary>
+    public TiaValueType? FindValueType(uint id) {
+        _valuesById ??= _valuesByName.Values.Where(value => value.Id != 0).GroupBy(value => value.Id).ToFrozenDictionary(group => group.Key, group => group.First());
+        return _valuesById.GetValueOrDefault(id);
+    }
+
     /// <summary>Handle for an attribute of an interface, across every object type that implements it.</summary>
     public TiaAttributeHandle Attribute(string setFullName, string attributeName) =>
         _attributeHandles.GetOrAdd((setFullName, attributeName), key => {
