@@ -422,6 +422,13 @@ public sealed class TiaProject {
         return _names.TryGetValue((scope, name), out var location) ? location : null;
     }
 
+    /// <summary>Where an HMI tag's PLC link leads: the PLC tag in its table, or the data block; null if it is not in the project.</summary>
+    public TiaLocation? Resolve(TiaHmiPlcLink link) {
+        BuildIndex();
+        var scope = Items.FirstOrDefault(item => item.IsProject && item.Scope.EndsWith("/" + link.Plc, StringComparison.Ordinal))?.Scope;
+        return scope is not null && _names.TryGetValue((scope, link.Name), out var location) ? location : null;
+    }
+
     /// <summary>An HMI entry's device as read when the tree was built; null for any other item.</summary>
     public TiaHmiDevice? HmiDevice(TiaItem item) => item.HmiDevice is { } name ? _hmi.GetValueOrDefault(name) : null;
 
