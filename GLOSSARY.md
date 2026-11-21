@@ -87,6 +87,10 @@ _Avoid_: OPC UA export, address space dump
 One unit of a LAD, FBD or STL block's logic, with its own number, title and comment; TIA stores each as a compile unit, and an SCL block has one.
 _Avoid_: rung, segment, compile unit (outside the format page)
 
+**Technology object**:
+A configured instance of a Siemens technology function on a PLC, such as an axis, a PID controller or a high-speed counter, with its kind and version. TIA stores it as a data block of a technology type; its settings are its parameters, named as TIA's parameter view names them (`DynamicLimits.MaxVelocity`).
+_Avoid_: TO DB, technology DB (outside the format page), axis block
+
 **Closed**:
 What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing more. Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable

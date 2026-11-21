@@ -14,3 +14,4 @@
 * [0011](0011-know-how-protection-stays-closed.md) - Protected blocks are reported as encrypted because the archive holds only ciphertext; decryption is a separate, unbuilt capability, password-only if ever built
 * [0012](0012-reference-projects-are-committed.md) - Archives that TIA Portal builds from invented sources are committed as reference projects, with the source TIA generates for them
 * [0013](0013-networks-are-shown-as-statements.md) - The text the tools write is for a coding agent, so LAD, FBD and GRAPH logic is written in statement form; the viewer may show it otherwise
+* [0014](0014-system-protected-technology-objects-are-read.md) - A technology object under Siemens' system protection stores its parameters in clear, so the reader shows them; only ciphertext stays closed

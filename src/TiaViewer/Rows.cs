@@ -59,7 +59,11 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public IBrush GlyphLine => Parent is not null ? FolderLine : Name == LibrariesName ? LibraryLine : PlcLine;
 
-    public string ExportLabel => IsItem ? (Kind == "Tags" ? "Export this tag table…" : "Export this block…")
+    public string ExportLabel => IsItem ? (Kind switch {
+            "Tags" => "Export this tag table…",
+            TiaFormat.Program.TiaItem.TechnologyObjectKind => "Export this technology object…",
+            _ => "Export this block…",
+        })
         : Parent is null && Name != LibrariesName ? "Export this PLC…" : "Export this folder…";
 
     public ObservableCollection<TreeRow> Children { get; } = [];

@@ -41,6 +41,16 @@ public sealed class TiaReferenceProjectTest {
     }
 
     [Test]
+    [MethodDataSource(nameof(Projects))]
+    public void EveryTechnologyObjectParameterMatchesTia(string project) {
+        ReferenceProjects.TechnologyObjectProblems(project, out var objects, out var compared).Should().BeEmpty();
+
+        if (objects != 0) {
+            compared.Should().BeGreaterThanOrEqualTo(objects, "every technology object has parameters in its data block to compare");
+        }
+    }
+
+    [Test]
     public void ADifferenceNamesTheProjectTheBlockAndTheFirstDifferingLineInBothVersions() {
         var blocks = new[] { Block("Pump", TiaComparisonOutcome.Different, new TiaSourceDifference(TiaSourceMatch.Different, 12, "ours", "theirs")) };
 

@@ -1,0 +1,10 @@
+type	TO_PositioningAxis
+version	8.0
+VirtualAxis.Mode	1
+Mechanics.LeadScrew	12.5
+PositionLimits_SW.Active	true
+PositionLimits_SW.MinPosition	-50
+PositionLimits_SW.MaxPosition	750
+DynamicDefaults.Velocity	42
+Homing.HomePosition	2.5
+Sensor[1].ActiveHoming.HomePositionOffset	1.25

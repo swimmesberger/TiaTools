@@ -6,9 +6,9 @@ status: stable
 ---
 # The TIA Portal project database format
 
-Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers). `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
+Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers) and technology objects. `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Six reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run. Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Seven reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run. Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -533,6 +533,7 @@ A protected block holds only its ciphertext, so there is nothing to render but t
 - Still in clear on a protected block in the samples: name, kind, number, language, folder, `IsKnowHowProtected`, and an OB's event class (section 10). Some also have an interface and comments in clear: 93 of 607 protected block objects in A, 22 of 447 in B. The rest, Siemens system blocks among them, have none stored.
 - Their identifier parts are in clear (209 in A, 88 in B). The reader takes only type codes from them for its table and never renders them.
 - `ICoreAttributes.Protection` is a separate attribute. Use `IsKnowHowProtected` for the flag.
+- A technology object under Siemens' own protection (`Protection = SystemKnowHowProtection`: PID controllers, counters) has the flag but stores its interface and values in clear, so it is read like any other (section 19, ADR 0014). An encrypted part stays closed whatever the protection. **[S]**
 
 ## 16. Reader recipe
 
@@ -596,6 +597,8 @@ Tag tables, from TIA's export of them: all 208 tags and constants in them agree 
 **The reference projects.** Six small projects TIA Portal V21 built from sources written for this repository, committed in `tests/reference` with the source TIA generated and its export of each tag table ([spec 0008](../specs/0008-reference-projects.md)). The library's tests compare the reader with them in every run. They hold every elementary type with start values, arrays, nested UDTs, a DB of a UDT, a retained DB and a standard-access DB, an FB with every interface section and constants and its instance DB, a multi-instance, text in German, French, Japanese and Chinese with string escapes, two PLCs with folders four deep, and one know-how protected block. All 34 blocks TIA generated source for are identical, the protected one is closed and shows nothing of its body, and all 27 tags agree in name, type, address, comment and external access. These are new programs, so unlike A's comparison they test the rules on something they were not worked out from.
 
 The sixth, `Languages` ([spec 0009](../specs/0009-logic-languages.md)), holds blocks TIA takes no text source for, imported as SimaticML written for it and compiled by TIA: LAD and FBD with contacts in series and in parallel, negated contacts, inputs and outputs, set and reset coils and boxes, edges, a jump to a label, a move, a comparison, an addition, a timer as a multi-instance and with a data block of its own, a counter, a call of an FC and of an FB; a LAD block with an SCL and an STL network; an STL block with bit logic in brackets, load and transfer, arithmetic, a jump and a call; and a GRAPH block with a simultaneous and an alternative branch, a jump, actions with the qualifiers N, S, R and D, an event, an interlocked action, an assignment and a call, a supervision, an interlock and permanent instructions before and after. Its STL block and the timer's data block are identical to TIA's generated source; its 27 LAD and FBD networks and its GRAPH sequence give the same statement form from the archive as from TIA's SimaticML export (section 13). Invented blocks test the rules on the forms TIA writes, not on the habits of a real program.
+
+The seventh, `TechnologyObjects` ([spec 0013](../specs/0013-technology-objects.md)), holds technology objects TIA created through Openness on a CPU 1517T-3 PN/DP at V3.1 and a CPU 1511C-1 PN: a speed, a positioning and a synchronous axis and an external encoder at 8.0, PID_Compact 3.0, PID_3Step 2.3, PID_Temp 1.1, a high-speed counter 4.0 on the CPU's own counter channel and an SSI absolute encoder 3.1, each with parameters set away from their defaults, and an SCL block that reads two of them. The build writes the value Openness reports for every parameter of each; of the 925 that are members of a data block and have a value in the archive, 921 agree with the reader's, and the other 4 are given by Openness in other units than the data block holds (section 19). Measuring inputs, output cams and cam tracks are not in it: Openness V21 neither creates nor imports them.
 
 The text is the same after compiling. TIA exports SimaticML only for a compiled block, so a retrieved copy was compiled block by block, with every block that is not fail-safe, and closed unsaved. It refuses to compile the whole PLC without permission for the safety program. That gave SimaticML for all 319 UDTs, 85 of 92 open DBs, 194 of 379 open SCL blocks, and the same table as above.
 
@@ -673,6 +676,40 @@ The schema also has `OpcUaInterfaceData`, `OpcUaNodeData`, `OpcUaListData` and `
 
 Four tags of the demo, set through Openness to not accessible, not writable, not visible, and visible again after not accessible, stored what this table says, and `tiadump opcua` reported each as TIA showed it. TIA ties the columns together: clearing Accessible clears Writable and Visible, and setting Visible sets Accessible again. So the tags of the samples with `HmiStructureTypeRelevant` clear and `HmiVisible` set hold a combination TIA V21 does not make; the reader reports them not accessible, and what TIA shows for them is **[?]**. A tag without an `IStructureItem` segment stores none of the three.
 
+## 19. Technology objects
+
+An axis, a PID controller, a counter: each technology object of a PLC is a data block of a technology type, stored as its own kind of object. Everything here was found on the reference project `TechnologyObjects` (section 17) and is checked in every test run against the values TIA reported through Openness when it built the project; **[S]** below means that check. `tiadump list`, `show` and `dump` write them, the dump as one `.to` file each.
+
+| Full type name | Is |
+|---|---|
+| `Siemens.Simatic.Lang.Model.Blocks.TechnologicalDataBlockData` | A technology object. Not a `DataBlockData`: a reader that finds data blocks by that type misses them. **[S]** |
+| `...Blocks.FunctionBlockTemplateData` | The type of a motion object, `TO_SpeedAxis` and so on. **[S]** |
+| `...Blocks.CodeBlockData` | The type of the others, the instruction's FB, `PID_Compact` or `High_Speed_Counter`, closed. **[S]** |
+
+**What it is.** Like a block: `ICoreAttributes.Name`, `IGeneralBlockSourceData.Number`, the folder by `AggregatingFolder` (TIA's own is named `TechnologicalParamFolder`, which TIA shows as *Technology objects*, with the user's folders below it), the PLC by `Target`. Its kind as TIA names it is the name of its type, reached by `GeneratedFromMaster` (motion) or `IsGeneratedFrom` (the others); its version is `IPlcHeaderData.HeaderVersion`. Both agree with Openness' `OfSystemLibElement` and `OfSystemLibVersion` on all 9 objects. **[S]** `IGeneralDataBlockSourceData.OfName` names the type otherwise (`PID_Compact_1500`), and `ICoreAttributes.Subtype` is a path of TIA's own, `DB.TO.SMC.TO_SpeedAxis.V6.0`, `DB.TO.PID.Compact.Compact_2.0`, `DB.TO.TM.HSC1500`. **[I]**
+
+**Protection.** PID_Compact, PID_3Step, PID_Temp, High_Speed_Counter and SSI_Absolute_Encoder have `IsKnowHowProtected` and `Protection = SystemKnowHowProtection`, yet their interface and values are in clear; the axes have `NoProtection`. **[S]** The reader shows them (ADR 0014).
+
+**The interface.** `CurrentInterface` leads to a root of kind `Values`, whose `UsedParts[0]` is the type's root, in clear: the sections `Input`, `Output`, `InOut`, `Static` with their members inline and an `<Offsets>` each, then the root's own `<Offsets retSize=".." volSize="..">`. A member of a structured type points by `SubPartIndex` at the type's part, a system UDT such as `TO_Struct_DynamicLimits` of kind `DataTypeSource`, followed as in section 11. A positioning or synchronous axis holds its base type as a member `Base` of an FB type (`TO_SpeedAxis`, whose own `Base` is `TO_Axis`). **[S]**
+
+**Names.** TIA's name of a parameter is the member's path with `.`, without any `Base`, with an array element's index: `DynamicLimits.MaxVelocity`, `Sensor[1].ActiveHoming.HomePositionOffset`. Every parameter Openness reports that is not one of the settings below is such a path. **[S]**
+
+**Values.** A value stored on the object is a `<V p=".." v=".."/>` in the root's payload, by id path as in section 11; TIA stores some there when it creates the object, not only what the user set. **[S]** Every other value is in the compiled image, `LoadableBinaries`, `LoadablePlusDataBlockData`, in one of two areas:
+
+- A member whose own section member is marked `Remanence="Retain"` (a PID controller's `Mode`, `ErrorBits`, its `Retain` structure) is in `RetainBuffer`, the rest in `VolatileBuffer`. **[S]**
+- Each member's offset counts within its area: the sum of the optimized offsets (`<o o="bits"/>`, in member order) along its path, from its section's `<Offsets>`, then each structure's and each type part's own. The offsets of the two areas overlap, so the area must be known. **[S]**
+- An element of an array of a structured type is at the array's offset plus its index from the low bound times the type's `optSize`, from that part's own `<Offsets>`. **[S]**, on the arrays of four sensors of the positioning and synchronous axis.
+- Each buffer is exactly its area, `volSize` or `retSize` bits, with no head, unlike the 8 bytes in front of a data block of a UDT (section 11). On all 7 compiled objects. **[S]** Values are little-endian; `Real` and `LReal` are IEEE. **[S]**
+- An object TIA did not compile has both buffers empty. TIA refuses to compile an external encoder without its telegram and a counter without its hardware, and still archives the project; such an object has only the values stored on it. **[S]**, on two objects.
+
+Of the 925 parameters with a value in the archive, 921 agree with Openness. The other 4 Openness gives in other units than the data block holds: a counter's `PulseDuration` in milliseconds against tenths of a millisecond, its `Measuring.UpdateTime` in milliseconds against microseconds. The reader shows what the data block holds. **[S]**
+
+**Not in the data block.** Openness also reports settings whose names start with `_`, such as `_Units.LengthUnit`, `_Actor.Interface.Telegram` and the I/O addresses, and a counter's `Configuration.Module`, which is a device item. Where TIA stores them is not known. **[?]**
+
+**Which members are parameters.** Openness reports a chosen list per kind: 36 of the speed axis's 143 leaf members, 86 of PID_Compact's 229. No stored mark gives that list: the set point bit `512` of `MFlags` (section 11) is on most of an axis's but on none of a counter's, and the list also holds a PID controller's inputs and outputs and a private internal member. **[S]** The reader therefore shows every member of the data block.
+
+**Not checked.** Measuring inputs, output cams and cam tracks: Openness V21 neither creates nor imports them, so no reference project holds one; the reader reads them by the rules above. **[U]** Technology objects of S7-1200 CPUs, cams, kinematics and the interpreter: none seen. **[U]**
+
 ## Open questions
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
@@ -692,6 +729,6 @@ What is left of the comparison with TIA Portal, most important first. [Comparing
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks and technology objects, `dump --raw` adds each network as stored, `opcua` reports section 18, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db`, `.tags` and `.to` files, and an `index.tsv` of every block and technology object with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.

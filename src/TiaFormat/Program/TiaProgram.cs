@@ -8,7 +8,7 @@ using TiaFormat.Xml;
 namespace TiaFormat.Program;
 
 /// <summary>The PLC layer of a database: blocks, their interfaces and source, tag tables. Safe for parallel reads.</summary>
-public sealed class TiaProgram {
+public sealed partial class TiaProgram {
     private const string Core = "Siemens.Automation.ObjectFrame.ICoreAttributes";
     private const string General = "Siemens.Simatic.Lang.Model.Blocks.IGeneralBlockSourceData";
     private const string PlcHeader = "Siemens.Simatic.Lang.Model.Blocks.IPlcHeaderData";
@@ -22,7 +22,7 @@ public sealed class TiaProgram {
 
     private readonly TiaDatabase _db;
     private readonly TiaAttributeHandle _name, _comment, _subtype, _protected, _blockType, _number, _language;
-    private readonly TiaAttributeHandle _unitData, _unitRef, _unitLanguage, _partPayload, _partKind, _identPayload, _text, _image, _libraryVersion;
+    private readonly TiaAttributeHandle _unitData, _unitRef, _unitLanguage, _partPayload, _partKind, _identPayload, _text, _image, _retainImage, _libraryVersion;
     private readonly TiaAttributeHandle _tagAddress, _tagType, _tagValue, _tagAccessible, _tagVisible, _tagReadOnly;
     private readonly TiaAttributeHandle _author, _family, _headerName, _version, _optimized;
     private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _unitComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _isGeneratedFrom, _tagContent;
@@ -51,6 +51,7 @@ public sealed class TiaProgram {
         _identPayload = s.Attribute(IdentPart, "PayLoad");
         _text = s.Attribute("Siemens.Automation.ObjectFrame.ICoreTextRepository", "Text");
         _image = s.Attribute(DataBlockLoad, "VolatileBuffer");
+        _retainImage = s.Attribute(DataBlockLoad, "RetainBuffer");
         _libraryVersion = s.Attribute(InterfaceLibrary, "Version");
         _tagAddress = s.Attribute("Siemens.Automation.DomainModel.ITagAddress", "LogicalAddress");
         _tagType = s.Attribute(StructureItem, "DisplayTypeName");
@@ -511,7 +512,11 @@ public sealed class TiaProgram {
             if (reader.Name.SequenceEqual("Offsets"u8)) {
                 if (prefix.Length == 0 && section.Length == 0) {
                     context.RootOptimizedBits = reader.GetInt32("optSize"u8);
+                    context.RootVolatileBits = reader.GetInt32("volSize"u8);
+                    context.RootRetainBits = reader.GetInt32("retSize"u8);
                 }
+                // A part's own Offsets come after its members', so after the part is read this is the part's size.
+                context.LastOptimizedBits = reader.GetInt32("optSize"u8);
                 ReadOffsets(ref reader, offsets);
             } else if (reader.Name.SequenceEqual("Member"u8)) {
                 ParseMember(ref reader, section, prefix, context, members);
@@ -562,7 +567,9 @@ public sealed class TiaProgram {
         var atMember = reader.GetString("AtMemberID"u8);
 
         if (rid is null && name is "Input" or "Output" or "InOut" or "Static" or "Temp" or "Return" or "Constant") {
-            var inner = ParseChildren(ref reader, name, prefix, context, out _);
+            // A section's members carry their offsets in the section; only a technology object's image is read by them.
+            var inner = ParseChildren(ref reader, name, prefix, context, out var sectionOffsets);
+            ApplyOffsets(inner, sectionOffsets);
             if (inner.Count == 0 && subPart is { } index) {
                 inner = ParsePart(index, name, prefix, context, requireStructure: false);
             }
@@ -574,15 +581,17 @@ public sealed class TiaProgram {
         var kids = ParseChildren(ref reader, section, path + ":", context, out var offsets);
         ApplyOffsets(kids, offsets);
         var typeMembers = new List<TiaMemberNode>();
+        int? typeBits = null;
         if (kids.Count == 0 && subPart is { } structure) {
             kids = ParsePart(structure, section, path + ":", context, requireStructure: true);
             if (kids.Count == 0 && type is not null) {
-                typeMembers = ParseType(structure, section, path + ":", context);
+                typeMembers = ParseType(structure, section, path + ":", context, out typeBits);
             }
         }
         var libraryVersion = type is not null && subPart is { } external ? LibraryVersion(external, context) : null;
         into.Add(new TiaMemberNode(name, TypeOf(type, rid, subPart), path, section, context.Comments?.GetValueOrDefault(path), context.Values.GetValueOrDefault(path), rid, kids) {
             TypeMembers = typeMembers,
+            TypeOptimizedBits = typeBits,
             IsRetain = remanence == "Retain",
             IsDbSpecific = remanence == "Classic" && section == "Static" && atMember is null,
             Flags = flags,
@@ -614,7 +623,8 @@ public sealed class TiaProgram {
     }
 
     /// <summary>A member's own type, for naming what is inside it: the members of a UDT, or of an FB's instance.</summary>
-    private List<TiaMemberNode> ParseType(int index, string section, string prefix, InterfaceContext context) {
+    private List<TiaMemberNode> ParseType(int index, string section, string prefix, InterfaceContext context, out int? optimizedBits) {
+        optimizedBits = null;
         if (index >= context.Parts.Count || !_db.TryGetFrame(context.Parts[index], out var part)) {
             return [];
         }
@@ -629,6 +639,7 @@ public sealed class TiaProgram {
         var inner = new InterfaceContext { Parts = PositionalParts(part) };
         var members = ParseChildren(ref reader, section, prefix, inner, out var offsets);
         ApplyOffsets(members, offsets);
+        optimizedBits = inner.LastOptimizedBits;
         return members;
     }
 
@@ -687,8 +698,11 @@ public sealed class TiaProgram {
         }
     }
 
-    /// <summary>A scalar from the image, or null for a type it does not know. Only a Bool can start inside a byte.</summary>
-    internal static string? FormatScalar(string? rid, ReadOnlySpan<byte> image, int at, int bit) {
+    /// <summary>
+    /// A scalar from the image, or null for a type it does not know. Only a Bool can start inside a byte. Real and LReal
+    /// only with <paramref name="reals"/>: they are checked on technology objects only.
+    /// </summary>
+    internal static string? FormatScalar(string? rid, ReadOnlySpan<byte> image, int at, int bit, bool reals = false) {
         (int Size, string Form) shape = rid switch {
             "0x02000001" => (1, "bool"),
             "0x02000034" => (1, "u"),
@@ -702,6 +716,8 @@ public sealed class TiaProgram {
             "0x02000006" => (4, "x"),
             "0x02000032" => (8, "s"),
             "0x02000031" => (8, "u"),
+            "0x02000008" when reals => (4, "r"),
+            "0x02000030" when reals => (8, "r"),
             _ => default,
         };
         if (shape.Size == 0 || at + shape.Size > image.Length || (bit != 0 && shape.Form != "bool")) {
@@ -715,6 +731,7 @@ public sealed class TiaProgram {
             "bool" => (unsigned >> bit & 1) != 0 ? "TRUE" : "FALSE",
             "u" => unsigned.ToString(CultureInfo.InvariantCulture),
             "x" => "16#" + unsigned.ToString("X" + (shape.Size * 2), CultureInfo.InvariantCulture),
+            "r" => FormatReal(shape.Size == 4 ? BitConverter.Int32BitsToSingle((int)unsigned) : BitConverter.Int64BitsToDouble((long)unsigned), shape.Size == 4),
             _ => shape.Size switch {
                 1 => ((sbyte)unsigned).ToString(CultureInfo.InvariantCulture),
                 2 => ((short)unsigned).ToString(CultureInfo.InvariantCulture),
@@ -722,6 +739,17 @@ public sealed class TiaProgram {
                 _ => ((long)unsigned).ToString(CultureInfo.InvariantCulture),
             },
         };
+    }
+
+    /// <summary>A real as a start value is written: <c>3000.0</c>, <c>1.0E+12</c>, the shortest form that reads back the same.</summary>
+    internal static string FormatReal(double value, bool single) {
+        var text = single ? ((float)value).ToString("R", CultureInfo.InvariantCulture) : value.ToString("R", CultureInfo.InvariantCulture);
+        var exponent = text.IndexOf('E', StringComparison.Ordinal);
+        var mantissa = exponent < 0 ? text : text[..exponent];
+        if (!mantissa.Contains('.', StringComparison.Ordinal) && !mantissa.Contains('N', StringComparison.Ordinal) && !mantissa.Contains('∞', StringComparison.Ordinal)) {
+            mantissa += ".0";
+        }
+        return exponent < 0 ? mantissa : mantissa + text[exponent..];
     }
 
     private string TypeOf(string? type, string? rid, int? subPart) {
@@ -824,5 +852,9 @@ public sealed class TiaProgram {
         public bool IsDataBlock { get; init; }
         public bool HasOptimizedLayout { get; set; }
         public int? RootOptimizedBits { get; set; }
+        /// <summary>An instance's two areas: what is retained, and the rest. Only a technology object's image is read by them.</summary>
+        public int? RootVolatileBits { get; set; }
+        public int? RootRetainBits { get; set; }
+        public int? LastOptimizedBits { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,6 +14,7 @@ using Siemens.Engineering.HW.Features;
 using Siemens.Engineering.SW;
 using Siemens.Engineering.SW.Blocks;
 using Siemens.Engineering.SW.ExternalSources;
+using Siemens.Engineering.SW.TechnologicalObjects;
 using Siemens.Engineering.SW.Tags;
 using Siemens.Engineering.SW.Types;
 
@@ -191,25 +193,122 @@ internal static class Program {
         return 0;
     }
 
-    private static string Cpu(TiaPortal portal) =>
-        (portal.HardwareCatalog.Find("6ES7 516-3AN02-0AB0").OrderBy(entry => entry.TypeIdentifier, StringComparer.Ordinal).LastOrDefault()
-            ?? throw new InvalidOperationException("No CPU 1516-3 PN/DP in the hardware catalog.")).TypeIdentifier;
+    /// <summary>The CPU a reference project's PLCs get unless a PLC's folder names another in cpu.txt.</summary>
+    private const string DefaultCpu = "6ES7 516-3AN02-0AB0";
 
-    /// <summary>Compiles the PLC's software and prints every error with where it is; returns how many there are.</summary>
-    private static int Compile(PlcSoftware plc) {
+    /// <summary>The catalog's type identifier of a CPU by its order number, in its latest version.</summary>
+    private static string Cpu(TiaPortal portal, string orderNumber) =>
+        (portal.HardwareCatalog.Find(orderNumber).OrderBy(entry => entry.TypeIdentifier, StringComparer.Ordinal).LastOrDefault()
+            ?? throw new InvalidOperationException($"No CPU {orderNumber} in the hardware catalog.")).TypeIdentifier;
+
+    /// <summary>
+    /// Compiles the PLC's software and prints every error with where it is; returns how many there are that
+    /// <paramref name="accepted"/> does not name by the technology object they are about and TIA's message.
+    /// </summary>
+    private static int Compile(PlcSoftware plc, HashSet<(string Object, string Message)> accepted = null) {
         var result = plc.GetService<ICompilable>().Compile();
+        // TIA's count leaves out its closing summary, which is itself a message in the error state.
+        var acceptedErrors = 0;
         Print(result.Messages, "");
-        Console.WriteLine($"compiled {plc.Name}: {result.State}, {result.ErrorCount} errors, {result.WarningCount} warnings");
-        return result.ErrorCount;
+        Console.WriteLine($"compiled {plc.Name}: {result.State}, {result.ErrorCount} errors, {result.WarningCount} warnings, {acceptedErrors} accepted");
+        return result.ErrorCount - acceptedErrors;
 
         void Print(CompilerResultMessageComposition messages, string path) {
             foreach (var message in messages) {
                 var where = string.IsNullOrEmpty(message.Path) ? path : path.Length == 0 ? message.Path : path + "/" + message.Path;
                 if (message.State == CompilerResultState.Error && message.Messages.Count == 0) {
-                    Console.WriteLine($"compile error {plc.Name}/{where}: {message.Description}");
+                    var ok = accepted is not null && accepted.Contains((TechnologyObjectIn(where), message.Description));
+                    acceptedErrors += ok ? 1 : 0;
+                    Console.WriteLine($"compile error{(ok ? " (accepted)" : "")} {plc.Name}/{where}: {message.Description}");
                 }
                 Print(message.Messages, where);
             }
+        }
+    }
+
+    /// <summary>The technology object a compile message is about, from its path <c>/PLC/Technology objects/Axes/Wheel (DB4)</c>; "" if none.</summary>
+    private static string TechnologyObjectIn(string path) {
+        var segments = path.Split('/');
+        var at = Array.IndexOf(segments, "Technology objects");
+        if (at < 0) {
+            return "";
+        }
+        foreach (var segment in segments.Skip(at + 1)) {
+            var db = segment.LastIndexOf(" (DB", StringComparison.Ordinal);
+            if (db > 0) {
+                return segment.Substring(0, db);
+            }
+        }
+        return "";
+    }
+
+    /// <summary>accept.tsv: a technology object's name and a compile error TIA gives for it that the build accepts.</summary>
+    private static HashSet<(string Object, string Message)> Accepted(string sources) {
+        var file = Path.Combine(sources, "accept.tsv");
+        var accepted = new HashSet<(string, string)>();
+        foreach (var line in File.Exists(file) ? File.ReadAllLines(file, Encoding.UTF8) : []) {
+            var fields = line.Split('\t');
+            if (line.Length != 0 && !line.StartsWith("#", StringComparison.Ordinal) && fields.Length >= 2) {
+                accepted.Add((fields[0], fields[1]));
+            }
+        }
+        return accepted;
+    }
+
+    /// <summary>
+    /// A technology object from its .to file, in the group its folders name: its <c>type</c> and <c>version</c>, then one
+    /// <c>parameter&lt;TAB&gt;value</c> per parameter to set. A value <c>@name</c> is the CPU's device item of that name,
+    /// which a counter's <c>Configuration.Module</c> takes.
+    /// </summary>
+    private static void TechnologyObject(PlcSoftware plc, List<string> folders, string path) {
+        var objects = plc.TechnologicalObjectGroup.TechnologicalObjects;
+        var groups = plc.TechnologicalObjectGroup.Groups;
+        foreach (var name in folders) {
+            var group = groups.Find(name) ?? groups.Create(name);
+            objects = group.TechnologicalObjects;
+            groups = group.Groups;
+        }
+        var lines = File.ReadAllLines(path, Encoding.UTF8)
+            .Where(line => line.Length != 0 && !line.StartsWith("#", StringComparison.Ordinal))
+            .Select(line => line.Split('\t'))
+            .ToList();
+        string Setting(string key) => lines.FirstOrDefault(fields => fields[0] == key)?[1] ?? throw new InvalidOperationException($"{path} names no {key}.");
+        var created = objects.Create(Path.GetFileNameWithoutExtension(path), Setting("type"), new Version(Setting("version")));
+        // Every parameter is tried, so one run names each that TIA refuses.
+        var refused = new List<string>();
+        foreach (var fields in lines.Where(fields => fields[0] != "type" && fields[0] != "version")) {
+            try {
+                var parameter = created.Parameters.Find(fields[0]) ?? throw new InvalidOperationException("no such parameter");
+                if (fields[1].StartsWith("@", StringComparison.Ordinal)) {
+                    parameter.Value = DeviceItem(plc, fields[1].Substring(1)) ?? throw new InvalidOperationException($"{plc.Name} has no device item {fields[1].Substring(1)}");
+                    continue;
+                }
+                var current = parameter.Value;
+                parameter.Value = current is null ? fields[1] : Convert.ChangeType(fields[1], current.GetType(), CultureInfo.InvariantCulture);
+            } catch (Exception e) when (e is EngineeringException or InvalidOperationException or FormatException or InvalidCastException) {
+                refused.Add($"{fields[0]} = {fields[1]}: {e.Message.Replace(Environment.NewLine, " ")}");
+            }
+        }
+        if (refused.Count != 0) {
+            throw new InvalidOperationException(string.Join(" | ", refused));
+        }
+    }
+
+    /// <summary>A device item of the PLC's CPU, by name, such as the high-speed counter channel <c>HSC_1</c> of a CPU 1511C.</summary>
+    private static DeviceItem DeviceItem(PlcSoftware plc, string name) {
+        return plc.Parent is SoftwareContainer { Parent: DeviceItem cpu } ? Find(cpu.DeviceItems) : null;
+
+        DeviceItem Find(DeviceItemComposition items) {
+            foreach (var item in items) {
+                if (item.Name == name) {
+                    return item;
+                }
+                var nested = Find(item.DeviceItems);
+                if (nested is not null) {
+                    return nested;
+                }
+            }
+            return null;
         }
     }
 
@@ -231,9 +330,8 @@ internal static class Program {
         var failed = 0;
         using (var portal = new TiaPortal(TiaPortalMode.WithoutUserInterface)) {
             Console.WriteLine($"TIA Portal started in {clock.Elapsed.TotalSeconds:F0} s");
-            var cpu = Cpu(portal);
             foreach (var folder in folders.Select(Path.GetFullPath)) {
-                failed += Reference(portal, cpu, folder, Path.Combine(work.FullName, Path.GetFileName(folder))) ? 0 : 1;
+                failed += Reference(portal, folder, Path.Combine(work.FullName, Path.GetFileName(folder))) ? 0 : 1;
                 Console.WriteLine($"after {clock.Elapsed.TotalSeconds:F0} s");
             }
         }
@@ -245,7 +343,7 @@ internal static class Program {
         return failed == 0 ? 0 : 1;
     }
 
-    private static bool Reference(TiaPortal portal, string cpu, string folder, string work) {
+    private static bool Reference(TiaPortal portal, string folder, string work) {
         var name = Path.GetFileName(folder);
         Console.WriteLine($"== {name}");
         var project = portal.Projects.Create(new DirectoryInfo(work), name);
@@ -253,6 +351,10 @@ internal static class Program {
             var refused = 0;
             foreach (var plcFolder in Directory.GetDirectories(Path.Combine(folder, "sources")).OrderBy(path => path, StringComparer.Ordinal)) {
                 var plcName = Path.GetFileName(plcFolder);
+                // A PLC folder may name its CPU by order number in cpu.txt, such as a CPU 1517T for technology objects (spec 0013).
+                var cpuFile = Path.Combine(plcFolder, "cpu.txt");
+                var cpu = Cpu(portal, File.Exists(cpuFile) ? File.ReadAllText(cpuFile).Trim() : DefaultCpu);
+                Console.WriteLine($"PLC {plcName}: {cpu}");
                 var device = project.Devices.CreateWithItem(cpu, plcName, plcName);
                 refused += BuildPlc(device.DeviceItems.SelectMany(Software).Single(), plcFolder);
             }
@@ -303,6 +405,16 @@ internal static class Program {
             var parts = entry.Split('/');
             var folders = parts.Skip(1).Take(parts.Length - 2).ToList();
             var path = Path.GetFullPath(Path.Combine(sources, entry));
+            if (parts[0] == "Technology objects") {
+                try {
+                    TechnologyObject(plc, folders, path);
+                    Console.WriteLine($"created {plc.Name}/{entry}");
+                } catch (Exception e) when (e is EngineeringException or InvalidOperationException or FormatException or InvalidCastException) {
+                    refused++;
+                    Console.WriteLine($"refused {plc.Name}/{entry}: {e.Message.Replace(Environment.NewLine, " ")}");
+                }
+                continue;
+            }
             if (path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)) {
                 try {
                     BlockGroup(plc, folders).Blocks.Import(new FileInfo(path), ImportOptions.None);
@@ -325,8 +437,9 @@ internal static class Program {
             source.Delete();
         }
         if (refused == 0) {
-            // TIA exports SimaticML only for a compiled block; a compile error counts as a refused source.
-            refused += Compile(plc);
+            // TIA exports SimaticML only for a compiled block; a compile error counts as a refused source, unless accept.tsv
+            // names it: a technology object without its hardware still compiles into the image the reader takes defaults from.
+            refused += Compile(plc, Accepted(sources));
         }
 
         var protect = Path.Combine(sources, "protect.txt");
@@ -419,7 +532,47 @@ internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml
         Blocks(plc, folder, plc.BlockGroup);
         Types(plc, folder, plc.TypeGroup);
         TagTables(plc, folder, plc.TagTableGroup);
+        TechnologyObjects(plc, folder, plc.TechnologicalObjectGroup.TechnologicalObjects, plc.TechnologicalObjectGroup.Groups);
     }
+
+    /// <summary>
+    /// A manifest row per technology object, kind TO, with its type in the language column and its version in the note,
+    /// and <c>TO.&lt;name&gt;.tsv</c> in the xml column: every parameter Openness gives, with its .NET type and its value in
+    /// invariant culture. Those are what the reader's values are checked against (spec 0013).
+    /// </summary>
+    private void TechnologyObjects(PlcSoftware plc, string folder, TechnologicalInstanceDBComposition objects, TechnologicalInstanceDBUserGroupComposition groups) {
+        foreach (var technologyObject in objects) {
+            var stem = Path.Combine(folder, Unique("TO." + Safe(technologyObject.Name)));
+            var notes = new List<string>();
+            var values = Attempt(notes, "parameters", () => {
+                using var writer = new StreamWriter(stem + ".tsv", false, new UTF8Encoding(false));
+                writer.WriteLine("parameter\ttype\tvalue");
+                foreach (var parameter in technologyObject.Parameters) {
+                    object value;
+                    try {
+                        value = parameter.Value;
+                    } catch (EngineeringException) {
+                        continue;
+                    }
+                    writer.WriteLine($"{parameter.Name}\t{value?.GetType().Name}\t{Text(value)}");
+                }
+            });
+            var number = Convert.ToString(((IEngineeringObject)technologyObject).GetAttribute("Number"), CultureInfo.InvariantCulture);
+            notes.Insert(0, technologyObject.OfSystemLibVersion.ToString());
+            Row(plc, "TO", number, technologyObject.OfSystemLibElement, notes.Count == 1 ? "ok" : "partial", "", Relative(stem, ".tsv", values), technologyObject.Name, string.Join(" | ", notes));
+        }
+        foreach (var group in groups) {
+            TechnologyObjects(plc, folder, group.TechnologicalObjects, group.Groups);
+        }
+    }
+
+    private static string Text(object value) => value switch {
+        null => "",
+        bool flag => flag ? "true" : "false",
+        double or float => ((IFormattable)value).ToString("R", CultureInfo.InvariantCulture),
+        IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+        _ => value.ToString().Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' '),
+    };
 
     private void Blocks(PlcSoftware plc, string folder, PlcBlockGroup group) {
         foreach (var block in group.Blocks) {

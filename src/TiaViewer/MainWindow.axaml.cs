@@ -384,6 +384,7 @@ public sealed partial class MainWindow : Window {
         "DB" => "data blocks",
         "UDT" => "PLC data types",
         "Tags" => "tag tables",
+        TiaItem.TechnologyObjectKind => "technology objects",
         TiaItem.OpcUaReportKind => "the OPC UA entries",
         _ => kind + " blocks",
     };
@@ -561,9 +562,10 @@ public sealed partial class MainWindow : Window {
             var result = await Task.Run(() => new TiaSourceExport(project.Program, target) {
                 Blocks = chosen is null ? null : block => chosen.Contains(block.Frame.Key),
                 TagTables = chosen is null ? null : table => chosen.Contains(table.Frame.Key),
+                TechnologyObjects = chosen is null ? null : technologyObject => chosen.Contains(technologyObject.Frame.Key),
             }.Run());
             // The status bar has room for the gist; the tip has the rest.
-            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles} files to \"{Path.GetFileName(target)}\"");
+            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles + result.TechnologyObjectFiles} files to \"{Path.GetFileName(target)}\"");
             if (result.Failures.Count != 0) {
                 text += string.Create(CultureInfo.InvariantCulture, $", {result.Failures.Count} blocks failed");
             }
@@ -591,6 +593,9 @@ public sealed partial class MainWindow : Window {
         }
         if (node.Item?.Table is { } table) {
             chosen.Add(table.Frame.Key);
+        }
+        if (node.Item?.TechnologyObject is { } technologyObject) {
+            chosen.Add(technologyObject.Frame.Key);
         }
         foreach (var child in node.Children) {
             Collect(child, chosen);

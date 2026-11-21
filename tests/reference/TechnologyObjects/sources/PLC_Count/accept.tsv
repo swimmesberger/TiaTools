@@ -1,0 +1,4 @@
+# Compile errors the build accepts: technology object, TIA's message. Only for a hardware connection, which spec 0013 leaves out.
+# The onboard counter channels of a CPU 1511C take no SSI encoder, so it has no hardware assigned.
+Angle	Please select the hardware
+Angle	Please select the channel

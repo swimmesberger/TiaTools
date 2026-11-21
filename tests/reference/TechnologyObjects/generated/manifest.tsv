@@ -1,0 +1,144 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Count	FB	1150	SCL	closed			High_Speed_Counter	
+PLC_Count	FB	1151	SCL	closed			SSI_Absolute_Encoder	
+PLC_Count	UDT		UDT	closed			HSC_UserCmdFlag	
+PLC_Count	UDT		UDT	closed			HSC_UserStatusFlags	
+PLC_Count	UDT		UDT	closed			HSC_Configuration	
+PLC_Count	UDT		UDT	closed			HSC_CounterInputs	
+PLC_Count	UDT		UDT	closed			HSC_BehaviorDQ	
+PLC_Count	UDT		UDT	closed			HSC_BehaviorDI	
+PLC_Count	UDT		UDT	closed			HSC_Values	
+PLC_Count	UDT		UDT	closed			HSC_CounterBehavior	
+PLC_Count	UDT		UDT	closed			HSC_Measuring	
+PLC_Count	UDT		UDT	closed			HSC_InputData	
+PLC_Count	UDT		UDT	closed			HSC_FeedbackSignals	
+PLC_Count	UDT		UDT	closed			HSC_OutputData	
+PLC_Count	UDT		UDT	closed			TMCOUNT_DATASET_128	
+PLC_Count	UDT		UDT	closed			TMCOUNT_2CHANN_PARAM	
+PLC_Count	UDT		UDT	closed			TMCOUNT_HWIRQ	
+PLC_Count	UDT		UDT	closed			TMCOUNT_BehaviorDQ	
+PLC_Count	UDT		UDT	closed			TMCOUNT_BehaviorDI	
+PLC_Count	UDT		UDT	closed			TMCOUNT_Values	
+PLC_Count	UDT		UDT	closed			SSIENC_UserCmdFlag	
+PLC_Count	UDT		UDT	closed			SSIENC_Configuration	
+PLC_Count	UDT		UDT	closed			SSIENC_Param	
+PLC_Count	TAGS			ok		PLC_Count/TAGS.Default tag table.xml	Default tag table	
+PLC_Count	TO	1	High_Speed_Counter	ok		PLC_Count/TO.Count.tsv	Count	4.0
+PLC_Count	TO	2	SSI_Absolute_Encoder	ok		PLC_Count/TO.Angle.tsv	Angle	3.1
+PLC_Motion	OB	91	LAD	closed			MC_Servo	
+PLC_Motion	OB	92	LAD	closed			MC_Interpolator	
+PLC_Motion	FC	1	SCL	ok	PLC_Motion/FC.Watch.scl		Watch	
+PLC_Motion	FB	1130	SCL	closed			PID_Compact	
+PLC_Motion	FB	1131	SCL	closed			PID_3Step	
+PLC_Motion	FB	1132	SCL	closed			PID_Temp	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Actor	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ActorInterface	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ActorDriveParameter	
+PLC_Motion	UDT		UDT	closed			TO_Struct_LinearMotorActorDriveParameter	
+PLC_Motion	UDT		UDT	closed			TO_Struct_TorqueLimiting	
+PLC_Motion	UDT		UDT	closed			TO_Struct_TorqueLimitingLimitDefaults	
+PLC_Motion	UDT		UDT	closed			TO_Struct_LoadGear	
+PLC_Motion	UDT		UDT	closed			TO_Struct_DynamicLimits	
+PLC_Motion	UDT		UDT	closed			TO_Struct_DynamicDefaults	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Override	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Units	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusDrive	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusTorqueData	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusMotionIn	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusInterpreterMotion	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ErrorDetail	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ControlPanel	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ControlPanelInput	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ControlPanelInputCmd	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ControlPanelOutput	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ControlPanelOutputCmd	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Internal	
+PLC_Motion	UDT		UDT	closed			TO_Struct_VirtualAxis	
+PLC_Motion	UDT		UDT	closed			TO_Struct_AxisSimulation	
+PLC_Motion	UDT		UDT	closed			DX_TEL_SyncOp	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Clamping	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Sensor	
+PLC_Motion	UDT		UDT	closed			TO_Struct_SensorInterface	
+PLC_Motion	UDT		UDT	closed			TO_Struct_SensorParameter	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Backlash	
+PLC_Motion	UDT		UDT	closed			TO_Struct_SensorActiveHoming	
+PLC_Motion	UDT		UDT	closed			TO_Struct_SensorPassiveHoming	
+PLC_Motion	UDT		UDT	closed			TO_Struct_SensorMeasuringGear	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Extrapolation	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ExtrapolationSettings	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ExtrapolationPositionFilter	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ExtrapolationVelocityFilter	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ExtrapolationVelocityTolerance	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ExtrapolationHysteresis	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Mechanics	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Properties	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Modulo	
+PLC_Motion	UDT		UDT	closed			TO_Struct_PositionLimitsSW	
+PLC_Motion	UDT		UDT	closed			TO_Struct_PositionLimitsHW	
+PLC_Motion	UDT		UDT	closed			TO_Struct_Homing	
+PLC_Motion	UDT		UDT	closed			TO_Struct_PositionControl	
+PLC_Motion	UDT		UDT	closed			TO_Struct_PositionDifferenceQuantification	
+PLC_Motion	UDT		UDT	closed			TO_Struct_TorquePreControl	
+PLC_Motion	UDT		UDT	closed			TO_Struct_SetpointFilter	
+PLC_Motion	UDT		UDT	closed			TO_Struct_DynamicFilter	
+PLC_Motion	UDT		UDT	closed			TO_Struct_DynamicAxisModel	
+PLC_Motion	UDT		UDT	closed			TO_Struct_FollowingError	
+PLC_Motion	UDT		UDT	closed			TO_Struct_CrossPlcSynchronousOperation	
+PLC_Motion	UDT		UDT	closed			TO_Struct_CrossPlcLeadingValueInterface	
+PLC_Motion	UDT		UDT	closed			TO_Struct_PositioningMonitoring	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StandstillSignal	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusPositioning	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusServo	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusProvidedLeadingValue	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ProvidedLeadingValue	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusSensor	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusExtrapolation	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusKinematicsMotion	
+PLC_Motion	UDT		UDT	closed			TO_Struct_StatusSynchronizedMotion	
+PLC_Motion	UDT		UDT	closed			TO_Struct_EffectiveLeadingValue	
+PLC_Motion	UDT		UDT	closed			TO_Struct_FunctionLeadingValue	
+PLC_Motion	UDT		UDT	closed			TO_Struct_FunctionFollowingValue	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ExternalEncoder_Sensor	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ExternalEncoder_Homing	
+PLC_Motion	UDT		UDT	closed			TO_Struct_ExternalEncoder_Units	
+PLC_Motion	UDT		UDT	closed			PID_CompactConfig	
+PLC_Motion	UDT		UDT	closed			PID_Scaling	
+PLC_Motion	UDT		UDT	closed			PID_CycleTime	
+PLC_Motion	UDT		UDT	closed			PID_CompactControlParams	
+PLC_Motion	UDT		UDT	closed			PID_CompactSelfTune	
+PLC_Motion	UDT		UDT	closed			PID_GradientEstimation	
+PLC_Motion	UDT		UDT	closed			PID_GradientParams	
+PLC_Motion	UDT		UDT	closed			PID_StandardDeviation	
+PLC_Motion	UDT		UDT	closed			PID_Compact_SUT	
+PLC_Motion	UDT		UDT	closed			PID_Compact_TIR	
+PLC_Motion	UDT		UDT	closed			PID_CompactControl	
+PLC_Motion	UDT		UDT	closed			PID_CompactRetain	
+PLC_Motion	UDT		UDT	closed			PID_3StepConfig	
+PLC_Motion	UDT		UDT	closed			PID_3StepGetTransitTime	
+PLC_Motion	UDT		UDT	closed			PID_3StepControlParams	
+PLC_Motion	UDT		UDT	closed			PID_3StepSelfTune	
+PLC_Motion	UDT		UDT	closed			PID_3Step_SUT	
+PLC_Motion	UDT		UDT	closed			PID_3Step_TIR	
+PLC_Motion	UDT		UDT	closed			PID_3StepControl	
+PLC_Motion	UDT		UDT	closed			PID_3StepRetain	
+PLC_Motion	UDT		UDT	closed			PID_TempBasicOutputData	
+PLC_Motion	UDT		UDT	closed			PID_TempPwmData	
+PLC_Motion	UDT		UDT	closed			PID_TempConfig	
+PLC_Motion	UDT		UDT	closed			PID_TempOutput	
+PLC_Motion	UDT		UDT	closed			PID_TempSpecConfigData	
+PLC_Motion	UDT		UDT	closed			PID_TempCascade	
+PLC_Motion	UDT		UDT	closed			PID_TempControlParamsHeatCool	
+PLC_Motion	UDT		UDT	closed			PID_TempControlParams	
+PLC_Motion	UDT		UDT	closed			PID_TempSelfTune	
+PLC_Motion	UDT		UDT	closed			PID_Temp_SUT	
+PLC_Motion	UDT		UDT	closed			PID_Temp_TIR	
+PLC_Motion	UDT		UDT	closed			PID_TempControl	
+PLC_Motion	UDT		UDT	closed			PID_TempRetain	
+PLC_Motion	TAGS			ok		PLC_Motion/TAGS.Default tag table.2.xml	Default tag table	
+PLC_Motion	TO	1	TO_SpeedAxis	ok		PLC_Motion/TO.Spindle.tsv	Spindle	8.0
+PLC_Motion	TO	2	TO_PositioningAxis	ok		PLC_Motion/TO.Feed.tsv	Feed	8.0
+PLC_Motion	TO	3	TO_SynchronousAxis	ok		PLC_Motion/TO.Follower.tsv	Follower	8.0
+PLC_Motion	TO	4	TO_ExternalEncoder	ok		PLC_Motion/TO.Wheel.tsv	Wheel	8.0
+PLC_Motion	TO	5	PID_Compact	ok		PLC_Motion/TO.Level.tsv	Level	3.0
+PLC_Motion	TO	6	PID_3Step	ok		PLC_Motion/TO.Valve.tsv	Valve	2.3
+PLC_Motion	TO	7	PID_Temp	ok		PLC_Motion/TO.Oven.tsv	Oven	1.1

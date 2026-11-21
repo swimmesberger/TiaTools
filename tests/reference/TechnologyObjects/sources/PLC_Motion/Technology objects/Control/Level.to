@@ -1,0 +1,6 @@
+type	PID_Compact
+version	3.0
+Config.InputUpperLimit	150
+Config.InputLowerLimit	-10
+Config.OutputUpperLimit	80
+Config.InvertControl	true

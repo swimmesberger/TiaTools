@@ -18,6 +18,9 @@ internal sealed class TiaMemberNode(string name, string type, string path, strin
 
     /// <summary>The members of its UDT or FB type. They are not its own, so a source file does not list them.</summary>
     public List<TiaMemberNode> TypeMembers { get; init; } = [];
+
+    /// <summary>The size of its UDT or FB type in the optimized layout, in bits: the stride of an array of it.</summary>
+    public int? TypeOptimizedBits { get; init; }
     public int? OptimizedBitOffset { get; set; }
     public bool IsRetain { get; init; }
     public bool IsDbSpecific { get; init; }
@@ -169,10 +172,10 @@ internal sealed partial class TiaDeclaredValues(IReadOnlyDictionary<string, stri
         return position;
     }
 
-    private static bool IsArray(TiaMemberNode member) => member.Type.StartsWith("Array[", StringComparison.Ordinal);
+    internal static bool IsArray(TiaMemberNode member) => member.Type.StartsWith("Array[", StringComparison.Ordinal);
 
     /// <summary>The array's bounds, with constants resolved; empty if one is not known.</summary>
-    private static List<(int Low, int High)> Bounds(TiaMemberNode member) {
+    internal static List<(int Low, int High)> Bounds(TiaMemberNode member) {
         var close = member.Type.IndexOf(']', StringComparison.Ordinal);
         var result = new List<(int, int)>();
         if (close < 0) {

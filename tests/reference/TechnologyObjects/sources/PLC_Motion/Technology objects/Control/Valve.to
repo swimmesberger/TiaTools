@@ -1,0 +1,5 @@
+type	PID_3Step
+version	2.3
+Config.InputUpperLimit	200
+Config.VirtualActuatorLimit	175
+Config.MinimumOnTime	0.5
