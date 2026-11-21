@@ -22,7 +22,13 @@ public sealed record TiaCrossTarget(TiaObjectKey Key, string Kind, string Name, 
 /// part or token UId. <see cref="Declaration"/> names the member a use in the interface declares. A closed block's
 /// references carry no place (ADR 0015).
 /// </summary>
-public sealed record TiaCrossReference(TiaBlock User, TiaCrossTarget Used, string Access, int? Network, int? UId, string? Declaration);
+public sealed record TiaCrossReference(TiaBlock User, TiaCrossTarget Used, string Access, int? Network, int? UId, string? Declaration) {
+    /// <summary>
+    /// For a call through an instance (FORMAT.md section 21): the instance, an instance data block or a member of the
+    /// user's own interface, which the call's text names instead of the block it calls. Null for any other use.
+    /// </summary>
+    public TiaCrossTarget? Instance { get; init; }
+}
 
 /// <summary>
 /// TIA's cross-reference list, read from <c>XRef/XRef.db</c> beside the database (spec 0015, ADR 0014,
@@ -156,7 +162,12 @@ public sealed class TiaCrossReferences {
                     references.Add(reference);
                 }
             }
-            references.AddRange(Derived(references, instanceOf, seen));
+            // The function block of each multi-instance, by its user and its name, from its use in the interface.
+            var types = references.Where(reference => reference.Access == "Multiinstance" && reference.Network is null && reference.Declaration is not null)
+                .GroupBy(reference => (reference.User.Frame.Key, reference.Declaration!))
+                .ToDictionary(group => group.Key, group => group.First().Used);
+            references.AddRange(Derived(references, instanceOf, types, seen));
+            WithInstances(references, instanceOf, types);
             var stored = SavePoint(_db);
             return new TiaCrossReferences(references, current is not null && current == stored);
         }
@@ -165,10 +176,8 @@ public sealed class TiaCrossReferences {
         /// The calls TIA shows that the list holds only as a use: a call through an instance data block calls its function
         /// block, and a call through a multi-instance calls the type of the member.
         /// </summary>
-        private List<TiaCrossReference> Derived(List<TiaCrossReference> references, Dictionary<TiaObjectKey, TiaObjectKey> instanceOf, HashSet<(TiaObjectKey, TiaCrossTarget, string, int?, int?)> seen) {
-            var types = references.Where(reference => reference.Access == "Multiinstance" && reference.Network is null && reference.Declaration is not null)
-                .GroupBy(reference => (reference.User.Frame.Key, reference.Declaration!))
-                .ToDictionary(group => group.Key, group => group.First().Used);
+        private List<TiaCrossReference> Derived(List<TiaCrossReference> references, Dictionary<TiaObjectKey, TiaObjectKey> instanceOf,
+            Dictionary<(TiaObjectKey, string), TiaCrossTarget> types, HashSet<(TiaObjectKey, TiaCrossTarget, string, int?, int?)> seen) {
             var derived = new List<TiaCrossReference>();
             // A call the list already holds in the same network is not derived a second time.
             var calls = references.Where(reference => reference.Access == "Call").Select(reference => (reference.User.Frame.Key, reference.Used, reference.Network)).ToHashSet();
@@ -181,10 +190,41 @@ public sealed class TiaCrossReferences {
                     called = memberType;
                 }
                 if (called is not null && calls.Add((reference.User.Frame.Key, called, reference.Network)) && seen.Add((reference.User.Frame.Key, called, "Call", reference.Network, reference.UId))) {
-                    derived.Add(reference with { Used = called, Access = "Call", Declaration = null });
+                    derived.Add(reference with { Used = called, Access = "Call", Declaration = null, Instance = reference.Used });
                 }
             }
             return derived;
+        }
+
+        /// <summary>
+        /// A call through an instance is held as a Call row and an InstanceDB or Multiinstance row (FORMAT.md section 21): in
+        /// SCL at the same place, the same network and UId; in LAD and FBD the instance has a UId of its own, so there the
+        /// call takes the first instance in its network whose function block is the one it calls. The call gets that
+        /// instance, which its text names.
+        /// </summary>
+        private static void WithInstances(List<TiaCrossReference> references, Dictionary<TiaObjectKey, TiaObjectKey> instanceOf, Dictionary<(TiaObjectKey, string), TiaCrossTarget> types) {
+            var atPlace = new Dictionary<(TiaObjectKey, int, int), TiaCrossTarget>();
+            var inNetwork = new Dictionary<(TiaObjectKey, int, TiaObjectKey), TiaCrossTarget>();
+            foreach (var reference in references) {
+                if (reference is not { Access: "InstanceDB" or "Multiinstance", Network: { } network, UId: { } uid }) {
+                    continue;
+                }
+                var user = reference.User.Frame.Key;
+                atPlace.TryAdd((user, network, uid), reference.Used);
+                if (reference.Access == "InstanceDB" && instanceOf.TryGetValue(reference.Used.Key, out var fb)) {
+                    inNetwork.TryAdd((user, network, fb), reference.Used);
+                } else if (reference.Used.Key == user && reference.Used.Member is { } member
+                    && (types.TryGetValue((user, member), out var declared) || types.TryGetValue((user, member.Split('[')[0]), out declared))) {
+                    inNetwork.TryAdd((user, network, declared.Key), reference.Used);
+                }
+            }
+            for (var i = 0; i < references.Count; i++) {
+                if (references[i] is { Access: "Call", Instance: null, Network: { } network, UId: { } uid } call
+                    && (atPlace.TryGetValue((call.User.Frame.Key, network, uid), out var instance)
+                        || inNetwork.TryGetValue((call.User.Frame.Key, network, call.Used.Key), out instance))) {
+                    references[i] = call with { Instance = instance };
+                }
+            }
         }
 
         private SqliteTable Table(string name) => file.FindTable(name) ?? throw new TiaFormatException($"XRef.db has no table {name}.");

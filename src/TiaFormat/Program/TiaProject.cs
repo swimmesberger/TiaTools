@@ -343,7 +343,8 @@ public sealed class TiaProject {
         foreach (var item in Items.Where(item => item.TechnologyObject is not null)) {
             used.TryAdd(item.TechnologyObject!.Frame.Key, item);
         }
-        var seen = new HashSet<(TiaItem, TiaItem, string?, string?, int?)>();
+        // One use per network and access, but one call per instance: two instances of one block are two calls.
+        var seen = new HashSet<(TiaItem, TiaItem, string?, string?, int?, TiaCrossTarget?)>();
         foreach (var reference in list.References) {
             if (!items.TryGetValue(reference.User.Frame.Key, out var from) || reference.Used.Key == reference.User.Frame.Key) {
                 continue;
@@ -365,14 +366,12 @@ public sealed class TiaProject {
                 // A system instruction is no item of the project.
                 continue;
             }
-            if (!seen.Add((from, to, target, reference.Access, reference.Network))) {
+            if (!seen.Add((from, to, target, reference.Access, reference.Network, reference.Instance))) {
                 continue;
             }
             var document = Document(from);
             var line = from.IsClosed ? 0
-                : target is not null && reference.Used.Kind != "Tag" && PlaceLine(document, from.Block!, reference.Network, needle + "." + target) is var member && member >= 0 ? member
-                : PlaceLine(document, from.Block!, reference.Network, needle) is var named && named >= 0 ? named
-                : PlaceLine(document, from.Block!, reference.Network, null);
+                : PlaceLine(document, from.Block!, reference, needle, target is not null && reference.Used.Kind != "Tag" ? needle + "." + target : null);
             var kind = reference.Access is "Call" ? TiaReferenceKind.Call : TiaReferenceKind.Use;
             var text = from.IsClosed ? "(closed)" : document.LineText(line).Trim();
             AddReference(new TiaReference(from, to, kind, line, text) { Access = reference.Access, Target = target, Network = reference.Network });
@@ -380,37 +379,82 @@ public sealed class TiaProject {
     }
 
     /// <summary>
-    /// The line of a use: the first line holding the needle in the network the list gives, or -1; without a needle, that
-    /// network's first line. A LAD or FBD network starts at its <c>// ---- network n</c> line, an STL one at its n-th
-    /// <c>NETWORK</c>, the rest at <c>BEGIN</c>.
+    /// The line of a use in its user's text (FORMAT.md section 21). In a network, the first line of it that holds, in this
+    /// order: for a call derived from an instance, a call of that instance (<c>#drive(</c>, <c>"DriveDb"(</c>), else its
+    /// name; the data block member (<c>"Db".member</c>); the name of what is used; else the network's first line. A LAD or
+    /// FBD network starts at its <c>// ---- network n</c> line, an STL one at its n-th <c>NETWORK</c>, the rest at
+    /// <c>BEGIN</c>. In the interface, the line that declares the member, preferring one that names what is used, else a
+    /// line that names it, else <c>BEGIN</c>.
     /// </summary>
-    private static int PlaceLine(TiaDocument document, TiaBlock block, int? network, string? needle) {
+    private static int PlaceLine(TiaDocument document, TiaBlock block, TiaCrossReference reference, string needle, string? member) {
         var begin = Enumerable.Range(0, document.LineCount).FirstOrDefault(line => document.LineText(line) == "BEGIN");
+        if (reference.Network is not { } number) {
+            var declared = reference.Declaration?[(reference.Declaration.LastIndexOf('.') + 1)..];
+            return Find(0, begin, text => declared is not null && Declares(text, declared) && text.Contains(needle, StringComparison.Ordinal))
+                ?? Find(0, begin, text => declared is not null && Declares(text, declared))
+                ?? Find(0, begin, text => text.Contains(needle, StringComparison.Ordinal))
+                ?? begin;
+        }
         var start = begin;
-        if (network is { } number) {
-            var heading = string.Create(CultureInfo.InvariantCulture, $"// ---- network {number} ");
-            var counted = 0;
-            for (var line = begin; line < document.LineCount; line++) {
-                var text = document.LineText(line);
-                if (text.StartsWith(heading, StringComparison.Ordinal) || (block.Language == "STL" && text == "NETWORK" && ++counted == number)) {
-                    start = line;
-                    break;
-                }
-            }
-        }
-        if (needle is null) {
-            return start;
-        }
-        for (var line = start + 1; line < document.LineCount; line++) {
+        var heading = string.Create(CultureInfo.InvariantCulture, $"// ---- network {number} ");
+        var counted = 0;
+        for (var line = begin; line < document.LineCount; line++) {
             var text = document.LineText(line);
-            if (line > start + 1 && (text.StartsWith("// ---- network ", StringComparison.Ordinal) || text == "NETWORK")) {
+            if (text.StartsWith(heading, StringComparison.Ordinal) || (block.Language == "STL" && text == "NETWORK" && ++counted == number)) {
+                start = line;
                 break;
             }
-            if (text.Contains(needle, StringComparison.Ordinal)) {
-                return line;
+        }
+        var end = start + 1;
+        while (end < document.LineCount && (end == start + 1 || !IsNetworkStart(document.LineText(end)))) {
+            end++;
+        }
+        var instance = reference.Instance is { } through ? InstanceName(through, block) : null;
+        return (instance is null ? null : Find(start + 1, end, text => Calls(text, instance)) ?? Find(start + 1, end, text => text.Contains(instance, StringComparison.Ordinal)))
+            ?? (member is null ? null : Find(start + 1, end, text => text.Contains(member, StringComparison.Ordinal)))
+            ?? Find(start + 1, end, text => text.Contains(needle, StringComparison.Ordinal))
+            ?? start;
+
+        int? Find(int from, int to, Func<string, bool> holds) {
+            for (var line = from; line < to; line++) {
+                if (holds(document.LineText(line))) {
+                    return line;
+                }
+            }
+            return null;
+        }
+
+        static bool IsNetworkStart(string text) => text.StartsWith("// ---- network ", StringComparison.Ordinal) || text == "NETWORK";
+    }
+
+    /// <summary>How a call's text names the instance it calls through: <c>#drive</c> for a member of the user's own, <c>"DriveDb"</c> for a data block.</summary>
+    private static string InstanceName(TiaCrossTarget instance, TiaBlock user) =>
+        instance.Key == user.Frame.Key ? "#" + instance.Member
+        : "\"" + instance.Name + "\"" + (instance.Member is null ? "" : "." + instance.Member);
+
+    /// <summary>Whether a line calls the instance: its name followed by <c>(</c>, spaces between allowed.</summary>
+    private static bool Calls(string text, string instance) {
+        for (var at = text.IndexOf(instance, StringComparison.Ordinal); at >= 0; at = text.IndexOf(instance, at + 1, StringComparison.Ordinal)) {
+            var after = at + instance.Length;
+            while (after < text.Length && text[after] == ' ') {
+                after++;
+            }
+            if (after < text.Length && text[after] == '(') {
+                return true;
             }
         }
-        return -1;
+        return false;
+    }
+
+    /// <summary>Whether an interface line declares the member: its name, plain or quoted, then a space, <c>:</c> or <c>{</c>.</summary>
+    private static bool Declares(string text, string name) {
+        var trimmed = text.AsSpan().TrimStart();
+        foreach (var form in (ReadOnlySpan<string>)[name, "\"" + name + "\""]) {
+            if (trimmed.StartsWith(form, StringComparison.Ordinal) && trimmed.Length > form.Length && trimmed[form.Length] is ' ' or ':' or '{') {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>Each entry of a watch or force table uses the tag or data block it names: Monitor, and Modify or Force when it has a value.</summary>

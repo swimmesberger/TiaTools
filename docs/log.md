@@ -2,6 +2,7 @@
 
 ## 2026-11-21
 
+* **Update**: [the format](FORMAT.md), section 21, says how a call through an instance is held in TIA's cross-reference list and where the reader places a use: on the line that calls the instance, and in the interface on the line that declares the member, no longer on `BEGIN` ([spec 0015](../specs/0015-tables-and-cross-references.md)).
 * **Update**: [the format](FORMAT.md) after combining the branches of specs 0010 to 0016: sections 19 to 25 are hardware, watch and force tables, the cross-reference list, safety, technology objects, HMI and program alarms, every reference to them follows, and section 17 lists the thirteen reference projects in order; every reference archive's cross-reference list belongs to it
 * **Update**: a use of a technology object, or of one of its members, in TIA's cross-reference list now leads to the object, which the reader had dropped as no block once the lists and technology objects were combined; [the format](FORMAT.md) section 21 says so
 * **Update**: combining the branches of specs 0010 to 0016 showed hardware the reader got wrong on the F-CPUs and F-modules of the reference project Safety: the F-execution unit is not listed, an ET 200SP interface module's submodule named after its type is named as the module, an S7-1500 F-module's submodule shows its type, and a generated PROFINET device name is generated from the current names; [the format](FORMAT.md) section 19 says so
