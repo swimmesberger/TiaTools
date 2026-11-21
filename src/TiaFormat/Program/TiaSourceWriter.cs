@@ -257,8 +257,25 @@ public static class TiaSourceWriter {
             output.Write(";\n"u8);
         }
         output.Write("\nEND_DATA_BLOCK\n\n"u8);
+        WriteProDiagAssignments(output, program.ReadProDiagAssignments(block));
         if (type is not null) {
             WriteAsComment(output, "// The members of its type, with the start values known:\n"u8, members);
+        }
+    }
+
+    /// <summary>
+    /// Which ProDiag function block a data block or its members are assigned to, as comment lines after the block: TIA's
+    /// generated source does not show it (spec 0016).
+    /// </summary>
+    private static void WriteProDiagAssignments(PooledByteWriter output, IReadOnlyList<TiaProDiagAssignment> assignments) {
+        foreach (var assignment in assignments) {
+            output.Write("// assigned to ProDiag function block "u8);
+            output.Write(assignment.FunctionBlock);
+            if (assignment.Member is not null) {
+                output.Write(": "u8);
+                output.Write(assignment.Member);
+            }
+            output.Write((byte)'\n');
         }
     }
 

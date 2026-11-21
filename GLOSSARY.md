@@ -87,6 +87,22 @@ _Avoid_: OPC UA export, address space dump
 One unit of a LAD, FBD or STL block's logic, with its own number, title and comment; TIA stores each as a compile unit, and an SCL block has one.
 _Avoid_: rung, segment, compile unit (outside the format page)
 
+**Step time**:
+A GRAPH step's maximum time, after which its supervision reports an error, and its warning time, after which it warns; TIA's export calls them `MaximumStepTime` and `WarningTime` (spec 0016).
+_Avoid_: timeout, step timer
+
+**ProDiag supervision**:
+A check ProDiag makes on a Bool member of a function block or PLC data type, or on a global tag: of a kind (operand, interlock, action, reaction, position, text message, error message), with the state that triggers it, a delay, up to three conditions and a category (spec 0016). Not a GRAPH step's supervision, which is a condition of the step.
+_Avoid_: alarm, monitor, watch
+
+**ProDiag function block**:
+A function block in language ProDiag that evaluates the ProDiag supervisions of the instances and data blocks assigned to it; TIA generates its content.
+_Avoid_: diagnostic block, supervision block
+
+**Classic CPU**:
+An S7-300 or S7-400 CPU, as opposed to an S7-1500 or S7-1200: its blocks have standard access only, and its STL has S5 timers and counters.
+_Avoid_: old PLC, legacy CPU
+
 **Closed**:
 What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing more. Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable

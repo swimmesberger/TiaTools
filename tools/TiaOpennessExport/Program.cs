@@ -191,9 +191,13 @@ internal static class Program {
         return 0;
     }
 
-    private static string Cpu(TiaPortal portal) =>
-        (portal.HardwareCatalog.Find("6ES7 516-3AN02-0AB0").OrderBy(entry => entry.TypeIdentifier, StringComparer.Ordinal).LastOrDefault()
-            ?? throw new InvalidOperationException("No CPU 1516-3 PN/DP in the hardware catalog.")).TypeIdentifier;
+    /// <summary>The CPU a reference project's PLCs get unless a PLC's folder names another in cpu.txt.</summary>
+    private const string DefaultCpu = "6ES7 516-3AN02-0AB0";
+
+    /// <summary>The catalog's type identifier of a CPU by its order number, in its latest version.</summary>
+    private static string Cpu(TiaPortal portal, string orderNumber) =>
+        (portal.HardwareCatalog.Find(orderNumber).OrderBy(entry => entry.TypeIdentifier, StringComparer.Ordinal).LastOrDefault()
+            ?? throw new InvalidOperationException($"No CPU {orderNumber} in the hardware catalog.")).TypeIdentifier;
 
     /// <summary>Compiles the PLC's software and prints every error with where it is; returns how many there are.</summary>
     private static int Compile(PlcSoftware plc) {
@@ -231,9 +235,8 @@ internal static class Program {
         var failed = 0;
         using (var portal = new TiaPortal(TiaPortalMode.WithoutUserInterface)) {
             Console.WriteLine($"TIA Portal started in {clock.Elapsed.TotalSeconds:F0} s");
-            var cpu = Cpu(portal);
             foreach (var folder in folders.Select(Path.GetFullPath)) {
-                failed += Reference(portal, cpu, folder, Path.Combine(work.FullName, Path.GetFileName(folder))) ? 0 : 1;
+                failed += Reference(portal, folder, Path.Combine(work.FullName, Path.GetFileName(folder))) ? 0 : 1;
                 Console.WriteLine($"after {clock.Elapsed.TotalSeconds:F0} s");
             }
         }
@@ -245,7 +248,7 @@ internal static class Program {
         return failed == 0 ? 0 : 1;
     }
 
-    private static bool Reference(TiaPortal portal, string cpu, string folder, string work) {
+    private static bool Reference(TiaPortal portal, string folder, string work) {
         var name = Path.GetFileName(folder);
         Console.WriteLine($"== {name}");
         var project = portal.Projects.Create(new DirectoryInfo(work), name);
@@ -253,6 +256,10 @@ internal static class Program {
             var refused = 0;
             foreach (var plcFolder in Directory.GetDirectories(Path.Combine(folder, "sources")).OrderBy(path => path, StringComparer.Ordinal)) {
                 var plcName = Path.GetFileName(plcFolder);
+                // A PLC folder may name its CPU by order number in cpu.txt, such as an S7-300's (spec 0016).
+                var cpuFile = Path.Combine(plcFolder, "cpu.txt");
+                var cpu = Cpu(portal, File.Exists(cpuFile) ? File.ReadAllText(cpuFile).Trim() : DefaultCpu);
+                Console.WriteLine($"PLC {plcName}: {cpu}");
                 var device = project.Devices.CreateWithItem(cpu, plcName, plcName);
                 refused += BuildPlc(device.DeviceItems.SelectMany(Software).Single(), plcFolder);
             }
@@ -300,12 +307,36 @@ internal static class Program {
         plc.BlockGroup.Blocks.Find("Main")?.Delete();
         var refused = 0;
         foreach (var entry in File.ReadAllLines(Path.Combine(sources, "order.txt")).Where(line => line.Length != 0 && !line.StartsWith("#", StringComparison.Ordinal))) {
+            var path = Path.GetFullPath(Path.Combine(sources, entry));
             var parts = entry.Split('/');
             var folders = parts.Skip(1).Take(parts.Length - 2).ToList();
-            var path = Path.GetFullPath(Path.Combine(sources, entry));
+            var blockRoot = plc.BlockGroup;
+            var typeRoot = plc.TypeGroup;
+            if (path.EndsWith(".prodiag", StringComparison.OrdinalIgnoreCase)) {
+                // A ProDiag FB has no source form; Openness creates it empty, and TIA fills in the supervisions it
+                // evaluates when it compiles (spec 0016). The file holds the block's number and its instance DB's,
+                // which is named after the block with Db added.
+                try {
+                    var numbers = File.ReadAllText(path).Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(number => int.Parse(number, System.Globalization.CultureInfo.InvariantCulture)).ToList();
+                    var blockName = Path.GetFileNameWithoutExtension(path);
+                    var blocks = BlockGroup(blockRoot, folders).Blocks;
+                    blocks.CreateFB(blockName, false, numbers[0], ProgrammingLanguage.ProDiag);
+                    blocks.CreateInstanceDB(blockName + "Db", false, numbers[1], blockName);
+                    Console.WriteLine($"created {plc.Name}/{entry}");
+                } catch (EngineeringException e) {
+                    refused++;
+                    Console.WriteLine($"refused {plc.Name}/{entry}: {e.Message.Replace(Environment.NewLine, " ")}");
+                }
+                continue;
+            }
             if (path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)) {
                 try {
-                    BlockGroup(plc, folders).Blocks.Import(new FileInfo(path), ImportOptions.None);
+                    if (parts[0] == "PLC data types") {
+                        TypeGroup(typeRoot, folders).Types.Import(new FileInfo(path), ImportOptions.None);
+                    } else {
+                        BlockGroup(blockRoot, folders).Blocks.Import(new FileInfo(path), ImportOptions.None);
+                    }
                     Console.WriteLine($"imported {plc.Name}/{entry}");
                 } catch (EngineeringException e) {
                     refused++;
@@ -316,7 +347,7 @@ internal static class Program {
             var source = plc.ExternalSourceGroup.ExternalSources.CreateFromFile(parts.Last(), path);
             // One run reports every source TIA refuses, not only the first.
             try {
-                Generate(plc, source, parts[0], folders);
+                Generate(blockRoot, typeRoot, source, parts[0], folders);
                 Console.WriteLine($"generated {plc.Name}/{entry}");
             } catch (EngineeringTargetInvocationException e) {
                 refused++;
@@ -345,33 +376,29 @@ internal static class Program {
     private static PlcBlock FindBlock(PlcBlockGroup group, string name) =>
         group.Blocks.Find(name) ?? group.Groups.Select(child => FindBlock(child, name)).FirstOrDefault(block => block is not null);
 
-    private static void Generate(PlcSoftware plc, PlcExternalSource source, string root, List<string> folders) {
-        if (root == "PLC data types") {
-            if (folders.Count == 0) {
-                source.GenerateBlocksFromSource(GenerateBlockOption.None);
-            } else {
-                PlcTypeUserGroup group = null;
-                foreach (var name in folders) {
-                    var groups = group is null ? plc.TypeGroup.Groups : group.Groups;
-                    group = groups.Find(name) ?? groups.Create(name);
-                }
-                source.GenerateBlocksFromSource(group, GenerateBlockOption.None);
-            }
-        } else if (folders.Count == 0) {
+    private static void Generate(PlcBlockGroup blockRoot, PlcTypeGroup typeRoot, PlcExternalSource source, string root, List<string> folders) {
+        if (folders.Count == 0) {
             source.GenerateBlocksFromSource(GenerateBlockOption.None);
+        } else if (root == "PLC data types") {
+            source.GenerateBlocksFromSource((PlcTypeUserGroup)TypeGroup(typeRoot, folders), GenerateBlockOption.None);
         } else {
-            source.GenerateBlocksFromSource((PlcBlockUserGroup)BlockGroup(plc, folders), GenerateBlockOption.None);
+            source.GenerateBlocksFromSource((PlcBlockUserGroup)BlockGroup(blockRoot, folders), GenerateBlockOption.None);
         }
     }
 
-    private static PlcBlockGroup BlockGroup(PlcSoftware plc, List<string> folders) {
-        PlcBlockGroup group = plc.BlockGroup;
+    private static PlcTypeGroup TypeGroup(PlcTypeGroup group, List<string> folders) {
         foreach (var name in folders) {
             group = group.Groups.Find(name) ?? group.Groups.Create(name);
         }
         return group;
     }
 
+    private static PlcBlockGroup BlockGroup(PlcBlockGroup group, List<string> folders) {
+        foreach (var name in folders) {
+            group = group.Groups.Find(name) ?? group.Groups.Create(name);
+        }
+        return group;
+    }
 
     private static IEnumerable<PlcSoftware> Plcs(Project project) {
         var devices = new List<Device>(project.Devices);
@@ -456,8 +483,11 @@ internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml
         var stem = Path.Combine(folder, Unique(kind + "." + Safe(block.Name)));
         var notes = new List<string>();
         var source = extension is null ? "" : Attempt(notes, "source", () => Generate(plc, block, stem + extension));
-        // A block TIA generates no source for is compared through its SimaticML, so that is always exported.
-        var xml = blockXml || extension is null ? Attempt(notes, "xml", () => block.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults)) : "";
+        // A block TIA generates no source for is compared through its SimaticML, so that is always exported; so is one with
+        // ProDiag supervisions or an assigned ProDiag FB, which its generated source does not show (spec 0016).
+        var xml = blockXml || extension is null
+            ? Attempt(notes, "xml", () => block.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults))
+            : Supervised(() => block.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults), stem + ".xml");
         Row(plc, kind, block.Number.ToString(), language, notes.Count == 0 ? "ok" : "partial", Relative(stem, extension, source), Relative(stem, ".xml", xml), block.Name, string.Join(" | ", notes));
     }
 
@@ -486,7 +516,9 @@ internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml
         var stem = Path.Combine(folder, Unique("UDT." + Safe(type.Name)));
         var notes = new List<string>();
         var source = Attempt(notes, "source", () => Generate(plc, type, stem + ".udt"));
-        var xml = blockXml ? Attempt(notes, "xml", () => type.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults)) : "";
+        var xml = blockXml
+            ? Attempt(notes, "xml", () => type.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults))
+            : Supervised(() => type.Export(new FileInfo(stem + ".xml"), ExportOptions.WithDefaults), stem + ".xml");
         Row(plc, "UDT", "", "UDT", notes.Count == 0 ? "ok" : "partial", Relative(stem, ".udt", source), Relative(stem, ".xml", xml), type.Name, string.Join(" | ", notes));
     }
 
@@ -500,6 +532,25 @@ internal sealed class Exporter(string root, StreamWriter manifest, bool blockXml
         foreach (var child in group.Groups) {
             TagTables(plc, folder, child);
         }
+    }
+
+    /// <summary>
+    /// Exports SimaticML and keeps it only if it holds ProDiag supervisions or an assigned ProDiag FB, which the generated
+    /// source does not show (spec 0016). A block TIA will not export has none to keep, so a failure is not reported.
+    /// </summary>
+    private string Supervised(Action export, string path) {
+        try {
+            export();
+        } catch (Exception e) when (e is EngineeringException or IOException or UnauthorizedAccessException) {
+            return "";
+        }
+        var text = File.Exists(path) ? File.ReadAllText(path) : "";
+        if (text.Contains("<Supervisions>") || text.Contains("<AssignedProDiagFB>")) {
+            Written++;
+            return "yes";
+        }
+        File.Delete(path);
+        return "";
     }
 
     private static void Generate(PlcSoftware plc, IGenerateSource block, string path) =>

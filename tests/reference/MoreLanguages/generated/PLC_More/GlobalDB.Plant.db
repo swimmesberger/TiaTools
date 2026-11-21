@@ -1,0 +1,16 @@
+﻿DATA_BLOCK "Plant"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+//Motors supervised by PlantDiag.
+   VAR 
+      pump { S7_SetPoint := 'False'} : "Motor";
+      fans { S7_SetPoint := 'False'} : Array[0..1] of "Motor";
+      count : Int;
+   END_VAR
+
+
+BEGIN
+
+END_DATA_BLOCK
+

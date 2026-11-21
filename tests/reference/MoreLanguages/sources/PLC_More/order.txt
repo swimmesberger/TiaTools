@@ -1,0 +1,11 @@
+# Text sources first, then the blocks in SimaticML that call or use them (spec 0016).
+Program blocks/Common/Blink.scl
+Program blocks/Common/BlinkDb.db
+Program blocks/Statement/StlIndirect.awl
+Program blocks/Statement/StlForms.awl
+Program blocks/Sequence/Timed.xml
+PLC data types/Diagnosis/Motor.xml
+Program blocks/Diagnosis/PlantDiag.prodiag
+Program blocks/Diagnosis/Line.scl
+Program blocks/Diagnosis/LineDb.xml
+Program blocks/Diagnosis/Plant.xml

@@ -1,0 +1,3 @@
+plc	kind	name	reason
+PLC_More	FB	PlantDiag	A ProDiag function block: TIA neither generates source for it nor exports it as SimaticML.
+PLC_More	OB	ProDiagOB	The OB TIA adds to call ProDiag function blocks: TIA neither generates source for it nor exports it as SimaticML.

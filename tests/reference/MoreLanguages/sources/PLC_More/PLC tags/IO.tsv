@@ -1,0 +1,4 @@
+Go	Bool	%I0.0	Carriage start
+Jammed	Bool	%I0.1	Carriage jammed
+Brake	Bool	%Q0.0	Carriage brake
+Pointer	DWord	%MD20	Pointer for indirect access

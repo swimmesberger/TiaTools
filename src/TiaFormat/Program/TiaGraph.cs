@@ -15,6 +15,12 @@ public sealed class TiaGraphStep(int number, string name, bool initial) {
     public List<TiaGraphAction> Actions { get; } = [];
     public TiaFlgNet? Supervision { get; set; }
     public TiaFlgNet? Interlock { get; set; }
+
+    /// <summary>The step's maximum time, after which its supervision reports an error; null if not known.</summary>
+    public string? MaximumTime { get; set; }
+
+    /// <summary>The step's warning time, after which it reports a warning; null if not known.</summary>
+    public string? WarningTime { get; set; }
 }
 
 /// <summary>A GRAPH transition and the condition that fires it.</summary>
@@ -200,6 +206,9 @@ public sealed class TiaGraph {
         var names = graph.Steps.ToDictionary(step => step.Number, step => step.Name);
         foreach (var step in graph.Steps.OrderBy(step => step.Number)) {
             lines.Add(string.Create(CultureInfo.InvariantCulture, $"STEP {step.Number} {step.Name}{(step.Initial ? " (initial)" : "")}"));
+            if (step.MaximumTime is not null || step.WarningTime is not null) {
+                lines.Add($"    maximum time: {step.MaximumTime ?? "?"}, warning time: {step.WarningTime ?? "?"}");
+            }
             foreach (var action in step.Actions) {
                 var head = (action.Event.Length == 0 ? "" : action.Event + " ") + action.Qualifier + (action.Interlocked ? " interlocked" : "");
                 foreach (var (line, index) in action.Text.Split('\n').Select((line, index) => (line, index))) {

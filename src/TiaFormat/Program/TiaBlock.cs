@@ -27,6 +27,12 @@ public readonly record struct TiaBlockHeader(string? Author, string? Family, str
 /// <summary>A data block's settings: whether it is non-retain as a whole, and who may access it.</summary>
 public readonly record struct TiaDataBlockSettings(bool IsNonRetain, bool AccessibleFromOpcUa, bool AccessibleFromWebserver);
 
+/// <summary>
+/// A ProDiag assignment (spec 0016): the ProDiag function block that evaluates a member of a global data block, such as
+/// <c>"Plant".fans[0]</c>, or a whole instance data block, when <see cref="Member"/> is null.
+/// </summary>
+public sealed record TiaProDiagAssignment(string? Member, string FunctionBlock);
+
 /// <summary>A start value set in a data block itself. Name is the stored path when no member explains it.</summary>
 public readonly record struct TiaSetValue(string Name, string Value, bool IsResolved);
 

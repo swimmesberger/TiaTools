@@ -1,0 +1,67 @@
+﻿FUNCTION "StlIndirect" : Void
+TITLE = Indirect addressing
+{ S7_Optimized_Access := 'FALSE' }
+VERSION : 0.1
+//Pointers in a variable and in the address registers, which need a block with standard access.
+   VAR_INPUT 
+      index : Int;
+      dbNo : Int;
+   END_VAR
+
+   VAR_OUTPUT 
+      value : Int;
+      flag : Bool;
+      address : DWord;
+   END_VAR
+
+   VAR_TEMP 
+      place : DWord;
+      dbNumber : Word;
+      local : Array[0..3] of Int;
+   END_VAR
+
+
+BEGIN
+NETWORK
+TITLE = Memory-indirect, through a pointer in a variable
+//The index counts bytes; shifting it by three makes it a bit address.
+      L #index;
+      SLD 3;
+      T #place;
+      L MW[ #place];
+      T #value;
+      A I[ #place];
+      = #flag;
+NETWORK
+TITLE = Register-indirect within an area
+      L P#10.0;
+      LAR1;
+      L MW[ AR1, P#2.0];
+      T #value;
+      +AR1 P#4.0;
+      A M[ AR1, P#0.1];
+      = #flag;
+      TAR1 "Tag__639308646937849854";
+NETWORK
+TITLE = Register-indirect across areas
+      L P##local;
+      LAR1;
+      L W[ AR1, P#2.0] ;// the second element
+      T #value;
+      LAR2 P#M20.0;
+      A[ AR2, P#0.1];
+      = #flag;
+      TAR2;
+      T #address;
+NETWORK
+TITLE = A data block opened through a variable
+      L #dbNo;
+      T #dbNumber;
+      OPN DB[ #dbNumber];
+      L DBW[ AR1, P#0.0];
+      T #value;
+      L DBNO;
+      L DBLG;
+      CAR;
+END_FUNCTION
+

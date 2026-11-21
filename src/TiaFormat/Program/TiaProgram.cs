@@ -25,6 +25,8 @@ public sealed class TiaProgram {
     private readonly TiaAttributeHandle _unitData, _unitRef, _unitLanguage, _partPayload, _partKind, _identPayload, _text, _image, _libraryVersion;
     private readonly TiaAttributeHandle _tagAddress, _tagType, _tagValue, _tagAccessible, _tagVisible, _tagReadOnly;
     private readonly TiaAttributeHandle _author, _family, _headerName, _version, _optimized;
+    private readonly TiaAttributeHandle _supervisionData;
+    private readonly TiaRelationHandle _udtSupervisions, _blockSupervisions;
     private readonly TiaRelationHandle _sources, _currentInterface, _usedParts, _comments, _blockComment, _unitComment, _identContainer, _identParts, _folder, _target, _environment, _loadables, _generatedFrom, _isGeneratedFrom, _tagContent;
     private readonly Lazy<Dictionary<int, string>> _typeCodes;
 
@@ -73,6 +75,9 @@ public sealed class TiaProgram {
         _generatedFrom = s.Relation("GeneratedFromMaster");
         _isGeneratedFrom = s.Relation("IsGeneratedFrom");
         _tagContent = s.Relation("Content");
+        _supervisionData = s.Attribute("Siemens.Simatic.Lang.Model.ProDiag.IBlockInstSupervisionContainerData", "Data");
+        _udtSupervisions = s.Relation("UDTInstSupervisionContainer");
+        _blockSupervisions = s.Relation("BlockInstSupervisionContainer");
         _typeCodes = new Lazy<Dictionary<int, string>>(HarvestTypeCodes);
         Blocks = ReadBlocks();
     }
@@ -279,10 +284,41 @@ public sealed class TiaProgram {
             case "Statements":
                 StlRenderer.Render(data.Span, ReadIdents(block), output);
                 break;
+            case "GlobalCalls":
+                WriteGlobalCalls(data.Span, ReadIdents(block), output);
+                break;
             default:
                 output.Write("[unknown source form, raw follows]\n"u8);
                 output.Write(data.Span);
                 break;
+        }
+    }
+
+    /// <summary>
+    /// The calls of a ProDiag OB, one per ProDiag function block, stored as <c>GlobalCalls</c>: each written as SCL calls
+    /// a function block with its instance data block, <c>"PlantDiagDb"();</c>, with the function block named after it
+    /// (docs/FORMAT.md, section 13).
+    /// </summary>
+    private static void WriteGlobalCalls(ReadOnlySpan<byte> xml, TiaIdentTable idents, PooledByteWriter output) {
+        var reader = new Utf8XmlReader(xml);
+        string? block = null;
+        var first = true;
+        while (reader.Read()) {
+            if (reader.IsEnd) {
+                continue;
+            }
+            if (reader.Name.SequenceEqual("CRef"u8)) {
+                block = idents.Name(reader.GetInt32("RefId"u8));
+            } else if (reader.Name.SequenceEqual("ORef"u8) && reader.GetString("Name"u8) is { Length: > 0 } && block is not null) {
+                if (!first) {
+                    output.Write((byte)'\n');
+                }
+                first = false;
+                output.Write(idents.Name(reader.GetInt32("RefId"u8)));
+                output.Write("();   // "u8);
+                output.Write(block);
+                block = null;
+            }
         }
     }
 
@@ -294,7 +330,19 @@ public sealed class TiaProgram {
             using var blob = _db.ReadBlob(unit, _unitData);
             data.Add(blob.Span.ToArray());
         }
-        return TiaGraph.Read(data, ReadIdents(block));
+        var graph = TiaGraph.Read(data, ReadIdents(block));
+        // A step's times are the start values of its static member's T_MAX and T_WARN, which TIA's export calls
+        // MaximumStepTime and WarningTime (docs/FORMAT.md, section 13).
+        var members = ReadInterfaceNodes(block, out var declared);
+        foreach (var step in graph.Steps) {
+            var member = members.Find(candidate => candidate.Name == step.Name && candidate.Section == "Static");
+            step.MaximumTime = Part(member, "T_MAX");
+            step.WarningTime = Part(member, "T_WARN");
+        }
+        return graph;
+
+        string? Part(TiaMemberNode? member, string name) =>
+            member?.TypeMembers.Find(part => part.Name == name) is { } part ? declared.GetValueOrDefault(member.Id + ":" + part.Id) : null;
     }
 
     /// <summary>Writes a compile unit exactly as stored, unless it is encrypted.</summary>
@@ -307,6 +355,13 @@ public sealed class TiaProgram {
 
     /// <summary>The block's interface: sections flattened, each member carrying its section, structs as children.</summary>
     public IReadOnlyList<TiaMember> ReadInterface(TiaBlock block) {
+        var members = ReadInterfaceNodes(block, out var declared);
+        return Freeze(members, block.Kind is not ("FC" or "SFC" or "OB"), new TiaDeclaredValues(declared));
+    }
+
+    /// <summary>The interface as parsed, and the values its declaration states, by indexed id path.</summary>
+    private List<TiaMemberNode> ReadInterfaceNodes(TiaBlock block, out Dictionary<string, string> declared) {
+        declared = [];
         if (!_db.TryGetTarget(block.Frame, _currentInterface, out var root)) {
             return [];
         }
@@ -324,20 +379,22 @@ public sealed class TiaProgram {
         if (block.Kind.StartsWith("DB", StringComparison.Ordinal)) {
             ApplyImage(block, members, context);
         }
-        var declared = new Dictionary<string, string>(context.Declared);
+        declared = new Dictionary<string, string>(context.Declared);
         if (!context.IsDataBlock) {
             // Only a data block's values differ from its declaration: anywhere else they are the declaration.
             foreach (var (path, value) in context.Values) {
                 declared[path] = value;
             }
         }
-        return Freeze(members, block.Kind is not ("FC" or "SFC" or "OB"), new TiaDeclaredValues(declared));
+        return members;
     }
 
     /// <summary>The block's identifier table, for naming operands.</summary>
-    public TiaIdentTable ReadIdents(TiaBlock block) {
+    public TiaIdentTable ReadIdents(TiaBlock block) => ReadIdents(block.Frame);
+
+    private TiaIdentTable ReadIdents(in TiaFrame owner) {
         var table = new TiaIdentTable();
-        foreach (var relation in _db.EnumerateRelations(block.Frame)) {
+        foreach (var relation in _db.EnumerateRelations(owner)) {
             if (!_identContainer.Matches(relation.RelationId) || !_db.TryGetFrame(relation.Target, out var container)) {
                 continue;
             }
@@ -350,6 +407,34 @@ public sealed class TiaProgram {
         }
         table.Complete();
         return table;
+    }
+
+    /// <summary>
+    /// Which ProDiag function block evaluates a data block: per member of a PLC data type in a global data block, or the
+    /// whole instance data block. Empty if none is assigned (docs/FORMAT.md, section 13).
+    /// </summary>
+    public IReadOnlyList<TiaProDiagAssignment> ReadProDiagAssignments(TiaBlock block) {
+        var result = new List<TiaProDiagAssignment>();
+        foreach (var (relation, perMember) in new[] { (_udtSupervisions, true), (_blockSupervisions, false) }) {
+            if (!_db.TryGetTarget(block.Frame, relation, out var container)) {
+                continue;
+            }
+            using var data = _db.ReadBlob(container, _supervisionData);
+            var idents = ReadIdents(container);
+            var reader = new Utf8XmlReader(data.Span);
+            string? member = null;
+            while (reader.Read()) {
+                if (reader.IsEnd) {
+                    continue;
+                }
+                if (reader.Name.SequenceEqual("UdtInstance"u8)) {
+                    member = idents.Name(reader.GetInt32("RefId"u8));
+                } else if (reader.Name.SequenceEqual("SupervisionFB"u8)) {
+                    result.Add(new TiaProDiagAssignment(perMember ? member : null, idents.Name(reader.GetInt32("RefId"u8))));
+                }
+            }
+        }
+        return result;
     }
 
     /// <summary>All controller tag tables, with their tags and global constants.</summary>
@@ -450,7 +535,7 @@ public sealed class TiaProgram {
         if (head[..Math.Min(300, head.Length)].IndexOf("<EncryptedData"u8) >= 0) {
             return "EncryptedData";
         }
-        return head.StartsWith("<SCLSource"u8) ? "SCLSource" : head.StartsWith("<FlgNet"u8) ? "FlgNet" : head.StartsWith("<Statements"u8) ? "Statements" : "Other";
+        return head.StartsWith("<SCLSource"u8) ? "SCLSource" : head.StartsWith("<FlgNet"u8) ? "FlgNet" : head.StartsWith("<Statements"u8) ? "Statements" : head.StartsWith("<GlobalCalls"u8) ? "GlobalCalls" : "Other";
     }
 
     private List<TiaObjectKey> PositionalParts(in TiaFrame root) {
@@ -756,7 +841,7 @@ public sealed class TiaProgram {
         [0x02000006] = "DWord", [0x02000007] = "DInt", [0x02000008] = "Real", [0x02000009] = "Date", [0x0200000A] = "Time_Of_Day",
         [0x0200000B] = "Time", [0x0200000C] = "S5Time", [0x0200000E] = "Date_And_Time", [0x02000013] = "String",
         [0x02000030] = "LReal", [0x02000031] = "ULInt", [0x02000032] = "LInt", [0x02000033] = "LWord", [0x02000034] = "USInt",
-        [0x02000035] = "UInt", [0x02000036] = "UDInt", [0x02000037] = "SInt", [0x0200003D] = "WChar", [0x0200003E] = "WString",
+        [0x02000035] = "UInt", [0x02000036] = "UDInt", [0x02000037] = "SInt", [0x0200003D] = "WChar", [0x0200003E] = "WString", [0x0200003F] = "Variant",
         [0x02000040] = "LTime", [0x02000041] = "LTime_Of_Day", [0x02000042] = "LDT", [0x02000043] = "DTL",
     };
 

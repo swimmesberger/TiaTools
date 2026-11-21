@@ -83,7 +83,10 @@ internal static class SimaticMlNetworks {
         }
         var sequence = Children(graphElement, "Sequence").Single();
         foreach (var element in Children(sequence, "Steps").SelectMany(steps => Children(steps, "Step"))) {
-            var step = new TiaGraphStep((int)element.Attribute("Number")!, (string)element.Attribute("Name")!, (string?)element.Attribute("Init") == "true");
+            var step = new TiaGraphStep((int)element.Attribute("Number")!, (string)element.Attribute("Name")!, (string?)element.Attribute("Init") == "true") {
+                MaximumTime = (string?)element.Attribute("MaximumStepTime"),
+                WarningTime = (string?)element.Attribute("WarningTime"),
+            };
             foreach (var action in Children(element, "Actions").SelectMany(actions => Children(actions, "Action"))) {
                 var qualifier = (string?)action.Attribute("Qualifier") ?? "";
                 var text = string.Concat(Children(action, "Token").Select(token => (string)token.Attribute("Text")!)).TrimEnd('\n');

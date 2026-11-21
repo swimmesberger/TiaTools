@@ -155,6 +155,46 @@ internal static class ReferenceProjects {
     }
 
     /// <summary>
+    /// Spec 0016: which ProDiag function block each data block, or each member of one, is assigned to, as the reader reads
+    /// it and as TIA's SimaticML gives it. An assignment one side has and the other has not is a problem as well.
+    /// </summary>
+    public static IReadOnlyList<string> ProDiagProblems(string name, out int compared) {
+        var program = new TiaProgram(TiaDatabase.Open(Archive(name)));
+        var theirs = new HashSet<(string Plc, string Block, string Assignment)>();
+        foreach (var row in Manifest(name).Where(row => row.Kind is "GlobalDB" or "InstanceDB" && row.Xml.Length != 0)) {
+            var document = XDocument.Load(Path.Combine(Generated(name), row.Xml));
+            var block = document.Root!.Elements().Single(element => element.Name.LocalName.StartsWith("SW.Blocks.", StringComparison.Ordinal));
+            foreach (var assigned in block.Element("AttributeList")!.Elements("AssignedProDiagFB")) {
+                theirs.Add((row.Plc, row.Name, Assignment(null, assigned.Value)));
+            }
+            foreach (var member in block.Descendants().Where(element => element.Name.LocalName == "Member")) {
+                var path = "\"" + row.Name + "\"." + string.Join(".", member.AncestorsAndSelf().Where(element => element.Name.LocalName == "Member").Reverse().Select(element => (string)element.Attribute("Name")!));
+                foreach (var assigned in member.Elements().Where(element => element.Name.LocalName == "AssignedProDiagFB")) {
+                    theirs.Add((row.Plc, row.Name, Assignment(path, assigned.Value)));
+                }
+                foreach (var element in member.Elements().Where(element => element.Name.LocalName == "Subelement")) {
+                    foreach (var assigned in element.Elements().Where(child => child.Name.LocalName == "AssignedProDiagFB")) {
+                        theirs.Add((row.Plc, row.Name, Assignment(path + "[" + (string)element.Attribute("Path")! + "]", assigned.Value)));
+                    }
+                }
+            }
+        }
+        var ours = new HashSet<(string Plc, string Block, string Assignment)>();
+        foreach (var block in program.Blocks.Where(block => block.Kind.StartsWith("DB", StringComparison.Ordinal) && program.Environment(block.Frame).Kind == "ProjectData")) {
+            foreach (var assignment in program.ReadProDiagAssignments(block)) {
+                ours.Add((program.PlcName(block.Frame) ?? "", block.Name, Assignment(assignment.Member, assignment.FunctionBlock.Trim('"'))));
+            }
+        }
+        compared = theirs.Count;
+        return [
+            .. ours.Except(theirs).Select(entry => $"{name}: {entry.Plc} {entry.Block}: the reader reads `{entry.Assignment}`, TIA's export has not"),
+            .. theirs.Except(ours).Select(entry => $"{name}: {entry.Plc} {entry.Block}: TIA's export has `{entry.Assignment}`, the reader has not"),
+        ];
+
+        static string Assignment(string? member, string functionBlock) => (member ?? "(the whole block)") + " -> " + functionBlock;
+    }
+
+    /// <summary>
     /// Spec 0009: each LAD and FBD network of the blocks TIA exported as SimaticML, written in statement form from the
     /// archive and from TIA's export, with its title and comment. Each problem names the block, the network and both texts.
     /// </summary>

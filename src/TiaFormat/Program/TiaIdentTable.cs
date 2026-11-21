@@ -10,6 +10,7 @@ public readonly record struct TiaParameter(string Name, string Section);
 public sealed class TiaIdentTable {
     private readonly Dictionary<int, string> _names = [];
     private readonly List<(int Id, int Parent, string Path)> _structured = [];
+    private readonly List<(int Id, int Target)> _addresses = [];
     private readonly Dictionary<int, List<TiaParameter>> _parameters = [];
 
     /// <summary>Adds one <c>IdentXmlPart</c>. Call <see cref="Complete"/> after the last.</summary>
@@ -36,6 +37,31 @@ public sealed class TiaIdentTable {
             _names[id] = _names.TryGetValue(parent, out var head) && head.Length != 0 ? head + "." + path : path;
         }
         _structured.Clear();
+        // An address-of, P##local, names the identifier it takes the address of.
+        foreach (var (id, target) in _addresses) {
+            _names[id] = "P#" + Name(target);
+        }
+        _addresses.Clear();
+        foreach (var (id, name) in _names.Where(entry => entry.Value.Contains(IndexMark, StringComparison.Ordinal)).ToList()) {
+            _names[id] = ResolveIndexes(name);
+        }
+    }
+
+    private const char IndexMark = '', IndexEnd = '';
+
+    /// <summary>Replaces each index mark with the name of the identifier it refers to, a constant or a tag.</summary>
+    private string ResolveIndexes(string name) {
+        var builder = new StringBuilder(name.Length);
+        for (var i = 0; i < name.Length; i++) {
+            if (name[i] != IndexMark) {
+                builder.Append(name[i]);
+                continue;
+            }
+            var end = name.IndexOf(IndexEnd, i);
+            builder.Append(int.TryParse(name.AsSpan(i + 1, end - i - 1), System.Globalization.CultureInfo.InvariantCulture, out var id) ? Name(id) : "?");
+            i = end;
+        }
+        return builder.ToString();
     }
 
     /// <summary>A called block's parameters in their order, from its <c>BlockInterfaceInfo</c>; a call numbers them from 1.</summary>
@@ -55,11 +81,15 @@ public sealed class TiaIdentTable {
         var name = "";
         int? structuredBase = null;
         string? literal = null;
+        int? size = null, bitOffset = null, addressOf = null;
+        string? area = null;
         path.Clear();
         var firstSegment = "";
+        var firstQuoted = false;
         var segmentCount = 0;
         var depth = isEmpty ? 0 : 1;
         var kindCopy = KindOf(kind);
+        var simpleAccess = kind.SequenceEqual("SimpleAccess"u8);
         List<TiaParameter>? parameters = kind.SequenceEqual("BlockInterfaceInfo"u8) ? [] : null;
         while (depth > 0 && reader.Read()) {
             if (reader.IsEnd) {
@@ -75,6 +105,18 @@ public sealed class TiaIdentTable {
                 name = reader.GetString("N"u8) ?? "";
             } else if (tag.SequenceEqual("AO"u8)) {
                 var segment = reader.GetString("N"u8) ?? "";
+                // RIDI names the identifiers of an array element's indexes, resolved when all parts are read.
+                if (reader.GetString("RIDI"u8) is { Length: > 0 } indexes) {
+                    segment = Quote(segment) + "[" + string.Join(",", indexes.Split(',').Select(index => IndexMark + index + IndexEnd)) + "]";
+                    if (segmentCount == 0) {
+                        firstSegment = segment;
+                        firstQuoted = true;
+                    } else {
+                        path.Append('.').Append(segment);
+                    }
+                    segmentCount++;
+                    continue;
+                }
                 if (segmentCount == 0) {
                     firstSegment = segment;
                 } else {
@@ -86,6 +128,14 @@ public sealed class TiaIdentTable {
             } else if (tag.SequenceEqual("CB"u8) && literal is null) {
                 // SV is the constant as the source writes it (T#2S), escaped as an XML name; V only its value (2000).
                 literal = reader.GetString("SV"u8) is { Length: > 0 } source ? Unescape(source) : reader.GetString("V"u8);
+            } else if (tag.SequenceEqual("AD"u8)) {
+                addressOf = reader.GetInt32("SSRID"u8);
+            } else if (tag.SequenceEqual("OD"u8) && size is null) {
+                size = reader.GetInt32("S"u8);
+            } else if (tag.SequenceEqual("SSD"u8)) {
+                bitOffset = reader.GetInt32("AO"u8);
+            } else if (tag.SequenceEqual("SAD"u8)) {
+                area = reader.GetString("R"u8);
             } else if (parameters is not null && tag.SequenceEqual("BPI"u8)) {
                 parameters.Add(new TiaParameter(reader.GetString("N"u8) ?? "", reader.GetString("S"u8) ?? ""));
             }
@@ -96,18 +146,25 @@ public sealed class TiaIdentTable {
         if (parameters is not null) {
             _parameters[rid] = parameters;
         }
+        if (kindCopy == IdentKind.Address) {
+            if (addressOf is { } target) {
+                _addresses.Add((rid, target));
+            }
+            return;
+        }
         switch (kindCopy) {
             case IdentKind.Local:
-                _names[rid] = "#" + (segmentCount == 0 ? Quote(name) : Quote(firstSegment) + path);
+                _names[rid] = "#" + (segmentCount == 0 ? Quote(name) : (firstQuoted ? firstSegment : Quote(firstSegment)) + path);
                 break;
             case IdentKind.Global:
                 _names[rid] = segmentCount == 0 ? name : "\"" + firstSegment + "\"" + path;
                 break;
             case IdentKind.Structured:
-                _structured.Add((rid, structuredBase ?? -1, (segmentCount == 0 ? "" : Quote(firstSegment)) + path));
+                _structured.Add((rid, structuredBase ?? -1, (segmentCount == 0 ? "" : firstQuoted ? firstSegment : Quote(firstSegment)) + path));
                 break;
             case IdentKind.Quoted:
-                _names[rid] = "\"" + name + "\"";
+                // A simple access without a name is an absolute address no tag stands for, such as %DBW2 after an OPN.
+                _names[rid] = name.Length == 0 && simpleAccess && Absolute(area, size, bitOffset) is { } address ? address : "\"" + name + "\"";
                 break;
             case IdentKind.LocalConstant:
                 _names[rid] = "#" + name;
@@ -121,7 +178,7 @@ public sealed class TiaIdentTable {
         }
     }
 
-    private enum IdentKind : byte { None, Local, Global, Structured, Quoted, LocalConstant, Literal, Plain }
+    private enum IdentKind : byte { None, Local, Global, Structured, Quoted, LocalConstant, Literal, Plain, Address }
 
     private static IdentKind KindOf(ReadOnlySpan<byte> kind) {
         if (kind.SequenceEqual("InterfaceAccess"u8) || kind.SequenceEqual("MultInstAccess"u8)) {
@@ -137,6 +194,9 @@ public sealed class TiaIdentTable {
             || kind.SequenceEqual("FBBlock"u8) || kind.SequenceEqual("OBBlock"u8) || kind.SequenceEqual("DataTypeBlock"u8) || kind.SequenceEqual("GlobalConstant"u8)) {
             return IdentKind.Quoted;
         }
+        if (kind.SequenceEqual("Address"u8)) {
+            return IdentKind.Address;
+        }
         if (kind.SequenceEqual("LocalConstant"u8)) {
             return IdentKind.LocalConstant;
         }
@@ -144,6 +204,25 @@ public sealed class TiaIdentTable {
             return IdentKind.Literal;
         }
         return kind.SequenceEqual("Instruction"u8) || kind.SequenceEqual("DirectType"u8) || kind.SequenceEqual("Label"u8) ? IdentKind.Plain : IdentKind.None;
+    }
+
+    /// <summary>
+    /// An absolute address from its area, size in bits and bit offset: <c>%DBW2</c>, <c>%MB4</c>, <c>%I0.1</c>; null for an
+    /// area or size this does not know.
+    /// </summary>
+    private static string? Absolute(string? area, int? size, int? bitOffset) {
+        var prefix = area switch { "Input" => "I", "Output" => "Q", "Memory" => "M", "Data" => "DB", _ => null };
+        if (prefix is null || bitOffset is not { } offset || offset < 0) {
+            return null;
+        }
+        var unit = size switch { 1 => "X", 8 => "B", 16 => "W", 32 => "D", _ => null };
+        if (unit is null) {
+            return null;
+        }
+        var (byteOffset, bit) = (offset / 8, offset % 8);
+        return unit == "X"
+            ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"%{prefix}{(prefix == "DB" ? "X" : "")}{byteOffset}.{bit}")
+            : string.Create(System.Globalization.CultureInfo.InvariantCulture, $"%{prefix}{unit}{byteOffset}");
     }
 
     /// <summary>Undoes XML name escaping: <c>_x0023_</c> is <c>#</c>.</summary>
