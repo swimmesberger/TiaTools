@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21"/>
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Interface>
+        <Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+          <Section Name="Input">
+            <Member Name="ACK_EF" Datatype="Bool"/>
+            <Member Name="go" Datatype="Bool"/>
+            <Member Name="arrived" Datatype="Bool"/>
+            <Member Name="stopped" Datatype="Bool"/>
+            <Member Name="jammed" Datatype="Bool"/>
+          </Section>
+          <Section Name="Output">
+            <Member Name="motor" Datatype="Bool"/>
+            <Member Name="brake" Datatype="Bool"/>
+          </Section>
+          <Section Name="InOut"/>
+          <Section Name="Static"/>
+          <Section Name="Temp"/>
+          <Section Name="Constant"/>
+        </Sections>
+      </Interface>
+      <Name>Timed</Name>
+      <Namespace/>
+      <Number>30</Number>
+      <ProgrammingLanguage>GRAPH</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="7" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>A carriage that runs and brakes, with step times: the defaults, both set, and only the maximum set.</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="2" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource>
+            <Graph xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/Graph/v6">
+              <PreOperations/>
+              <Sequence>
+                <Steps>
+                  <Step Number="1" Init="true" Name="Waiting">
+                    <Actions/>
+                    <Supervisions>
+                      <Supervision ProgrammingLanguage="LAD">
+                        <FlgNet>
+                          <Parts>
+                            <Part Name="SvCoil" UId="21"/>
+                          </Parts>
+                          <Wires>
+                            <Wire UId="22">
+                              <Powerrail/>
+                              <NameCon UId="21" Name="in"/>
+                            </Wire>
+                          </Wires>
+                        </FlgNet>
+                      </Supervision>
+                    </Supervisions>
+                    <Interlocks>
+                      <Interlock ProgrammingLanguage="LAD">
+                        <FlgNet>
+                          <Parts>
+                            <Part Name="IlCoil" UId="21"/>
+                          </Parts>
+                          <Wires>
+                            <Wire UId="22">
+                              <Powerrail/>
+                              <NameCon UId="21" Name="in"/>
+                            </Wire>
+                          </Wires>
+                        </FlgNet>
+                      </Interlock>
+                    </Interlocks>
+                  </Step>
+                  <Step Number="2" Init="false" Name="Running" MaximumStepTime="T#30S" WarningTime="T#20S">
+                    <Actions>
+                      <Action Event="" Qualifier="N" Interlock="false">
+                        <Token Text="#motor"/>
+                      </Action>
+                    </Actions>
+                    <Supervisions>
+                      <Supervision ProgrammingLanguage="LAD">
+                        <FlgNet>
+                          <Parts>
+                            <Access Scope="LocalVariable" UId="21">
+                              <Symbol>
+                                <Component Name="jammed"/>
+                              </Symbol>
+                            </Access>
+                            <Part Name="Contact" UId="22"/>
+                            <Part Name="SvCoil" UId="23"/>
+                          </Parts>
+                          <Wires>
+                            <Wire UId="24">
+                              <Powerrail/>
+                              <NameCon UId="22" Name="in"/>
+                            </Wire>
+                            <Wire UId="25">
+                              <IdentCon UId="21"/>
+                              <NameCon UId="22" Name="operand"/>
+                            </Wire>
+                            <Wire UId="26">
+                              <NameCon UId="22" Name="out"/>
+                              <NameCon UId="23" Name="in"/>
+                            </Wire>
+                          </Wires>
+                        </FlgNet>
+                      </Supervision>
+                    </Supervisions>
+                    <Interlocks>
+                      <Interlock ProgrammingLanguage="LAD">
+                        <FlgNet>
+                          <Parts>
+                            <Part Name="IlCoil" UId="21"/>
+                          </Parts>
+                          <Wires>
+                            <Wire UId="22">
+                              <Powerrail/>
+                              <NameCon UId="21" Name="in"/>
+                            </Wire>
+                          </Wires>
+                        </FlgNet>
+                      </Interlock>
+                    </Interlocks>
+                  </Step>
+                  <Step Number="3" Init="false" Name="Braking" MaximumStepTime="T#1M30S">
+                    <Actions>
+                      <Action Event="" Qualifier="N" Interlock="false">
+                        <Token Text="#brake"/>
+                      </Action>
+                    </Actions>
+                    <Supervisions>
+                      <Supervision ProgrammingLanguage="LAD">
+                        <FlgNet>
+                          <Parts>
+                            <Part Name="SvCoil" UId="21"/>
+                          </Parts>
+                          <Wires>
+                            <Wire UId="22">
+                              <Powerrail/>
+                              <NameCon UId="21" Name="in"/>
+                            </Wire>
+                          </Wires>
+                        </FlgNet>
+                      </Supervision>
+                    </Supervisions>
+                    <Interlocks>
+                      <Interlock ProgrammingLanguage="LAD">
+                        <FlgNet>
+                          <Parts>
+                            <Part Name="IlCoil" UId="21"/>
+                          </Parts>
+                          <Wires>
+                            <Wire UId="22">
+                              <Powerrail/>
+                              <NameCon UId="21" Name="in"/>
+                            </Wire>
+                          </Wires>
+                        </FlgNet>
+                      </Interlock>
+                    </Interlocks>
+                  </Step>
+                </Steps>
+                <Transitions>
+                  <Transition Number="1" Name="Departs" ProgrammingLanguage="LAD">
+                    <FlgNet>
+                      <Parts>
+                        <Access Scope="LocalVariable" UId="21">
+                          <Symbol>
+                            <Component Name="go"/>
+                          </Symbol>
+                        </Access>
+                        <Part Name="Contact" UId="22"/>
+                        <Part Name="TrCoil" UId="23"/>
+                      </Parts>
+                      <Wires>
+                        <Wire UId="24">
+                          <Powerrail/>
+                          <NameCon UId="22" Name="in"/>
+                        </Wire>
+                        <Wire UId="25">
+                          <IdentCon UId="21"/>
+                          <NameCon UId="22" Name="operand"/>
+                        </Wire>
+                        <Wire UId="26">
+                          <NameCon UId="22" Name="out"/>
+                          <NameCon UId="23" Name="in"/>
+                        </Wire>
+                      </Wires>
+                    </FlgNet>
+                  </Transition>
+                  <Transition Number="2" Name="Reaches" ProgrammingLanguage="LAD">
+                    <FlgNet>
+                      <Parts>
+                        <Access Scope="LocalVariable" UId="21">
+                          <Symbol>
+                            <Component Name="arrived"/>
+                          </Symbol>
+                        </Access>
+                        <Part Name="Contact" UId="22"/>
+                        <Part Name="TrCoil" UId="23"/>
+                      </Parts>
+                      <Wires>
+                        <Wire UId="24">
+                          <Powerrail/>
+                          <NameCon UId="22" Name="in"/>
+                        </Wire>
+                        <Wire UId="25">
+                          <IdentCon UId="21"/>
+                          <NameCon UId="22" Name="operand"/>
+                        </Wire>
+                        <Wire UId="26">
+                          <NameCon UId="22" Name="out"/>
+                          <NameCon UId="23" Name="in"/>
+                        </Wire>
+                      </Wires>
+                    </FlgNet>
+                  </Transition>
+                  <Transition Number="3" Name="Rests" ProgrammingLanguage="LAD">
+                    <FlgNet>
+                      <Parts>
+                        <Access Scope="LocalVariable" UId="21">
+                          <Symbol>
+                            <Component Name="stopped"/>
+                          </Symbol>
+                        </Access>
+                        <Part Name="Contact" UId="22"/>
+                        <Part Name="TrCoil" UId="23"/>
+                      </Parts>
+                      <Wires>
+                        <Wire UId="24">
+                          <Powerrail/>
+                          <NameCon UId="22" Name="in"/>
+                        </Wire>
+                        <Wire UId="25">
+                          <IdentCon UId="21"/>
+                          <NameCon UId="22" Name="operand"/>
+                        </Wire>
+                        <Wire UId="26">
+                          <NameCon UId="22" Name="out"/>
+                          <NameCon UId="23" Name="in"/>
+                        </Wire>
+                      </Wires>
+                    </FlgNet>
+                  </Transition>
+                </Transitions>
+                <Branches/>
+                <Connections>
+                  <Connection>
+                    <NodeFrom>
+                      <StepRef Number="1"/>
+                    </NodeFrom>
+                    <NodeTo>
+                      <TransitionRef Number="1"/>
+                    </NodeTo>
+                    <LinkType>Direct</LinkType>
+                  </Connection>
+                  <Connection>
+                    <NodeFrom>
+                      <TransitionRef Number="1"/>
+                    </NodeFrom>
+                    <NodeTo>
+                      <StepRef Number="2"/>
+                    </NodeTo>
+                    <LinkType>Direct</LinkType>
+                  </Connection>
+                  <Connection>
+                    <NodeFrom>
+                      <StepRef Number="2"/>
+                    </NodeFrom>
+                    <NodeTo>
+                      <TransitionRef Number="2"/>
+                    </NodeTo>
+                    <LinkType>Direct</LinkType>
+                  </Connection>
+                  <Connection>
+                    <NodeFrom>
+                      <TransitionRef Number="2"/>
+                    </NodeFrom>
+                    <NodeTo>
+                      <StepRef Number="3"/>
+                    </NodeTo>
+                    <LinkType>Direct</LinkType>
+                  </Connection>
+                  <Connection>
+                    <NodeFrom>
+                      <StepRef Number="3"/>
+                    </NodeFrom>
+                    <NodeTo>
+                      <TransitionRef Number="3"/>
+                    </NodeTo>
+                    <LinkType>Direct</LinkType>
+                  </Connection>
+                  <Connection>
+                    <NodeFrom>
+                      <TransitionRef Number="3"/>
+                    </NodeFrom>
+                    <NodeTo>
+                      <StepRef Number="1"/>
+                    </NodeTo>
+                    <LinkType>Jump</LinkType>
+                  </Connection>
+                </Connections>
+              </Sequence>
+              <PostOperations/>
+              <AlarmsSettings>
+                <AlarmSupervisionCategories>
+                  <AlarmSupervisionCategory Id="1" DisplayClass="0"/>
+                </AlarmSupervisionCategories>
+                <AlarmInterlockCategory Id="1"/>
+                <AlarmSubcategory1Interlock Id="0"/>
+                <AlarmSubcategory2Interlock Id="0"/>
+                <AlarmCategorySupervision Id="1"/>
+                <AlarmSubcategory1Supervision Id="0"/>
+                <AlarmSubcategory2Supervision Id="0"/>
+                <AlarmWarningCategory Id="2"/>
+                <AlarmSubcategory1Warning Id="0"/>
+                <AlarmSubcategory2Warning Id="0"/>
+              </AlarmsSettings>
+            </Graph>
+          </NetworkSource>
+          <ProgrammingLanguage>GRAPH</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="3" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="4" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text/>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="5" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="6" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Sequence</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="9" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="A" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>Timed carriage</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

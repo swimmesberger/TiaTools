@@ -1,0 +1,10 @@
+﻿DATA_BLOCK "LineDb"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+"Line"
+
+BEGIN
+
+END_DATA_BLOCK
+

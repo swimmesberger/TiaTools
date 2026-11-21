@@ -34,6 +34,17 @@ public sealed class TiaReferenceProjectTest {
         }
     }
 
+    /// <summary>Spec 0016, FR-005 and FR-008.</summary>
+    [Test]
+    [MethodDataSource(nameof(Projects))]
+    public void EveryProDiagAssignmentMatchesTiasExport(string project) {
+        ReferenceProjects.ProDiagProblems(project, out var compared).Should().BeEmpty();
+
+        if (project == "MoreLanguages") {
+            compared.Should().BePositive("the project assigns data blocks to a ProDiag function block");
+        }
+    }
+
     [Test]
     [MethodDataSource(nameof(Projects))]
     public void EveryWatchAndForceTableEntryMatchesTiasExport(string project) {
@@ -150,6 +161,33 @@ public sealed class TiaReferenceProjectTest {
         var found = project.Search("#edgeMemory").Select(result => result.Item.Name).Distinct().Order(StringComparer.Ordinal);
 
         found.Should().Equal("FbdLogic", "LadLogic");
+    }
+
+    /// <summary>Spec 0016, FR-014.</summary>
+    [Test]
+    public void SearchFindsAnOperandUsedOnlyInStlWithIndirectAddressing() {
+        var project = TiaProject.Open(ReferenceProjects.Archive("MoreLanguages"));
+        project.BuildIndex();
+
+        // The interface declares place; only the statements name it with its #, inside MW[ #place].
+        project.Search("[ #place]").Select(result => result.Item.Name).Distinct().Should().Equal("StlIndirect");
+    }
+
+    /// <summary>Spec 0016, FR-005 to FR-007: TIA exports no ProDiag block, so these lines are checked against the sources.</summary>
+    [Test]
+    public void ADataBlockListsWhatIsAssignedToAProDiagFunctionBlockAfterItsText_AndTheProDiagObItsCalls() {
+        var dump = ReferenceProjects.Dump("MoreLanguages");
+        try {
+            var blocks = Path.Combine(dump, "Project", "PLC_More", "ProgramBlocksFolder");
+            var plant = File.ReadAllText(Path.Combine(blocks, "Diagnosis", "Plant.db"));
+            plant[plant.IndexOf("END_DATA_BLOCK", StringComparison.Ordinal)..].Should().Be(
+                "END_DATA_BLOCK\n\n// assigned to ProDiag function block \"PlantDiag\": \"Plant\".pump\n"
+                + "// assigned to ProDiag function block \"PlantDiag\": \"Plant\".fans[0]\n// assigned to ProDiag function block \"PlantDiag\": \"Plant\".fans[1]\n");
+            File.ReadAllText(Path.Combine(blocks, "Diagnosis", "LineDb.db")).Should().Contain("END_DATA_BLOCK\n\n// assigned to ProDiag function block \"PlantDiag\"\n");
+            File.ReadAllText(Path.Combine(blocks, "ProDiagOB.prodiag_ob")).Should().Contain("\n\"PlantDiagDb\"();   // \"PlantDiag\"\nEND_ORGANIZATION_BLOCK");
+        } finally {
+            Directory.Delete(dump, recursive: true);
+        }
     }
 
     /// <summary>The statements and comments between BEGIN and the block's end, as the sources wrote them.</summary>

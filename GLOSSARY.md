@@ -131,6 +131,22 @@ _Avoid_: rung, segment, compile unit (outside the format page)
 A configured instance of a Siemens technology function on a PLC, such as an axis, a PID controller or a high-speed counter, with its kind and version. TIA stores it as a data block of a technology type; its settings are its parameters, named as TIA's parameter view names them (`DynamicLimits.MaxVelocity`).
 _Avoid_: TO DB, technology DB (outside the format page), axis block
 
+**Step time**:
+A GRAPH step's maximum time, after which its supervision reports an error, and its warning time, after which it warns; TIA's export calls them `MaximumStepTime` and `WarningTime` (spec 0016).
+_Avoid_: timeout, step timer
+
+**ProDiag supervision**:
+A check ProDiag makes on a Bool member of a function block or PLC data type, or on a global tag: of a kind (operand, interlock, action, reaction, position, text message, error message), with the state that triggers it, a delay, up to three conditions and a category (spec 0016). Not a GRAPH step's supervision, which is a condition of the step.
+_Avoid_: alarm, monitor, watch
+
+**ProDiag function block**:
+A function block in language ProDiag that evaluates the ProDiag supervisions of the instances and data blocks assigned to it; TIA generates its content.
+_Avoid_: diagnostic block, supervision block
+
+**Classic CPU**:
+An S7-300 or S7-400 CPU, as opposed to an S7-1500 or S7-1200: its blocks have standard access only, and its STL has S5 timers and counters.
+_Avoid_: old PLC, legacy CPU
+
 **Closed**:
 What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing of its body; which other objects it uses, as TIA's cross-reference list keeps in clear, is shown (ADR 0015). Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable

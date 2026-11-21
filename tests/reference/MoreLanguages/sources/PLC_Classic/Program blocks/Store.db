@@ -1,0 +1,18 @@
+DATA_BLOCK "Store"
+TITLE = Shared data
+VERSION : 0.1
+//A shared data block of a classic CPU, which has standard access only.
+   STRUCT 
+      count : Int;   // Batches made
+      level : Word;
+      current : "Recipe";
+      flags : Array[0..7] of Bool;
+   END_STRUCT;
+
+
+BEGIN
+   count := 3;
+   current.amount := 12;
+
+END_DATA_BLOCK
+

@@ -302,4 +302,18 @@ public sealed class TiaSourceFileTest {
             "ORGANIZATION_BLOCK \"Ob\"\n{ S7_Optimized_Access := 'TRUE' }\nVERSION : 0.1\n\nBEGIN\nEND_ORGANIZATION_BLOCK\n\n"
             + "// The inputs the system provides:\n//   BlockNr : UInt;\n");
     }
+
+    /// <summary>Spec 0016, FR-010: a network in a form the reader does not know is reported, and the block is still written.</summary>
+    [Test]
+    public void ANetworkInAFormTheReaderDoesNotKnowIsReportedAndTheBlockIsStillWritten() {
+        var file = new TiaFileBuilder(Schema);
+        file.WriteObject(Root, 4, [Part("<Root />", "BlockSource")]);
+        file.WriteObject(Unit, 6, [Part("<SomethingNew Version=\"1.0\" />", "LAD")]);
+        file.WriteObject(CodeBlock, 1, [Core("Fn", "FC"), General("FC", "LAD"), NoHeader(), TiaFileBuilder.Slots((Current, Root, 4)), TiaFileBuilder.Targets((Unit, 6))]);
+
+        var text = Written(file, CodeBlock);
+
+        text.Should().Contain("[unknown source form, raw follows]\n<SomethingNew Version=\"1.0\" />");
+        text.Should().EndWith("END_FUNCTION\n\n");
+    }
 }

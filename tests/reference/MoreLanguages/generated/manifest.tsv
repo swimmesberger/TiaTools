@@ -1,0 +1,47 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Classic	GlobalDB	1	DB	ok	PLC_Classic/GlobalDB.Store.db		Store	
+PLC_Classic	FB	1	SCL	ok	PLC_Classic/FB.Scale.scl		Scale	
+PLC_Classic	InstanceDB	2	DB	ok	PLC_Classic/InstanceDB.ScaleDb.db		ScaleDb	
+PLC_Classic	FC	1	STL	ok	PLC_Classic/FC.Classic.awl		Classic	
+PLC_Classic	FB	10	LAD	ok		PLC_Classic/FB.ClassicLad.xml	ClassicLad	
+PLC_Classic	FB	11	FBD	ok		PLC_Classic/FB.ClassicFbd.xml	ClassicFbd	
+PLC_Classic	UDT		UDT	ok	PLC_Classic/UDT.Recipe.udt		Recipe	
+PLC_Classic	TAGS			ok		PLC_Classic/TAGS.Default tag table.xml	Default tag table	
+PLC_Classic	TAGS			ok		PLC_Classic/TAGS.IO.xml	IO	
+PLC_More	OB	250	ProDiag_OB	partial			ProDiagOB	xml: Error when calling method 'Export' of type 'Siemens.Engineering.SW.Blocks.OB'.    Error when calling method 'get_ProgrammingLanguage' of type 'Siemens.Engineering.SW.Blocks.OB'.    The programming language 'ProDiag_OB' is not supported during import and export.
+PLC_More	FB	1	SCL	ok	PLC_More/FB.Blink.scl		Blink	
+PLC_More	InstanceDB	1	DB	ok	PLC_More/InstanceDB.BlinkDb.db		BlinkDb	
+PLC_More	FC	1	STL	ok	PLC_More/FC.StlIndirect.awl		StlIndirect	
+PLC_More	FB	2	STL	ok	PLC_More/FB.StlForms.awl		StlForms	
+PLC_More	FB	30	GRAPH	ok		PLC_More/FB.Timed.xml	Timed	
+PLC_More	FB	42	ProDiag	partial			PlantDiag	xml: Error when calling method 'Export' of type 'Siemens.Engineering.SW.Blocks.FB'.    Error when calling method 'get_ProgrammingLanguage' of type 'Siemens.Engineering.SW.Blocks.FB'.    The programming language 'ProDiag' is not supported during import and export.
+PLC_More	InstanceDB	44	DB	ok	PLC_More/InstanceDB.PlantDiagDb.db		PlantDiagDb	
+PLC_More	FB	3	SCL	ok	PLC_More/FB.Line.scl		Line	
+PLC_More	InstanceDB	43	DB	ok	PLC_More/InstanceDB.LineDb.db	PLC_More/InstanceDB.LineDb.xml	LineDb	
+PLC_More	GlobalDB	41	DB	ok	PLC_More/GlobalDB.Plant.db	PLC_More/GlobalDB.Plant.xml	Plant	
+PLC_More	FB	701	SCL	closed			Diag_Alarm	
+PLC_More	FC	310	SCL	closed			G7_RT_Plus_1_V6	
+PLC_More	FC	311	SCL	closed			G7_RT_Plus_2_V6	
+PLC_More	FC	316	SCL	closed			G7_RT_Plus_SUB_1_V6	
+PLC_More	FC	317	SCL	closed			G7_RT_Plus_SUB_2_V6	
+PLC_More	FC	312	SCL	closed			G7_RT_Plus_3_V6	
+PLC_More	FC	313	SCL	closed			G7_RT_Plus_4_V6	
+PLC_More	FC	314	SCL	closed			G7_RT_Plus_5_V6	
+PLC_More	FC	318	SCL	closed			G7_RT_Plus_SUB_3_V6	
+PLC_More	FC	315	SCL	closed			G7_RT_Plus_6_V6	
+PLC_More	UDT		UDT	ok	PLC_More/UDT.Motor.udt		Motor	
+PLC_More	UDT		UDT	closed			G7_StepPlus_V6	
+PLC_More	UDT		UDT	closed			G7_TransitionPlus_V6	
+PLC_More	UDT		UDT	closed			G7_RTDataPlus_V6	
+PLC_More	UDT		UDT	closed			G7_MOPPlus_V6	
+PLC_More	UDT		UDT	closed			G7_SQFlagsPlus_V6	
+PLC_More	UDT		UDT	closed			G7_OffsetsPlus_V6	
+PLC_More	UDT		UDT	closed			G7_GCFlagsPlus_V6	
+PLC_More	UDT		UDT	closed			G7_IfParPlus_V6	
+PLC_More	UDT		UDT	closed			G7_InParPlus_V6	
+PLC_More	UDT		UDT	closed			G7_OutParPlus_V6	
+PLC_More	UDT		UDT	closed			PC_Flags_V2	
+PLC_More	UDT		UDT	closed			SV_FB_State_V2	
+PLC_More	UDT		UDT	closed			SV_State_V2	
+PLC_More	TAGS			ok		PLC_More/TAGS.Default tag table.2.xml	Default tag table	
+PLC_More	TAGS			ok		PLC_More/TAGS.IO.2.xml	IO	

@@ -62,4 +62,14 @@ public sealed class TiaGraphTest {
             .Equal("    N: #valve", "    D: #lamp, T#2S", "    supervision: #overflow");
         lines.Should().Contain("STEP 1 Idle (initial)");
     }
+
+    /// <summary>Spec 0016, FR-001.</summary>
+    [Test]
+    public void AStepShowsItsMaximumAndWarningTimesBelowItsLine() {
+        var graph = Sequence();
+        graph.Steps[0].MaximumTime = "T#30S";
+        graph.Steps[0].WarningTime = "T#20S";
+
+        TiaGraph.Write(graph).SkipWhile(line => line != "STEP 1 Idle (initial)").Skip(1).First().Should().Be("    maximum time: T#30S, warning time: T#20S");
+    }
 }

@@ -1,0 +1,4 @@
+Start	Bool	%I0.0	Start button
+Stop	Bool	%I0.1	Stop button
+Motor	Bool	%Q0.0	Motor contactor
+Raw	Int	%IW2	Raw level

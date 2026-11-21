@@ -1,0 +1,27 @@
+﻿FUNCTION_BLOCK "Scale"
+TITLE = Scale a raw value
+{ S7_Optimized_Access := 'FALSE' }
+VERSION : 0.1
+//SCL on a classic CPU.
+   VAR_INPUT 
+      raw : Int;
+      low : Real;
+      high : Real;
+   END_VAR
+
+   VAR_OUTPUT 
+      value : Real;
+   END_VAR
+
+   VAR 
+      last : Real;
+   END_VAR
+
+
+BEGIN
+	
+	 #value := #low + (#high - #low) * INT_TO_REAL(#raw) / 27648.0;
+	 #last := #value;
+	
+END_FUNCTION_BLOCK
+

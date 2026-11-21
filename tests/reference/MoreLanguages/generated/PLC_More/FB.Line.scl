@@ -1,0 +1,25 @@
+﻿FUNCTION_BLOCK "Line"
+TITLE = Line with a motor
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//A motor of a PLC data type in its static data; its instance data block is assigned to a ProDiag function block.
+   VAR_INPUT 
+      command : Bool;
+   END_VAR
+
+   VAR_OUTPUT 
+      running : Bool;
+   END_VAR
+
+   VAR 
+      drive : "Motor";
+   END_VAR
+
+
+BEGIN
+	
+	 #drive.running := #command AND #drive.ready AND NOT #drive.tripped;
+	 #running := #drive.running;
+	
+END_FUNCTION_BLOCK
+
