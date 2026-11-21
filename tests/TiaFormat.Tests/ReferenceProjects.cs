@@ -46,7 +46,7 @@ internal static class ReferenceProjects {
         return !File.Exists(file) ? [] : [.. File.ReadLines(file).Skip(1).Where(line => line.Length != 0).Select(line => line.Split('\t')).Select(columns => new KnownBlock(columns[0], columns[1], columns[2], columns[3]))];
     }
 
-    /// <summary>The blocks TIA exported as SimaticML instead of generating source for (spec 0009): LAD, FBD and GRAPH.</summary>
+    /// <summary>The blocks TIA exported as SimaticML instead of generating source for (spec 0009): LAD, FBD, their fail-safe forms (spec 0012) and GRAPH.</summary>
     public static HashSet<(string Plc, string Kind, string Name)> ExportedAsXml(string name) =>
         [.. Manifest(name).Where(row => row.Kind != "TAGS" && row.Source.Length == 0 && row.Xml.Length != 0).Select(row => (row.Plc, row.Kind, row.Name))];
 
@@ -155,14 +155,14 @@ internal static class ReferenceProjects {
     }
 
     /// <summary>
-    /// Spec 0009: each LAD and FBD network of the blocks TIA exported as SimaticML, written in statement form from the
+    /// Spec 0009 and 0012: each LAD and FBD network, fail-safe ones included, of the blocks TIA exported as SimaticML, written in statement form from the
     /// archive and from TIA's export, with its title and comment. Each problem names the block, the network and both texts.
     /// </summary>
     public static IReadOnlyList<string> NetworkProblems(string name, out int compared) {
         compared = 0;
         var program = new TiaProgram(TiaDatabase.Open(Archive(name)));
         var problems = new List<string>();
-        foreach (var row in Manifest(name).Where(row => row.Kind != "TAGS" && row.Source.Length == 0 && row.Xml.Length != 0 && row.Language is "LAD" or "FBD" or "GRAPH")) {
+        foreach (var row in Manifest(name).Where(row => row.Kind != "TAGS" && row.Source.Length == 0 && row.Xml.Length != 0 && row.Language is "LAD" or "FBD" or "F_LAD" or "F_FBD" or "GRAPH")) {
             var what = $"{name}: {row.Plc} {row.Kind} {row.Name}";
             var block = program.Blocks.SingleOrDefault(candidate => candidate.Name == row.Name && program.PlcName(candidate.Frame) == row.Plc && !candidate.IsKnowHowProtected);
             if (block is null) {

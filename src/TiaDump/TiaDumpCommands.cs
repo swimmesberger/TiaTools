@@ -133,6 +133,27 @@ internal sealed class TiaDumpCommands {
         return 0;
     }
 
+    /// <summary>Reports each PLC's safety program: settings, F-runtime groups, signatures, F-blocks and the F-parameters of its F-I/O. Never a password.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="json">Write JSON instead of the Markdown report.</param>
+    /// <param name="plc">Only this PLC.</param>
+    [Command("safety")]
+    public int Safety([Argument] string archive, bool json = false, string? plc = null) {
+        var report = TiaSafety.Read(new TiaProgram(TiaDatabase.Open(archive)), plc);
+        if (plc is not null && report.Plcs.Count == 0) {
+            Console.Error.WriteLine($"No PLC named {plc}.");
+            return 1;
+        }
+        if (json) {
+            using var stdout = Console.OpenStandardOutput();
+            TiaSafetyWriter.WriteJson(report, stdout);
+            stdout.Write("\n"u8);
+        } else {
+            TiaSafetyWriter.WriteMarkdown(report, TiaOpcUaWriter.Title(archive), Console.Out);
+        }
+        return 0;
+    }
+
     /// <summary>Compares a dump with what TIA generated, block by block, and exits with 1 if any text differs.</summary>
     /// <param name="dump">A folder written by the dump command.</param>
     /// <param name="export">A folder written by tools/TiaOpennessExport.</param>

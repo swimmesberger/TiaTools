@@ -1,0 +1,10 @@
+﻿DATA_BLOCK "LockedSafety_DB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+"LockedSafety"
+
+BEGIN
+
+END_DATA_BLOCK
+

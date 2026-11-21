@@ -114,6 +114,7 @@ public sealed partial class MainWindow : Window {
         };
 
         OpcUaPanel.Open += OpenFromOpcUa;
+        SafetyPanel.Open += OpenFromOpcUa;
         OpcUaPanel.Said += text => {
             Status.Text = text;
             ShowFolderButton.IsVisible = false;
@@ -158,6 +159,7 @@ public sealed partial class MainWindow : Window {
             HeadingBar.IsVisible = false;
             Editor.IsVisible = false;
             OpcUaPanel.IsVisible = false;
+            SafetyPanel.IsVisible = false;
             ShowPanels(true);
             Editor.Document = new TextDocument();
             ShowWelcome(project.Root.Name, $"Choose a block on the left.\n{Command} + click a name in the source to follow it.", canOpen: false);
@@ -251,14 +253,18 @@ public sealed partial class MainWindow : Window {
             if (project.OpcUa(item) is { } opcUa) {
                 OpcUaPanel.Show(opcUa, () => project.OpcUaNodes(item)!);
             }
+            if (project.Safety(item) is { } safety) {
+                SafetyPanel.Show(safety);
+            }
             if (!keepLists) {
                 ShowPlaces(item);
             }
         }
         Welcome.IsVisible = false;
-        // A PLC's OPC UA configuration has a view of its own; its text stays in the editor for copying.
+        // A PLC's OPC UA configuration and its safety program have views of their own; their text stays in the editor for copying.
         Editor.IsVisible = !item.IsReport;
-        OpcUaPanel.IsVisible = item.IsReport;
+        OpcUaPanel.IsVisible = item.Kind == TiaItem.OpcUaReportKind;
+        SafetyPanel.IsVisible = item.Kind == TiaItem.SafetyReportKind;
         ShowPanels(!item.IsReport);
         ShowHeading(item);
         var clamped = Math.Clamp(line, 0, document.LineCount - 1);
@@ -385,6 +391,7 @@ public sealed partial class MainWindow : Window {
         "UDT" => "PLC data types",
         "Tags" => "tag tables",
         TiaItem.OpcUaReportKind => "the OPC UA entries",
+        TiaItem.SafetyReportKind => "the safety entries",
         _ => kind + " blocks",
     };
 

@@ -1,0 +1,85 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Safety	OB	1	SCL	ok	PLC_Safety/OB.Main.scl		Main	
+PLC_Safety	OB	123	SCL	closed			FOB_RTG1	
+PLC_Safety	OB	124	SCL	closed			FOB_RTG2	
+PLC_Safety	FC	2	F_LAD	ok		PLC_Safety/FC.Enable.xml	Enable	
+PLC_Safety	FB	5	F_FBD	ok		PLC_Safety/FB.Guard.xml	Guard	
+PLC_Safety	GlobalDB	3	F_DB	ok	PLC_Safety/GlobalDB.SafetyData.db		SafetyData	
+PLC_Safety	FB	1	F_FBD	ok		PLC_Safety/FB.LineSafety.xml	LineSafety	
+PLC_Safety	FB	4	F_FBD	ok		PLC_Safety/FB.GuardSafety.xml	GuardSafety	
+PLC_Safety	InstanceDB	1	F_DB	ok	PLC_Safety/InstanceDB.LineSafety_DB.db		LineSafety_DB	
+PLC_Safety	InstanceDB	2	F_DB	ok	PLC_Safety/InstanceDB.GuardSafety_DB.db		GuardSafety_DB	
+PLC_Safety	GlobalDB	40008	F_DB	closed			F_SystemInfo_DB	
+PLC_Safety	InstanceDB	40000	F_DB	closed			RTG1SysInfo	
+PLC_Safety	InstanceDB	40001	F_DB	closed			RTG2SysInfo	
+PLC_Safety	FB	32768	SCL	closed			F_PS_IN_2_0_0_0_0_0_0_2_1_0_1_0_28	
+PLC_Safety	FB	32769	SCL	closed			F_PS_OUT_1_0_0_0_0_0_1_2_1_0_1_0_28	
+PLC_Safety	FB	32770	SCL	closed			F_PS_IN_1_0_0_0_0_0_0_2_1_0_1_0_28	
+PLC_Safety	FB	32767	SCL	closed			F_CTRL_1	
+PLC_Safety	FB	32771	SCL	closed			F_PS_SEEDPASS_RCV	
+PLC_Safety	FB	32772	SCL	closed			F_PS_SEEDPASS_SEND	
+PLC_Safety	FB	32775	SCL	closed			F_8BOOL_INPUT_NC	
+PLC_Safety	FB	32773	SCL	closed			F_8BOOL_OUTPUT_NC	
+PLC_Safety	FB	32779	SCL	closed			F_CTRL_SM	
+PLC_Safety	FB	32774	SCL	closed			FC2_C	
+PLC_Safety	FB	32776	SCL	closed			FB1_C	
+PLC_Safety	GlobalDB	40005	F_DB	closed			DB3_C	
+PLC_Safety	InstanceDB	40006	F_DB	closed			DB1_C	
+PLC_Safety	FB	32777	SCL	closed			FB5_C	
+PLC_Safety	FB	32778	SCL	closed			FB4_C	
+PLC_Safety	InstanceDB	40007	F_DB	closed			DB2_C	
+PLC_Safety	FB	32780	SCL	closed			F_CTRL_D	
+PLC_Safety	InstanceDB	40009	F_DB	closed			FB32780_IDB_C	
+PLC_Safety	InstanceDB	40010	F_DB	closed			FB32780_IDB2_C	
+PLC_Safety	FB	32781	SCL	closed			F_CTRL_2	
+PLC_Safety	InstanceDB	40011	F_DB	closed			FB32781_IDB_C	
+PLC_Safety	InstanceDB	40012	F_DB	closed			FB32781_IDB2_C	
+PLC_Safety	FB	32782	SCL	closed			F_ET_LI	
+PLC_Safety	InstanceDB	40013	F_DB	closed			FB32782_IDB_C	
+PLC_Safety	InstanceDB	40014	F_DB	closed			FB32782_IDB2_C	
+PLC_Safety	FB	32783	SCL	closed			F_CTRL_RT	
+PLC_Safety	InstanceDB	40015	F_DB	closed			FB32783_IDB_C	
+PLC_Safety	InstanceDB	40016	F_DB	closed			FB32783_IDB2_C	
+PLC_Safety	InstanceDB	40017	F_DB	closed			FB32779_IDB_C	
+PLC_Safety	InstanceDB	40018	F_DB	closed			FB32779_IDB2_C	
+PLC_Safety	FC	32767	SCL	closed			FOB_GLOBAL_1	
+PLC_Safety	FC	32768	SCL	closed			FOB_GLOBAL_2	
+PLC_Safety	FC	32769	SCL	closed			F_JL_CORR	
+PLC_Safety	GlobalDB	40019	F_DB	closed			FOB_RTG1_GCTX_DB	
+PLC_Safety	GlobalDB	40020	F_DB	closed			FB1_C_GCTX_DB	
+PLC_Safety	GlobalDB	40021	F_DB	closed			FC2_C_GCTX_DB	
+PLC_Safety	GlobalDB	40022	F_DB	closed			FOB_RTG2_GCTX_DB	
+PLC_Safety	GlobalDB	40023	F_DB	closed			FB4_C_GCTX_DB	
+PLC_Safety	GlobalDB	40024	F_DB	closed			FB5_C_GCTX_DB	
+PLC_Safety	FC	32770	SCL	closed			SPLIT_FOB_1_1	
+PLC_Safety	FC	32771	SCL	closed			SPLIT_FOB_2_1	
+PLC_Safety	InstanceDB	40002	F_DB	closed			F00000_F-DI_Main	
+PLC_Safety	InstanceDB	40003	F_DB	closed			F00010_F-DQ_Main	
+PLC_Safety	InstanceDB	40004	F_DB	closed			F00020_F-DI_Remote	
+PLC_Safety	UDT		UDT	closed			F_SYSINFO	
+PLC_Safety	TAGS			ok		PLC_Safety/TAGS.Default tag table.xml	Default tag table	
+PLC_Safety	TAGS			ok		PLC_Safety/TAGS.Safety IO.xml	Safety IO	
+PLC_Safety	TAGS			ok		PLC_Safety/TAGS.Standard.xml	Standard	
+PLC_Locked	FB	1	F_FBD	ok		PLC_Locked/FB.LockedSafety.xml	LockedSafety	
+PLC_Locked	InstanceDB	1	F_DB	ok	PLC_Locked/InstanceDB.LockedSafety_DB.db		LockedSafety_DB	
+PLC_Locked	OB	123	SCL	closed			FOB_RTG1	
+PLC_Locked	GlobalDB	30001	F_DB	closed			F_SystemInfo_DB	
+PLC_Locked	InstanceDB	30000	F_DB	closed			RTG1SysInfo	
+PLC_Locked	FB	32767	SCL	closed			F_CTRL_1	
+PLC_Locked	FB	32768	SCL	closed			FB1_C	
+PLC_Locked	InstanceDB	30002	F_DB	closed			DB1_C	
+PLC_Locked	FB	32769	SCL	closed			F_CTRL_D	
+PLC_Locked	InstanceDB	30003	F_DB	closed			FB32769_IDB_C	
+PLC_Locked	FB	32770	SCL	closed			F_CTRL_2	
+PLC_Locked	InstanceDB	30004	F_DB	closed			FB32770_IDB_C	
+PLC_Locked	FB	32771	SCL	closed			F_ET_LI	
+PLC_Locked	InstanceDB	30005	F_DB	closed			FB32771_IDB_C	
+PLC_Locked	FB	32772	SCL	closed			F_CTRL_RT	
+PLC_Locked	InstanceDB	30006	F_DB	closed			FB32772_IDB_C	
+PLC_Locked	FC	32767	SCL	closed			FOB_GLOBAL_1	
+PLC_Locked	FC	32768	SCL	closed			F_JL_CORR	
+PLC_Locked	GlobalDB	30007	F_DB	closed			FOB_RTG1_GCTX_DB	
+PLC_Locked	GlobalDB	30008	F_DB	closed			FB1_C_GCTX_DB	
+PLC_Locked	FC	32769	SCL	closed			SPLIT_FOB_1_1	
+PLC_Locked	UDT		UDT	closed			F_SYSINFO	
+PLC_Locked	TAGS			ok		PLC_Locked/TAGS.Default tag table.2.xml	Default tag table	
