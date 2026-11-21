@@ -12,6 +12,8 @@ description: Answer questions about a Siemens PLC program from its TIA Portal ar
 - a block's interface: members, types, start values, comments
 - SCL and STL source, as written, and LAD, FBD and GRAPH logic as statements
 - tag tables
+- titles and comments in each project language: block sources are in the editing language (`--language <culture>` on `show` and `dump` for another; `tiadump languages <archive>` lists them), and the dump's `texts.tsv` has every text with a column per language
+- program alarms and text lists: `tiadump alarms <archive>` lists each alarm with its FB and member, instance data blocks, class, the operand each associated value (`@1%d@` in a text is `SD_1`) is wired to, and its texts; `tiadump textlists <archive>` lists each text list (`@2%t#Name@` in an alarm text takes its text from the list `Name`)
 - each PLC's OPC UA server: whether it is on, its settings and roles, and which data blocks, members and tags an OPC UA client could read or write (`tiadump opcua <archive>`, `--json` for every detail)
 
 It does not help with:
@@ -65,6 +67,7 @@ It is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on Window
 ```text
 index.tsv
 Project/<PLC>/<folder path>/<block>.<kind>
+Project/<PLC>/texts.tsv, alarms.tsv, textlists.tsv
 <master copy>--<id>/<PLC>/<folder path>/<block>.<kind>
 ```
 
@@ -78,6 +81,8 @@ Project/<PLC>/<folder path>/<block>.<kind>
 | `.udt` | A user data type, with the start values its members are declared with |
 | `.db` | A data block. One of a UDT or FB names its type and lists the values set in it, as TIA does; the type's members follow as comments, with start values where they are known. A shared one declares its members and lists its values |
 | `.tags` | A tag table |
+| `texts.tsv` | Every text of the PLC, `object`, `place`, then a column per project language, as stored: empty where a language has none. `\t`, `\n`, `\\` stand for a tab, line break and backslash |
+| `alarms.tsv`, `textlists.tsv` | The PLC's program alarms and text lists, as `tiadump alarms` and `tiadump textlists` print them |
 
 Each block file starts with comment lines giving kind, number, language, know-how flag, PLC and folder.
 

@@ -212,7 +212,7 @@ Decode as a blob, then: u32, u32 count `c`, u32 `o`; `c`×u32 value type ids; `c
 
 A text per language. varint; then u32 size, u32, u32 default index; a string table; u32 type, u32 `s`, `s` bytes subtype; if the size allows more, u32 flags and a second string table.
 
-String table: u32 `n`; `n`×u16 language ids (LCID: 1033, 1031, ...); `n`×u32 present flags; for each present one, u32 length and UTF-8 bytes. **[S]** A language can be present with no bytes, an empty text. Every project language of the reference project `Texts` (section 17) reads back as TIA's SimaticML export gives it. **[S]** Alarm texts also hold an entry for LCID 65535, empty in every case seen, which is no project language. **[I]**
+String table: u32 `n`; `n`×u16 language ids (LCID: 1033, 1031, ...); `n`×u32 present flags; for each present one, u32 length and UTF-8 bytes. **[S]** A language can be present with no bytes, an empty text. Every project language of the reference project `Texts` (section 17) reads back as TIA's SimaticML export gives it. **[S]** LCID 65535 is no project language but a text for every language: an alarm class's display name is stored there alone, and TIA's export of the classes gives that text (section 19). **[S]** Alarm texts hold an empty one beside their languages. A reader shows a language's own text, else the 65535 text.
 
 **Project languages.** The project's `ProjectData` points to its languages: `UsedCultures` to each project language in the project's order, `EditingCulture` to the editing language, `ReferenceCulture` to the reference language. Each is a `CoreCulture` with `ICoreCulture.LCID` and `ICoreCulture.Name` (`de-DE`), held by the one `CoreCultureContainer`, which also holds languages that are not the project's. The cultures point back (`CultureIsUsedBy`, `IsEditingCultureIn`, `IsReferenceCultureIn`), to the project's `LibraryData` too. **[S]**: `Texts` sets en-US, de-DE and fr-FR, German editing and English reference, through Openness, and these relations say so. A global library has the same relations on its `LibraryData`, by the schema. **[I]**
 
@@ -677,6 +677,34 @@ The schema also has `OpcUaInterfaceData`, `OpcUaNodeData`, `OpcUaListData` and `
 
 Four tags of the demo, set through Openness to not accessible, not writable, not visible, and visible again after not accessible, stored what this table says, and `tiadump opcua` reported each as TIA showed it. TIA ties the columns together: clearing Accessible clears Writable and Visible, and setting Visible sets Accessible again. So the tags of the samples with `HmiStructureTypeRelevant` clear and `HmiVisible` set hold a combination TIA V21 does not make; the reader reports them not accessible, and what TIA shows for them is **[?]**. A tag without an `IStructureItem` segment stores none of the three.
 
+## 19. Program alarms, alarm classes and text lists
+
+What the reference project `Texts` (section 17) holds of them, read from its archive and checked against TIA's own exports: its alarm instance texts and text lists as TIA's xlsx exports give them, and its alarm classes as TIA's alarm class export gives them ([spec 0014](../specs/0014-texts-and-alarms.md)). No sample has been read for them.
+
+**A program alarm** is a `Siemens.Simatic.AlarmServices.ObjectFrame.Private.SimpleControllerAlarmData`. **[S]**
+
+| | Alarm type | Instance alarm |
+|---|---|---|
+| `ICoreAttributes.Subtype` | `TypeAlarm` | `InstanceAlarm` |
+| `ICoreAttributes.Name` | the `Program_Alarm` member that declares it | the same |
+| `PhysicalParent` | the FB's `CodeBlockData` | the instance DB's `DataBlockData` |
+| `InstanceAlarms` / `TypeAlarm` | each instance | its type |
+| `AlarmClass` | its `AlarmClassData` | one only where it sets its own |
+| `Texts` | 11 `AlarmText` objects | 11 of its own |
+| `IAlarmData.AlarmId` | | the alarm's number, from 512 in `Texts` **[I]** |
+
+The 11 `Texts`, in relation order: the info text, the alarm text, then additional texts 1 to 9. Each is a core text in `ICoreTextRepository.Text` (section 7.6). `ICoreAlarmTextData.Text0` to `Text10` are not stored. **[S]** An instance's text with no text in any language is its type's: TIA's export says *Inherited from Type* exactly there, and an instance with no class of its own has its type's class. **[S]** That a type's text with words in it is inherited the same way rests on this rule alone, since Openness sets only instance texts. **[I]** `IAlarmData.Priority` is -1 on every alarm of `Texts`, whose priorities were never set; what -1 means beside a set priority is **[?]**, so the reader shows no priority for it.
+
+The type's dictionary expando `AlarmServices_AssociateValueInfo` is XML, `<AVIs><AVIL><AVI Index="0" Type="IecplVariable" IdentRef="4" />...`: each associated value by its index from 0 (`SD_1`), and the identifier (section 14) of the FB that is wired to it. **[S]**: these name `#level` and `#state`, the operands TIA's generated source of the FB wires to `SD_1` and `SD_2`. An instance's `AlarmServices_TextListBackReferences` names, per text and language, the text lists it uses; the reader takes them from the texts' `@n%t#Name@` placeholders instead, which gives the same. **[S]**
+
+An alarm whose FB is know-how protected stays closed (section 15, ADR 0011), though its instance's texts are stored in clear and TIA's export shows them: the reader lists its name and instance and reads nothing more. **[S]**: none of those texts appears in what the reader returns.
+
+**An alarm class** is an `AlarmClassData` of the project: `ICoreAttributes.Name`, `IAlarmClassData.Acknowledgement`, `GlobalId`, and its display name through `AlarmClassData_IDisplayNaming_DisplayName` to a `CoreText`, stored for LCID 65535 alone. Name, display name and id **[S]** against TIA's export, which is a zip named `.dat` holding XML. That `Acknowledgement` is the class's setting is **[I]**: the export has no column for it, and only the two built-in classes were read.
+
+**A PLC text list** is a `Siemens.Automation.DomainModel.UserTextRangeListData`, with `Target` to its PLC: `ICoreAttributes.Name`, `IObjectRangeListData.ListRange` (`Decimal`, `Binary` or `Bit`) and a core text `ICoreAttributes.Comment`. `Entries` leads to each `UserTextRangeData`, with `IRangeData.RangeFrom`, `RangeTo` (absent is 0) and a core text `IRangeData.Text`. `IsUsedByAlarms` leads to each alarm whose text takes a text from it. **[S]**
+
+**What the dump writes of them.** Per PLC of the project, beside its folders: `texts.tsv`, every title, comment, member and tag comment, text list entry, alarm text and alarm class display name, a column per project language with the text stored in it; `alarms.tsv`; and `textlists.tsv`. A tab, line break or backslash in a text is written `\t`, `\n`, `\r` or `\\`.
+
 ## Open questions
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
@@ -696,6 +724,6 @@ What is left of the comparison with TIA Portal, most important first. [Comparing
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, `languages`, `texts`, `alarms` and `textlists` section 19 and the project languages, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.

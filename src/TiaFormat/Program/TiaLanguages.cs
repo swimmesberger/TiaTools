@@ -81,8 +81,10 @@ public sealed class TiaLanguages {
     }
 
     /// <summary>A language's name, marked if it is the editing or the reference language.</summary>
-    public string Describe(TiaLanguage language) =>
-        language.Name + (language == Editing ? " (editing)" : "") + (language == Reference ? " (reference)" : "");
+    public string Describe(TiaLanguage language) {
+        var marks = new[] { language == Editing ? "editing" : null, language == Reference ? "reference" : null }.OfType<string>().ToList();
+        return marks.Count == 0 ? language.Name : $"{language.Name} ({string.Join(", ", marks)})";
+    }
 
     private static TiaFrame? FindOwner(TiaDatabase db) {
         TiaFrame? library = null;

@@ -82,3 +82,6 @@ public sealed record TiaTag(string Name, string? Type, string? Address, string? 
 
 /// <summary>A tag table with its tags in table order.</summary>
 public sealed record TiaTagTable(TiaFrame Frame, string Name, IReadOnlyList<TiaTag> Tags);
+
+/// <summary>A text in every language stored, with its place in what holds it, such as <c>network 2 title</c> or <c>member Input.level</c>.</summary>
+public readonly record struct TiaPlacedText(string Place, IReadOnlyList<TiaText> Texts);

@@ -136,12 +136,15 @@ public sealed partial class MainWindow : Window {
         }
     }
 
-    public async Task OpenAsync(string path) {
+    /// <summary>Opens a file, its texts in <paramref name="language"/>, or in its editing language if none is given (spec 0014).</summary>
+    public async Task OpenAsync(string path, string? language = null) {
         Status.Text = "Opening " + Path.GetFileName(path) + "…";
         Busy.IsVisible = true;
+        // The same file in another language comes back at the item that was shown.
+        var again = language is not null && _project?.Path == path ? _current : null;
         try {
             var project = await Task.Run(() => {
-                var opened = TiaProject.Open(path);
+                var opened = TiaProject.Open(path, language);
                 opened.BuildIndex();
                 return opened;
             });
@@ -172,9 +175,16 @@ public sealed partial class MainWindow : Window {
             ResultsList.ItemsSource = null;
             ResultsChip.IsVisible = false;
             UpdateNavigation();
+            ShowLanguages();
             UpdateMenu();
             RememberOpened(path);
-        } catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or TiaFormat.TiaFormatException) {
+            if (project.Program.Language is { } shown) {
+                Status.Text += "  ·  " + shown.Name;
+            }
+            if (again is not null && project.Items.Concat(project.Reports).FirstOrDefault(item => item.Kind == again.Kind && item.Name == again.Name && item.Scope == again.Scope) is { } same) {
+                Navigate(same, 0);
+            }
+        } catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or TiaFormat.TiaFormatException or TiaLanguageException) {
             Status.Text = "Could not open it: " + e.Message;
             // A recent file that is gone or broken would fail again.
             _recent.Remove(path);
@@ -305,8 +315,8 @@ public sealed partial class MainWindow : Window {
         LanguageText.Text = item.Language;
         LanguageChip.IsVisible = item.Language is not null;
         ClosedChip.IsVisible = item.IsClosed;
-        ExportBlockButton.IsVisible = !item.IsReport;
-        ToolTip.SetTip(CopyButton, item.IsReport ? "Copy this report" : "Copy this block's source");
+        ExportBlockButton.IsVisible = !item.IsReport && !item.IsTable;
+        ToolTip.SetTip(CopyButton, item.IsReport ? "Copy this report" : item.IsTable ? "Copy this table" : "Copy this block's source");
         Breadcrumb.Text = _paths.GetValueOrDefault(item, "");
     }
 

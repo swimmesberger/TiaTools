@@ -62,25 +62,28 @@ All in `src/TiaFormat`, base class library only.
 - `TiaDatabase.ReadCoreTexts` gives every language of a core text as a list of `(int Lcid, string Text)`; `ReadCoreText` takes a preference order of LCIDs instead of preferring 1033, with the fallback of FR-004.
 - `TiaLanguages` (new, `Program`): a project's or library's languages, editing and reference language, read from the culture relations; resolves a culture name for FR-005.
 - `TiaProgram` takes the language to write in, by default the editing language, and passes its preference order to every title and comment it reads; `TiaSourceWriter` is unchanged, so FR-003 holds for the dump, `show` and the viewer alike.
-- `TiaTexts` (new): every text of a PLC as rows of object, place and one text per project language, from the same relations `TiaProgram` already follows (block comment, title, network comment, interface comments, tag comments), plus text lists, alarm texts and alarm class names.
-- `TiaTextLists`, `TiaAlarms` (new): read from what step 3 finds. An alarm's associated values are resolved through the `Program_Alarm` call in its block's networks, by the parameter `SD_n` of the call on its instance (FR-010). Text list uses are found in the stored alarm text by its `%t#name` placeholders (FR-011, FR-014). An alarm whose declaring block is know-how protected is listed with its path and `closed`, and nothing more (FR-018).
-- `TiaSourceExport` writes, per PLC, `texts.tsv`, `alarms.tsv` and `textlists.tsv` next to its blocks, and `index.tsv` lists them. Columns are fixed in step 4 and documented in `docs/FORMAT.md`'s section on the dump.
-- `TiaProject` adds an Alarms and a Text lists report item per PLC, as the OPC UA report is one, and takes the chosen language.
+- `TiaProgram.BlockTexts` and `TagTexts` give a block's and a tag table's titles and comments in every language, by place: `title`, `network 2 comment`, `member level` (member comments are stored by id path and named through the interface).
+- `TiaAlarms` (new) reads alarm types and instances, alarm classes and PLC text lists as the format page's section 19 says. An alarm's associated values come from its type's `AlarmServices_AssociateValueInfo`, which names the FB's identifier wired to each `SD_n`, rather than from the call in the networks (FR-010). Text list uses are found in the stored alarm texts by their `%t#name` placeholders (FR-011); a list's users through its `IsUsedByAlarms` relation (FR-014). An alarm whose declaring FB is know-how protected is listed with its name, instance and `closed`, and nothing more (FR-018).
+- `TiaTexts` (new) makes the texts table's rows, writes the three tables tab-separated with a column per project language, and shows the alarms and text lists as aligned tables in one language for the viewer. A cell holds the language's own text, else the language-neutral (LCID 65535) one, never another language's.
+- `TiaSourceExport` writes, per PLC of the project, `texts.tsv`, and `alarms.tsv` and `textlists.tsv` where there are any, next to its folders; `index.tsv` stays a list of blocks. A `--grep` dump writes none.
+- `TiaProject.Open` takes the language, and adds an Alarms and a Text lists item per PLC that has them, beside the OPC UA report: searched, shown as a document, not exported on their own.
 
 ## Tool and viewer
 
-- `tiadump languages <archive>`, `tiadump alarms <archive> [--plc]`, `tiadump textlists <archive> [--plc]`; `--language <culture>` on `show`, `dump`, `alarms` and `textlists`.
-- Viewer: a Language submenu in the View menu with the project languages, the editing language checked first; changing it reopens the project's documents in that language. The Alarms and Text lists items show a table, like the OPC UA view, in the chosen language with a column per text.
+- `tiadump languages`, `texts`, `alarms` and `textlists <archive> [--plc]`; `--language <culture>` on `show` and `dump`. The tables carry every language, so they take no language.
+- Viewer: View, Language lists the project languages, the one shown checked (`ViewerLanguages`); choosing another opens the file again in it, at the item that was shown. The Alarms and Text lists items show their table as text in the chosen language, so search, copy and the editor work on them as on a block.
 
 ## Tests
 
-- `TiaReferenceProjectTest.EveryBlockMatchesTiasGeneratedSource` runs on Texts like on every reference project (FR-022): its SCL FB and DBs in German, the editing language.
-- `ReferenceProjects.TextProblems(project)`: for every block TIA exported as SimaticML in a project with `languages.txt`, each `MultilingualText` of block, network and member, per culture, equals the texts table's cell; and each tag comment per culture equals the tag table export's (FR-021).
-- `TextListProblems` and `AlarmProblems` read TIA's xlsx with a reader in the test project (`ZipArchive` and the sheet's XML; no package) and compare every entry and alarm text per culture.
-- `LanguagesMatchTia`: project languages, editing and reference language against `generated/languages.txt`.
-- `AnAlarmOfAProtectedBlockStaysClosed`: no text of the protected FB's alarm appears in the dump, the tables, the search results or the viewer's documents (FR-018), as spec 0008 checks protected bodies.
-- `TiaFileBuilder` tests for the rules without TIA: the fallback order of FR-004, an unknown language (FR-005), a placeholder naming a text list.
-- `TiaViewer.Tests`: the language menu lists the project languages with the editing language first.
+In `TiaTextsTest`, on the reference project Texts, one test per acceptance scenario and FR:
+
+- `EveryBlockMatchesTiasGeneratedSource` runs on Texts like on every reference project (FR-022): its SCL FB and DBs in German, the editing language; the global DB `Recipe` is known, as the format page's section 12 says.
+- `EveryTitleAndCommentInEveryLanguageMatchesTiasExport` (FR-021): every block TIA exported as SimaticML, each `MultilingualText` of block and network and each member comment, per language, and each tag comment per language, against the reader's texts. The network and tag comparisons of spec 0008 and 0009 read TIA's side by the rule of FR-004 (`SimaticMlTexts`).
+- `EveryTextListEntryInEveryLanguageMatchesTiasExport`, `EveryAlarmTextInEveryLanguageMatchesTiasExport` and `EveryAlarmClassMatchesTiasExport` read TIA's xlsx with a reader in the test project (`XlsxSheets`: `ZipArchive` and the sheets' XML, no package), and the alarm classes' `.dat`.
+- `TheLanguagesMatchTias`, the fallback scenarios, the unknown language, the texts table, the alarm, alarm class and text list scenarios, and `NoTextOfAProtectedBlocksAlarmAppearsInTheDumpTheTablesTheSearchOrTheViewer` (FR-018).
+- The rules are tested on the reference project instead of on files `TiaFileBuilder` writes: it holds every case of FR-004, and was built by TIA.
+- `TiaViewer.Tests`: the language list offers the project languages, editing and reference marked, the one shown checked.
+- Each comparison was seen to fail on purpose: dropping block titles, swapping the alarm and info text, and leaving a protected FB's alarm open each fail them.
 
 ## Format page
 
@@ -89,7 +92,7 @@ All in `src/TiaFormat`, base class library only.
 ## Risks
 
 - Openness sets only instance texts (step 1), so how an instance inherits a non-empty type text rests on the archive alone, marked **[I]** on the format page until a project with type texts confirms it.
-- The alarm class export's `.dat` may not be readable; then the classes' names are checked through the alarm export's class column, and their display names and acknowledgement through the built-in classes' known values, marked as such.
+- The alarm class export's `.dat` is a zip holding XML of each class's name, display name and id, but not whether it needs acknowledgement; that stays **[I]** on the format page.
 - SimaticML import may refuse texts in a language that is not yet active; the languages are set before any block is imported.
 
 ## Decisions

@@ -35,10 +35,10 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public bool IsHolder => Node.Item is null;
 
-    /// <summary>A PLC's OPC UA report: shown like a block, but not exported.</summary>
-    public bool CanExport => Node.Item is not { IsReport: true };
+    /// <summary>A PLC's OPC UA report, or its table of alarms or text lists: shown like a block, but not exported on its own.</summary>
+    public bool CanExport => Node.Item is not ({ IsReport: true } or { IsTable: true });
 
-    public string CopyLabel => Node.Item is { IsReport: true } ? "Copy report" : "Copy source";
+    public string CopyLabel => Node.Item is { IsReport: true } ? "Copy report" : Node.Item is { IsTable: true } ? "Copy table" : "Copy source";
 
     public bool IsClosed => Node.Item?.IsClosed ?? false;
 

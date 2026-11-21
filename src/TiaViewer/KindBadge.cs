@@ -36,6 +36,8 @@ public sealed class KindBadge : Border {
             _label.Text = Kind switch {
                 "Tags" => "TAG",
                 TiaFormat.Program.TiaItem.OpcUaReportKind => "OPC",
+                TiaFormat.Program.TiaItem.AlarmsKind => "ALM",
+                TiaFormat.Program.TiaItem.TextListsKind => "TXT",
                 _ => Kind,
             };
             Background = Glyphs.KindBrush(Kind);

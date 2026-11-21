@@ -8,6 +8,12 @@ public sealed class TiaItem {
     /// <summary>The kind of a PLC's OPC UA report, which is shown like an item but is no part of the program.</summary>
     public const string OpcUaReportKind = "OPC UA";
 
+    /// <summary>The kind of a PLC's table of program alarms (spec 0014).</summary>
+    public const string AlarmsKind = "Alarms";
+
+    /// <summary>The kind of a PLC's table of text lists (spec 0014).</summary>
+    public const string TextListsKind = "Text lists";
+
     internal TiaItem(string name, string kind, long? number, string? language, bool isClosed, string scope, bool isProject, TiaBlock? block, TiaTagTable? table) {
         Name = name;
         Kind = kind;
@@ -60,6 +66,12 @@ public sealed class TiaItem {
 
     /// <summary>For a report, the PLC it is about; else null.</summary>
     public string? ReportPlc { get; internal init; }
+
+    /// <summary>For a table of alarms or text lists, the PLC it lists; else null. Searched, but no block to export or refer to.</summary>
+    public string? TablePlc { get; internal init; }
+
+    /// <summary>A PLC's table of alarms or text lists.</summary>
+    public bool IsTable => TablePlc is not null;
 }
 
 /// <summary>A node of a project's tree: a folder, or an item with no children.</summary>
@@ -95,7 +107,7 @@ public readonly record struct TiaSearchResult(TiaItem Item, int Line, string Tex
 /// </summary>
 public sealed class TiaProject {
     /// <summary>The order kinds are offered in: the blocks as TIA lists them, then tag tables and the OPC UA report.</summary>
-    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", TiaItem.OpcUaReportKind];
+    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", TiaItem.AlarmsKind, TiaItem.TextListsKind, TiaItem.OpcUaReportKind];
 
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
@@ -105,6 +117,7 @@ public sealed class TiaProject {
     private readonly Dictionary<TiaItem, List<TiaReference>> _from = [];
     private readonly Dictionary<string, int> _closed = [];
     private bool _indexed;
+    private TiaAlarms? _alarms;
 
     private TiaProject(string path, TiaProgram program) {
         Path = path;
@@ -132,12 +145,17 @@ public sealed class TiaProject {
     /// <summary>The kinds of the items and reports in the tree, each once: OB, FB, FC, DB, UDT, Tags, OPC UA, then others by name.</summary>
     public IReadOnlyList<string> Kinds { get; }
 
-    /// <summary>Opens a <c>.zap*</c> archive, a project or library file or folder, or a <c>PEData.plf</c>.</summary>
-    public static TiaProject Open(string path) => new(path, new TiaProgram(TiaDatabase.Open(path)));
+    /// <summary>
+    /// Opens a <c>.zap*</c> archive, a project or library file or folder, or a <c>PEData.plf</c>, with its titles,
+    /// comments and alarm texts in <paramref name="language"/>, or in the editing language if none is given (spec 0014).
+    /// Throws <see cref="TiaLanguageException"/> for a language that is not a project language.
+    /// </summary>
+    public static TiaProject Open(string path, string? language = null) => new(path, new TiaProgram(TiaDatabase.Open(path), language));
 
     /// <summary>The item's text, made once, when it is first asked for.</summary>
     public TiaDocument Document(TiaItem item) => _documents.GetOrAdd(item, static (key, project) =>
         key.ReportPlc is not null ? project.Report(key)
+        : key.TablePlc is { } plc ? project.TextTable(key.Kind, plc)
         : key.Table is { } table ? TiaDocumentBuilder.Build(table)
         : TiaDocumentBuilder.Build(project.Program, key.Block!), this);
 
@@ -156,6 +174,20 @@ public sealed class TiaProject {
         return new TiaDocument(output.ToString(), []);
     }
 
+    /// <summary>A PLC's alarms or text lists as a table in the program's language.</summary>
+    private TiaDocument TextTable(string kind, string plc) {
+        var output = new StringWriter { NewLine = "\n" };
+        if (kind == TiaItem.AlarmsKind) {
+            TiaTexts.ShowAlarms([.. Alarms.Alarms().Where(alarm => alarm.Plc == plc)], Program.TextPreference, output);
+        } else {
+            TiaTexts.ShowTextLists([.. Alarms.TextLists().Where(list => list.Plc == plc)], Program.TextPreference, output);
+        }
+        return new TiaDocument(output.ToString(), []);
+    }
+
+    /// <summary>The program's alarms, alarm classes and text lists.</summary>
+    public TiaAlarms Alarms => _alarms ??= new TiaAlarms(Program);
+
     /// <summary>Makes all texts and the references between them. Without it references are empty; searching makes the texts itself.</summary>
     public void BuildIndex() {
         if (_indexed) {
@@ -165,7 +197,7 @@ public sealed class TiaProject {
         foreach (var item in Items) {
             if (item.Table is not null) {
                 AddTagNames(item);
-            } else if (!_names.ContainsKey((item.Scope, item.Name))) {
+            } else if (!item.IsTable && !_names.ContainsKey((item.Scope, item.Name))) {
                 _names[(item.Scope, item.Name)] = new TiaLocation(item, 0);
             }
             if (item.IsClosed) {
@@ -298,11 +330,19 @@ public sealed class TiaProject {
             Place(HolderOf(table.Frame, root, libraries, plcs), Program.FolderPath(table.Frame), item);
             NoteProjectPlc(table.Frame, projectPlcs);
         }
+        var alarmPlcs = Alarms.Alarms().Select(alarm => alarm.Plc).ToHashSet(StringComparer.Ordinal);
+        var listPlcs = Alarms.TextLists().Select(list => list.Plc).ToHashSet(StringComparer.Ordinal);
         foreach (var (key, holder) in plcs) {
             if (projectPlcs.TryGetValue(key, out var plc)) {
                 var report = new TiaItem(TiaItem.OpcUaReportKind, TiaItem.OpcUaReportKind, null, null, false, key, true, null, null) { ReportPlc = plc };
                 Reports.Add(report);
                 holder.Children.Add(new TiaTreeNode(report.Name, report));
+                // Spec 0014: a PLC's alarms and text lists, each a table in the chosen language.
+                foreach (var kind in new[] { TiaItem.AlarmsKind, TiaItem.TextListsKind }.Where(kind => (kind == TiaItem.AlarmsKind ? alarmPlcs : listPlcs).Contains(plc))) {
+                    var table = new TiaItem(kind, kind, null, null, false, key, true, null, null) { TablePlc = plc };
+                    Items.Add(table);
+                    holder.Children.Add(new TiaTreeNode(table.Name, table));
+                }
             }
         }
         Sort(root);
@@ -371,10 +411,10 @@ public sealed class TiaProject {
         _ => name,
     };
 
-    private static int Rank(TiaTreeNode node) => node.Item is null ? 1 : node.Item.IsReport ? 0 : 2;
+    private static int Rank(TiaTreeNode node) => node.Item is null ? 1 : node.Item.IsReport || node.Item.IsTable ? 0 : 2;
 
     private static void Sort(TiaTreeNode node) {
-        // A PLC's OPC UA report first, then folders, then items.
+        // A PLC's OPC UA report and its tables of alarms and text lists first, then folders, then items.
         node.Children.Sort((a, b) => {
             var folders = Rank(a).CompareTo(Rank(b));
             return folders != 0 ? folders : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);

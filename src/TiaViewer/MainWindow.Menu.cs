@@ -14,6 +14,7 @@ public sealed partial class MainWindow {
 
     private readonly RecentFiles _recent;
     private readonly NativeMenu _recentMenu = new();
+    private readonly NativeMenu _languageMenu = new();
     private readonly List<(NativeMenuItem Item, Action Run)> _menuCommands = [];
     private NativeMenuItem? _exportAllItem;
     private NativeMenuItem? _exportBlockItem;
@@ -38,9 +39,13 @@ public sealed partial class MainWindow {
             (_findItem = Item(Label("Find in Block…", "_Find in block…"), new KeyGesture(Key.F, command), FindInBlock)),
             Item(Label("Search All Source…", "_Search all source…"), new KeyGesture(Key.F, command | KeyModifiers.Shift), SearchAllSource),
         };
+        var view = new NativeMenu {
+            new NativeMenuItem(Label("Language", "_Language")) { Menu = _languageMenu },
+        };
         var menu = new NativeMenu {
             new NativeMenuItem(Label("File", "_File")) { Menu = file },
             new NativeMenuItem(Label("Edit", "_Edit")) { Menu = edit },
+            new NativeMenuItem(Label("View", "_View")) { Menu = view },
         };
         // A Mac has About in the app menu (see App); Windows has it under Help.
         if (!IsMac) {
@@ -49,7 +54,29 @@ public sealed partial class MainWindow {
         NativeMenu.SetMenu(this, menu);
         _recent.Changed += (_, _) => ShowRecent();
         ShowRecent();
+        ShowLanguages();
         UpdateMenu();
+    }
+
+    /// <summary>
+    /// Fills View, Language with the project languages (spec 0014, FR-016), the one shown checked. Choosing another opens
+    /// the file again in it, at the item that was shown.
+    /// </summary>
+    private void ShowLanguages() {
+        _languageMenu.Items.Clear();
+        var choices = _project is null ? [] : ViewerLanguages.Choices(_project.Program);
+        foreach (var choice in choices) {
+            var item = new NativeMenuItem(choice.Label) { ToggleType = MenuItemToggleType.Radio, IsChecked = choice.IsShown };
+            item.Click += (_, _) => {
+                if (_project is { } project && !choice.IsShown) {
+                    _ = OpenAsync(project.Path, choice.Name);
+                }
+            };
+            _languageMenu.Items.Add(item);
+        }
+        if (choices.Count == 0) {
+            _languageMenu.Items.Add(new NativeMenuItem(_project is null ? "No file open" : "The file names no languages") { IsEnabled = false });
+        }
     }
 
     private static string Label(string mac, string other) => IsMac ? mac : other;
@@ -77,12 +104,12 @@ public sealed partial class MainWindow {
 
     private void UpdateMenu() {
         _exportAllItem!.IsEnabled = _project is not null;
-        _exportBlockItem!.IsEnabled = _current is { IsReport: false };
+        _exportBlockItem!.IsEnabled = _current is { IsReport: false, IsTable: false };
         _findItem!.IsEnabled = Editor.IsVisible;
     }
 
     private void ExportCurrent() {
-        if (_current is { IsReport: false } item) {
+        if (_current is { IsReport: false, IsTable: false } item) {
             _ = PickAndExportAsync(new TiaTreeNode(item.Name, item));
         }
     }
