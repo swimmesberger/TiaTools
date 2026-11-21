@@ -18,6 +18,18 @@ public sealed class TiaCrossReferenceTest {
         return project;
     });
 
+    private static readonly Lazy<TiaProject> FillingLineProject = new(() => {
+        var project = TiaProject.Open(ReferenceProjects.Archive("FillingLine"));
+        project.BuildIndex();
+        return project;
+    });
+
+    /// <summary>The lines of a project's text where one item uses another with this access, trimmed.</summary>
+    private static IEnumerable<string> PlacesOf(TiaProject project, string user, string used, string access) =>
+        project.ReferencesTo(project.Items.Single(item => item.Name == used && item.Block is not null))
+            .Where(reference => reference.From.Name == user && reference.Access == access)
+            .Select(reference => project.Document(reference.From).LineText(reference.Line).Trim());
+
     private static IEnumerable<string> UsesBy(string user) =>
         Tables.Value.List.References.Where(reference => reference.User.Name == user)
             .Select(reference => $"{reference.Used.DisplayName(reference.User.Frame.Key)} {reference.Access} {reference.Network}");
@@ -58,6 +70,26 @@ public sealed class TiaCrossReferenceTest {
     public void ACallThroughADataBlockOfItsOwnOrAMultiInstanceIsACall() {
         UsesBy("LadBoxes").Should().Contain(["TON Call 5", "Pulse Call 8"]);
         UsesBy("Main").Should().Contain("LadBoxes Call 1");
+    }
+
+    [Test]
+    public void ACallThroughAnInstanceIsPlacedOnTheLineThatCallsTheInstance() {
+        var line = FillingLineProject.Value;
+
+        // Regression: these calls name the instance, not the block they call, and were placed on BEGIN.
+        PlacesOf(line, "Conveyor", "Motor", "Call").Should().ContainSingle().Which.Should().StartWith("#drive(");
+        PlacesOf(line, "FillingLine", "Conveyor", "Call").Select(text => text[..text.IndexOf('(', StringComparison.Ordinal)])
+            .Should().BeEquivalentTo("#infeed", "#outfeed");
+        PlacesOf(line, "Main", "FillingLine", "Call").Should().ContainSingle().Which.Should().StartWith("\"LineData\"(");
+        PlacesOf(TablesProject.Value, "LadBoxes", "Pulse", "Call").Should().ContainSingle().Which.Should().StartWith("#pulser(", "LAD");
+    }
+
+    [Test]
+    public void AUseInTheInterfaceIsPlacedOnTheLineThatDeclaresTheMember() {
+        var line = FillingLineProject.Value;
+
+        PlacesOf(line, "Conveyor", "Motor", "Multiinstance").Should().ContainSingle().Which.Should().StartWith("drive : \"Motor\";");
+        PlacesOf(line, "Filler", "typeRecipe", "Declaration").Should().ContainSingle().Which.Should().StartWith("recipe : \"typeRecipe\";");
     }
 
     [Test]
