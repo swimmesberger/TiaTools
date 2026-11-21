@@ -21,7 +21,7 @@ TiaTools reads a TIA Portal project's own database file and turns its PLC progra
 
 ## Why it is this shape
 
-- **Read-only, and know-how protection stays closed.** The library opens a file as input and has no code path that writes to it or decrypts a protected block. This is what makes it safe to point at someone else's project.
+- **Read-only, and protected blocks are read as encrypted.** The library opens a file as input and has no code path that writes to it, and a protected block holds only ciphertext, so there is nothing to render but its encrypted form (ADR 0011). Any decryption would need the user's own password, so the library stays safe to point at someone else's project.
 - **The library takes no packages.** It can be used from any .NET program, and the viewer can be published through Native AOT, which starts in under a second.
 - **Text as TIA generates it.** SCL blocks, data blocks and UDTs are written the way TIA's *Generate source from blocks* writes them, so that a dump can be compared with TIA byte for byte and diffed against other exports. FBD has no such text in TIA, so its layout is TiaTools' own.
 - **Colours and references come from stored tokens, not a grammar.** The project stores SCL as tokens; the viewer uses them, and only declarations and FBD text go through a small scanner.
