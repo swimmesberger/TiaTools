@@ -373,7 +373,8 @@ internal static class Program {
             if (File.Exists(hardware)) {
                 refused += HardwareBuilder.Build(portal, project, hardware);
             }
-            foreach (var plcFolder in Directory.GetDirectories(Path.Combine(folder, "sources")).OrderBy(path => path, StringComparer.Ordinal)) {
+            var sourceFolders = Directory.GetDirectories(Path.Combine(folder, "sources")).OrderBy(path => path, StringComparer.Ordinal).ToList();
+            foreach (var plcFolder in sourceFolders.Where(path => !Hmi.IsHmiFolder(path))) {
                 var plcName = Path.GetFileName(plcFolder);
                 if (!File.Exists(hardware)) {
                     // A PLC folder may name its CPU by order number in cpu.txt, such as a CPU 1517T for technology objects (spec 0013) or an S7-300 (spec 0016).
@@ -390,6 +391,10 @@ internal static class Program {
                 }
                 refused += BuildPlc(plc, plcFolder);
             }
+            // HMI devices come after the PLCs their tags read (spec 0011).
+            foreach (var hmiFolder in sourceFolders.Where(Hmi.IsHmiFolder)) {
+                refused += Hmi.Build(project, hmiFolder, BuildPlc);
+            }
             if (refused != 0) {
                 Console.Error.WriteLine($"{name}: {refused} sources refused; its files stay as they were.");
                 return false;
@@ -401,6 +406,7 @@ internal static class Program {
             Export(project, generated, blockXml: false, crossReferences: true);
             HardwareReport.Write(project, Path.Combine(generated, "hardware.tsv"));
             SafetyReport.Write(project, Path.Combine(generated, "safety"));
+            Hmi.Export(project, generated);
 
             File.Copy(Path.Combine(archived, name + ".zap21"), Path.Combine(folder, name + ".zap21"), overwrite: true);
             var target = Path.Combine(folder, "generated");

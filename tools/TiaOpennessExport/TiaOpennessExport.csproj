@@ -23,5 +23,13 @@
             <HintPath>$(TiaPublicApi)\Siemens.Engineering.Step7.dll</HintPath>
             <Private>false</Private>
         </Reference>
+        <Reference Include="Siemens.Engineering.WinCC">
+            <HintPath>$(TiaPublicApi)\Siemens.Engineering.WinCC.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Siemens.Engineering.WinCCUnified">
+            <HintPath>$(TiaPublicApi)\Siemens.Engineering.WinCCUnified.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
     </ItemGroup>
 </Project>

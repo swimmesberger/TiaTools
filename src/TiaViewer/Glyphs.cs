@@ -45,6 +45,7 @@ public static class Glyphs {
         TiaFormat.Program.TiaItem.OpcUaReportKind => OpcUa,
         TiaFormat.Program.TiaItem.HardwareReportKind => Hardware,
         TiaFormat.Program.TiaItem.SafetyReportKind => Safety,
+        TiaFormat.Program.TiaItem.HmiKind => Hmi,
         _ when kind?.StartsWith("DB", StringComparison.Ordinal) == true => Db,
         _ => Other,
     };
@@ -62,5 +63,6 @@ public static class Glyphs {
     private static readonly IBrush Hardware = Brush.Parse("#475569");
     private static readonly IBrush Watch = Brush.Parse("#A16207");
     private static readonly IBrush TechnologyObject = Brush.Parse("#B91C1C");
+    private static readonly IBrush Hmi = Brush.Parse("#9A3412");
     private static readonly IBrush Other = Brush.Parse("#6B7280");
 }

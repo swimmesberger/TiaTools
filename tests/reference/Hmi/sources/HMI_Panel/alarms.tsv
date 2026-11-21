@@ -1,0 +1,5 @@
+kind	name	trigger tag	bit or condition	limit	class	text
+discrete	AgitatorStopped	AlarmWord	0		Warning	Agitator stopped
+discrete	ValveFault	AlarmWord	3		Alarm	Inlet valve fault
+analog	TempHigh	TankTemp	UpperLimit	80	Warning	Tank temperature high
+analog	LevelLow	TankLevel	LowerLimit	10	Alarm	Tank level low

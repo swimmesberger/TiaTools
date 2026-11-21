@@ -675,6 +675,7 @@ public sealed partial class TiaProgram {
         var remanence = reader.GetString("Remanence"u8);
         var flags = reader.GetInt32("MFlags"u8);
         var atMember = reader.GetString("AtMemberID"u8);
+        var lid = reader.GetInt32("LID"u8);
 
         if (rid is null && name is "Input" or "Output" or "InOut" or "Static" or "Temp" or "Return" or "Constant") {
             // A section's members carry their offsets in the section; only a technology object's image is read by them.
@@ -706,6 +707,7 @@ public sealed partial class TiaProgram {
             IsDbSpecific = remanence == "Classic" && section == "Static" && atMember is null,
             Flags = flags,
             Id = id,
+            Lid = lid,
             AtMemberId = atMember,
             InstructionVersion = libraryVersion,
             Constants = context.Constants,
@@ -944,6 +946,7 @@ public sealed partial class TiaProgram {
             var children = n.Children.Count == 0 ? [] : Freeze(n.Children, hasAccessFlags, values, TiaDeclaredValues.FirstElement(n, indexed) + ":", hidden, readOnly);
             result.Add(new TiaMember(n.Name, n.Type, n.Path, n.Section, n.Comment, n.StartValue ?? declared, children, n.IsRetain) {
                 IsDbSpecific = n.IsDbSpecific,
+                Lid = n.Lid,
                 Declared = declared,
                 AtMember = overlaid?.Name,
                 Attributes = TiaMemberFlags.Attributes(showsAccess ? n.Flags : null, showsAccess && hidden, n.Section, n.Type, n.InstructionVersion),

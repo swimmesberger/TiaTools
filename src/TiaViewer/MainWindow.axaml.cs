@@ -276,7 +276,8 @@ public sealed partial class MainWindow : Window {
         }
         Welcome.IsVisible = false;
         // A PLC's OPC UA configuration and safety program and the project's hardware have views of their own; their text stays in the editor for copying.
-        Editor.IsVisible = !item.IsReport;
+        // An HMI entry is its text (spec 0011).
+        Editor.IsVisible = !item.IsReport || item.IsHmi;
         OpcUaPanel.IsVisible = item.Kind == TiaItem.OpcUaReportKind;
         SafetyPanel.IsVisible = item.Kind == TiaItem.SafetyReportKind;
         DevicesPanel.IsVisible = item.IsHardware;
@@ -416,6 +417,7 @@ public sealed partial class MainWindow : Window {
         TiaItem.TechnologyObjectKind => "technology objects",
         TiaItem.OpcUaReportKind => "the OPC UA entries",
         TiaItem.SafetyReportKind => "the safety entries",
+        TiaItem.HmiKind => "the HMI devices' entries",
         _ => kind + " blocks",
     };
 

@@ -19,6 +19,9 @@ public sealed class TiaItem {
     /// <summary>The kind of a technology object (spec 0013); its own kind, such as TO_PositioningAxis, is its language.</summary>
     public const string TechnologyObjectKind = "TO";
 
+    /// <summary>The kind of an HMI device's entries: its connections, a tag table, its alarms, a screen (spec 0011).</summary>
+    public const string HmiKind = "HMI";
+
     internal TiaItem(string name, string kind, long? number, string? language, bool isClosed, string scope, bool isProject, TiaBlock? block, TiaTagTable? table) {
         Name = name;
         Kind = kind;
@@ -59,8 +62,11 @@ public sealed class TiaItem {
     /// <summary>A watch table or force table, of kind <c>Watch</c> or <c>Force</c>; else null.</summary>
     public TiaWatchTable? WatchTable { get; internal init; }
 
-    /// <summary>A PLC's OPC UA or safety report or the project's hardware: not searched, referenced, counted or exported.</summary>
-    public bool IsReport => Kind is OpcUaReportKind or SafetyReportKind or HardwareReportKind;
+    /// <summary>A PLC's OPC UA or safety report, the project's hardware, or an HMI device's entry: not searched, referenced, counted or exported.</summary>
+    public bool IsReport => Kind is OpcUaReportKind or SafetyReportKind or HardwareReportKind or HmiKind;
+
+    /// <summary>An HMI device's entry, shown as text.</summary>
+    public bool IsHmi => Kind == HmiKind;
 
     /// <summary>The project's devices and networks.</summary>
     public bool IsHardware => Kind == HardwareReportKind;
@@ -80,6 +86,21 @@ public sealed class TiaItem {
 
     /// <summary>For a report, the PLC it is about; else null.</summary>
     public string? ReportPlc { get; internal init; }
+
+    /// <summary>For an HMI entry, the HMI device it belongs to; else null.</summary>
+    public string? HmiDevice { get; internal init; }
+
+    /// <summary>For an HMI entry, what it shows.</summary>
+    public TiaHmiPart HmiPart { get; internal init; }
+}
+
+/// <summary>What an HMI device's entry shows; a tag table or screen by the entry's name.</summary>
+public enum TiaHmiPart : byte {
+    None,
+    Connections,
+    TagTable,
+    Alarms,
+    Screen,
 }
 
 /// <summary>A node of a project's tree: a folder, or an item with no children.</summary>
@@ -123,14 +144,18 @@ public readonly record struct TiaSearchResult(TiaItem Item, int Line, string Tex
 /// References come from source text only, so a closed block's calls are not among them. Safe for parallel reads.
 /// </summary>
 public sealed class TiaProject {
-    /// <summary>The order kinds are offered in: the blocks as TIA lists them, then tag tables, watch and force tables, technology objects and the OPC UA and safety reports.</summary>
-    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", "Watch", "Force", TiaItem.TechnologyObjectKind, TiaItem.OpcUaReportKind, TiaItem.SafetyReportKind];
+    /// <summary>The order kinds are offered in: the blocks as TIA lists them, then tag tables, watch and force tables, technology objects the OPC UA and safety reports and HMI entries.</summary>
+    private static readonly string[] KindOrder = ["OB", "FB", "FC", "DB", "UDT", "Tags", "Watch", "Force", TiaItem.TechnologyObjectKind, TiaItem.OpcUaReportKind, TiaItem.SafetyReportKind, TiaItem.HmiKind];
+
+    /// <summary>Between a scope and a name in a token's target: a name that leads into another PLC than the item's own.</summary>
+    internal const char ScopeSeparator = '\u0001';
 
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaNodeList> _opcUaNodes = new();
     private TiaHardwareReport? _hardware;
     private readonly ConcurrentDictionary<TiaItem, TiaSafetyPlc> _safety = new();
+    private readonly ConcurrentDictionary<string, TiaHmiDevice?> _hmi = new(StringComparer.Ordinal);
     private readonly Dictionary<(string Scope, string Name), TiaLocation> _names = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _to = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _from = [];
@@ -144,7 +169,7 @@ public sealed class TiaProject {
         Root = root;
         BuildTree(root);
         // The hardware is one entry, so it has no switch of its own.
-        Kinds = [.. Items.Concat(Reports).Where(item => !item.IsHardware).Select(item => item.Kind).Distinct()
+        Kinds = [.. Items.Concat(Reports).Concat(Hmi).Where(item => !item.IsHardware).Select(item => item.Kind).Distinct()
             .OrderBy(kind => Array.IndexOf(KindOrder, kind) is var at and >= 0 ? at : KindOrder.Length)
             .ThenBy(kind => kind, StringComparer.Ordinal)];
     }
@@ -164,7 +189,10 @@ public sealed class TiaProject {
     /// </summary>
     public List<TiaItem> Reports { get; } = [];
 
-    /// <summary>The kinds of the items and PLC reports in the tree, each once: OB, FB, FC, DB, UDT, Tags, OPC UA, then others by name.</summary>
+    /// <summary>The entries of the project's HMI devices (spec 0011), each device a node at the top of the tree.</summary>
+    public List<TiaItem> Hmi { get; } = [];
+
+    /// <summary>The kinds of the items and reports in the tree, each once: OB, FB, FC, DB, UDT, Tags, OPC UA, HMI, then others by name.</summary>
     public IReadOnlyList<string> Kinds { get; }
 
     /// <summary>Opens a <c>.zap*</c> archive, a project or library file or folder, or a <c>PEData.plf</c>.</summary>
@@ -175,6 +203,7 @@ public sealed class TiaProject {
         key.IsHardware ? project.HardwareText()
         : key.Kind == TiaItem.SafetyReportKind ? project.SafetyReport(key)
         : key.ReportPlc is not null ? project.Report(key)
+        : key.HmiDevice is not null ? project.HmiDocument(key)
         : key.Table is { } table ? TiaDocumentBuilder.Build(table)
         : key.WatchTable is { } watch ? TiaDocumentBuilder.FromText(TiaWatchTables.Text(watch))
         : key.TechnologyObject is { } technologyObject ? project.TechnologyObjectDocument(technologyObject)
@@ -383,8 +412,28 @@ public sealed class TiaProject {
     }
 
     /// <summary>What a name in this item means, or null: a block, or a tag or constant at its line.</summary>
-    public TiaLocation? Resolve(TiaItem from, string name) =>
-        _names.TryGetValue((from.Scope, name), out var location) ? location : null;
+    public TiaLocation? Resolve(TiaItem from, string name) {
+        var scope = from.Scope;
+        if (name.IndexOf(ScopeSeparator, StringComparison.Ordinal) is var at and >= 0) {
+            // An HMI entry names what it links to in a PLC of its own choosing.
+            scope = name[..at];
+            name = name[(at + 1)..];
+        }
+        return _names.TryGetValue((scope, name), out var location) ? location : null;
+    }
+
+    /// <summary>An HMI entry's device as read when the tree was built; null for any other item.</summary>
+    public TiaHmiDevice? HmiDevice(TiaItem item) => item.HmiDevice is { } name ? _hmi.GetValueOrDefault(name) : null;
+
+    /// <summary>An HMI entry's text, its links into the PLCs of the project followable.</summary>
+    private TiaDocument HmiDocument(TiaItem item) {
+        BuildIndex();
+        var scopes = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var candidate in Items.Where(candidate => candidate.IsProject)) {
+            scopes.TryAdd(candidate.Scope[(candidate.Scope.IndexOf('/', StringComparison.Ordinal) + 1)..], candidate.Scope);
+        }
+        return HmiDevice(item) is { } device ? TiaHmiDocument.Build(device, item.HmiPart, item.Name, scopes) : new TiaDocument("", []);
+    }
 
     /// <summary>Every open line that refers to this item.</summary>
     public IReadOnlyList<TiaReference> ReferencesTo(TiaItem item) => _to.TryGetValue(item, out var list) ? list : [];
@@ -538,11 +587,38 @@ public sealed class TiaProject {
             Reports.Add(hardware);
             root.Children.Add(new TiaTreeNode(hardware.Name, hardware));
         }
+        AddHmiDevices(root);
         Sort(root);
         Sort(libraries);
         if (libraries.Children.Count != 0) {
             // The project comes first: most of this tree is the system's own.
             root.Children.Add(libraries);
+        }
+    }
+
+    /// <summary>
+    /// Each HMI device of the project as a node at the top: its connections and alarms, its tag tables under "HMI tags"
+    /// and its screens under "Screens", each an entry shown as text.
+    /// </summary>
+    private void AddHmiDevices(TiaTreeNode root) {
+        foreach (var device in TiaHmi.Read(Program).Devices) {
+            _hmi[device.Name] = device;
+            var node = new TiaTreeNode(device.Name);
+            root.Children.Add(node);
+            Entry(node, "", "Connections", TiaHmiPart.Connections);
+            Entry(node, "", "Alarms", TiaHmiPart.Alarms);
+            foreach (var table in device.TagTables) {
+                Entry(node, string.Join('/', new[] { "HMI tags", table.Folder }.Where(part => part.Length != 0)), table.Name, TiaHmiPart.TagTable);
+            }
+            foreach (var screen in device.Screens) {
+                Entry(node, string.Join('/', new[] { "Screens", screen.Folder }.Where(part => part.Length != 0)), screen.Name, TiaHmiPart.Screen);
+            }
+
+            void Entry(TiaTreeNode holder, string folder, string name, TiaHmiPart part) {
+                var item = new TiaItem(name, TiaItem.HmiKind, null, null, false, "hmi/" + device.Name, true, null, null) { HmiDevice = device.Name, HmiPart = part };
+                Hmi.Add(item);
+                Place(holder, folder, item);
+            }
         }
     }
 

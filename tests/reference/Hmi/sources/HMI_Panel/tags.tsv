@@ -1,0 +1,10 @@
+table	name	plc tag	data type
+Tank	TankLevel	Tank_Level	
+Tank	TankTemp	Tank_Temp	
+Tank	AgitatorOn	Agitator_On	
+Tank	AlarmWord	Alarm_Word	
+Recipe	RecipeSpeed	Mixer.Recipe.Speed	
+Recipe	MixerRunning	Mixer.Running	
+Local	SetpointLevel		Int
+Local	OperatorNote		WString
+Recipe	LevelThree	Mixer.Levels[3]	

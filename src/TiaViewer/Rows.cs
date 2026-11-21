@@ -35,8 +35,11 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public bool IsHolder => Node.Item is null;
 
-    /// <summary>A PLC's OPC UA report: shown like a block, but not exported.</summary>
-    public bool CanExport => Node.Item is not { IsReport: true };
+    /// <summary>
+    /// A PLC's OPC UA report or an HMI entry is shown like a block, but not exported; nor is an HMI device or folder,
+    /// which holds nothing else.
+    /// </summary>
+    public bool CanExport => Node.Item is not { IsReport: true } && !(IsHolder && ItemsBelow() == 0 && HmiBelow() != 0);
 
     public string CopyLabel => Node.Item is { IsReport: true } ? "Copy report" : "Copy source";
 
@@ -50,8 +53,11 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
 
     public string Number => Node.Item?.Number is { } number ? number.ToString(CultureInfo.InvariantCulture) : "";
 
-    /// <summary>How many blocks and tag tables are below, with what the filters leave; a report is neither.</summary>
-    public string Count => IsHolder ? ItemsBelow().ToString(CultureInfo.InvariantCulture) : "";
+    /// <summary>
+    /// How many blocks and tag tables are below, with what the filters leave; a report is neither. Below an HMI device,
+    /// how many of its entries.
+    /// </summary>
+    public string Count => !IsHolder ? "" : (ItemsBelow() is var items and not 0 ? items : HmiBelow()).ToString(CultureInfo.InvariantCulture);
 
     public Geometry Glyph => Parent is not null ? Glyphs.Folder : Name == LibrariesName ? Glyphs.Library : Glyphs.Plc;
 
@@ -81,6 +87,8 @@ public sealed class TreeRow(TiaTreeNode node, TreeRow? parent) : INotifyProperty
     }
 
     private int ItemsBelow() => Children.Sum(child => child.IsItem ? (child.CanExport ? 1 : 0) : child.ItemsBelow());
+
+    private int HmiBelow() => Children.Sum(child => child.IsItem ? (child.Node.Item!.IsHmi ? 1 : 0) : child.HmiBelow());
 }
 
 /// <summary>One line of a list that leads to a place in the source.</summary>

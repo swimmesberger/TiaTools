@@ -16,11 +16,12 @@ description: Answer questions about a Siemens PLC program from its TIA Portal ar
 - technology objects: axes, PID controllers, counters, with their kind, version and every value of their data block (`TO` in `index.tsv`, a `.to` file each)
 - each PLC's OPC UA server: whether it is on, its settings and roles, and which data blocks, members and tags an OPC UA client could read or write (`tiadump opcua <archive>`, `--json` for every detail)
 - the hardware: devices, racks and modules with order number, firmware and I/O addresses, interfaces with IP address and PROFINET device name or PROFIBUS address, subnets, and which IO devices belong to which IO controller (`tiadump devices <archive>`, `--json` for the same as JSON). To find where an address such as `%I10.0` comes from, look for the module whose range holds byte 10 in the PLC's own devices or its IO systems' IO devices; a system constant such as `Local~DI_Main` names the module the program addresses
+- each HMI device: its connections, which PLC tags and data block members its HMI tags read, its HMI alarms and their triggers, and its screens with their bound tags (`tiadump hmi <archive>`, `--json` for every detail)
 
 It does not help with:
 
 - **Know-how protected source.** It stays closed; see the rules below.
-- **HMI, and hardware settings beyond the above.** HMI screens and tags, and module parameters (channels, diagnostics, cycle times), are not read. `tiadump opcua` marks what it infers without confirmation, the security policy names and a tag's access above all; say so when you rely on them.
+- **HMI recipes, scripts and text lists, and hardware settings beyond the above.** HMI recipes, scripts and text lists, and module parameters (channels, diagnostics, cycle times), are not read. `tiadump opcua` marks what it infers without confirmation, the security policy names and a tag's access above all; say so when you rely on them.
 - **Changing anything.** It never writes to an archive.
 
 ## Rules

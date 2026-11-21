@@ -46,6 +46,12 @@ public sealed record TiaMember(string Name, string Type, string Path, string Sec
     /// <summary>Set per instance: a source file gives it a section of its own, <c>VAR DB_SPECIFIC</c>.</summary>
     public bool IsDbSpecific { get; init; }
 
+    /// <summary>
+    /// The member's local id among its siblings, the interface's <c>LID</c>: what a link from outside the block names it by,
+    /// such as an HMI tag's link to a data block member (format page, section 19).
+    /// </summary>
+    public int? Lid { get; init; }
+
     /// <summary>The member this one overlays: <c>name AT other : type</c>.</summary>
     public string? AtMember { get; init; }
 
