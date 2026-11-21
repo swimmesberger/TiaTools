@@ -1,0 +1,6 @@
+# Instance texts of program alarms. A column left out, or an empty cell, keeps the alarm type's value.
+# @1%d@ shows associated value 1 as a decimal, @2%t#States@ looks associated value 2 up in the text list States.
+Location	Alarm name	Alarm class	Alarm text de-DE	Alarm text en-US	Alarm text fr-FR	Info text de-DE	Info text en-US	Info text fr-FR	Additional text 1 de-DE	Additional text 1 en-US	Additional text 1 fr-FR
+TankA	highAlarm	Acknowledgement	Füllstand hoch: @1%d@ mm	Level high: @1%d@ mm	Niveau haut : @1%d@ mm	Zulauf prüfen	Check the inlet	Vérifier l'arrivée	Behälter A	Tank A	Réservoir A
+TankA	lowAlarm		Füllstand niedrig, Zustand @2%t#States@	Level low, state @2%t#States@	Niveau bas, état @2%t#States@						
+SealedA	leakAlarm	Acknowledgement	SealedAlarmTextMustStayClosed @1%d@	SealedAlarmTextMustStayClosed @1%d@	SealedAlarmTextMustStayClosed @1%d@	SealedInfoMustStayClosed	SealedInfoMustStayClosed	SealedInfoMustStayClosed			

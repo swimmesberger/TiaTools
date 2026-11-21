@@ -11,6 +11,8 @@
         <TiaPublicApi Condition="'$(TiaPublicApi)' == ''">C:\Program Files\Siemens\Automation\Portal V21\PublicAPI\V21\net48</TiaPublicApi>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="System.IO.Compression" />
+        <Reference Include="System.IO.Compression.FileSystem" />
         <Reference Include="Siemens.Engineering.Base">
             <HintPath>$(TiaPublicApi)\Siemens.Engineering.Base.dll</HintPath>
             <Private>false</Private>

@@ -1,0 +1,18 @@
+﻿DATA_BLOCK "Recipe"
+TITLE = Rezept
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+//Werte des Rezepts
+   VAR 
+      target : Int;   // Sollfüllstand in mm
+      hysteresis : Int;
+   END_VAR
+
+
+BEGIN
+   target := 500;
+   hysteresis := 20;
+
+END_DATA_BLOCK
+

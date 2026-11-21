@@ -104,7 +104,7 @@ internal static class ReferenceProjects {
             .Select(table => (Key: (program.PlcName(table.Frame) ?? "", table.Name), Tags: table.Tags.Where(tag => tag.Value is null).ToList()))
             .Where(table => table.Tags.Count != 0)
             .ToDictionary(table => table.Key, table => table.Tags);
-        var theirs = ExportedTagTables(name);
+        var theirs = ExportedTagTables(name, SimaticMlTexts.Preference(program));
         var problems = new List<string>();
         foreach (var ((plc, table), tags) in theirs) {
             var what = $"{name}: {plc} tag table {table}";
@@ -130,7 +130,7 @@ internal static class ReferenceProjects {
         $"{tag.Name} | {tag.Type} | {tag.Address} | {tag.Comment} | {tag.ExternalAccess} | {tag.ExternalVisible}";
 
     /// <summary>The tags of each table TIA exported, described as <see cref="Describe"/> describes ours.</summary>
-    private static Dictionary<(string Plc, string Table), List<string>> ExportedTagTables(string name) {
+    private static Dictionary<(string Plc, string Table), List<string>> ExportedTagTables(string name, IReadOnlyList<string> preference) {
         var result = new Dictionary<(string, string), List<string>>();
         foreach (var row in File.ReadLines(Path.Combine(Generated(name), "manifest.tsv")).Skip(1).Select(line => line.Split('\t'))) {
             if (row[1] != "TAGS" || row[4] != "ok") {
@@ -140,8 +140,7 @@ internal static class ReferenceProjects {
             var tags = document.Descendants("SW.Tags.PlcTag").Select(tag => {
                 var attributes = tag.Element("AttributeList")!;
                 string? Value(string element) => attributes.Element(element)?.Value;
-                var comment = tag.Elements("ObjectList").Elements("MultilingualText").Where(text => (string?)text.Attribute("CompositionName") == "Comment")
-                    .Descendants("Text").Select(text => text.Value).FirstOrDefault(text => text.Length != 0);
+                var comment = SimaticMlTexts.Pick(tag.Elements("ObjectList").Elements("MultilingualText").FirstOrDefault(text => (string?)text.Attribute("CompositionName") == "Comment"), preference) is { Length: > 0 } text ? text : null;
                 var access = Value("ExternalAccessible") == "false" ? TiaExternalAccess.None
                     : Value("ExternalWritable") == "false" ? TiaExternalAccess.ReadOnly : TiaExternalAccess.ReadWrite;
                 var visible = Value("ExternalAccessible") == "false" ? false : Value("ExternalVisible") == "true";
@@ -169,7 +168,7 @@ internal static class ReferenceProjects {
                 problems.Add($"{what}: not in the archive");
                 continue;
             }
-            var units = SimaticMlNetworks.Units(Path.Combine(Generated(name), row.Xml));
+            var units = SimaticMlNetworks.Units(Path.Combine(Generated(name), row.Xml), SimaticMlTexts.Preference(program));
             if (row.Language == "GRAPH") {
                 compared++;
                 var ourSequence = TiaGraph.Write(program.ReadGraph(block));
