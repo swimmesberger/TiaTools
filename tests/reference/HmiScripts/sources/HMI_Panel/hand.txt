@@ -1,0 +1,2 @@
+# Openness cannot place a custom web control on a screen (spec 0017, FR-017).
+Open screen Overview; in the toolbox under My controls click refresh, and drag Dosing gauge onto the screen.

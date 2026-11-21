@@ -17,3 +17,4 @@
 * [0014](0014-xref-db-is-read-by-a-reader-of-our-own.md) - TIA's cross-reference list, a SQLite file, is read by a read-only SQLite reader written here, so the library still takes no dependency
 * [0015](0015-what-a-closed-block-uses-is-shown.md) - What a closed block uses, which TIA's cross-reference list keeps in clear, is shown; its body, its own members' uses and the places inside it are not
 * [0016](0016-system-protected-technology-objects-are-read.md) - A technology object under Siemens' system protection stores its parameters in clear, so the reader shows them; only ciphertext stays closed
+* [0017](0017-custom-web-controls-run-in-the-platforms-web-view.md) - A custom web control's preview runs in the platform's own web view, through Avalonia.Controls.WebView, only when a person asks for it (draft)

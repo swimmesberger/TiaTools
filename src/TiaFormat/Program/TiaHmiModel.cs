@@ -14,7 +14,7 @@ public enum TiaWinCcFamily : byte {
 
 /// <summary>
 /// An HMI device: its HMI application, by the name TIA gives the runtime, with its WinCC family and device type, and
-/// what it holds.
+/// what it holds; its <see cref="Code"/> only when the report was asked for it (spec 0017).
 /// </summary>
 public sealed record TiaHmiDevice(
     string Name,
@@ -23,7 +23,8 @@ public sealed record TiaHmiDevice(
     IReadOnlyList<TiaHmiConnection> Connections,
     IReadOnlyList<TiaHmiTagTable> TagTables,
     IReadOnlyList<TiaHmiAlarm> Alarms,
-    IReadOnlyList<TiaHmiScreen> Screens) {
+    IReadOnlyList<TiaHmiScreen> Screens,
+    TiaHmiCode? Code = null) {
     /// <summary>The family as TIA names it.</summary>
     public string FamilyName => Family == TiaWinCcFamily.Unified ? "Unified" : "Comfort/Advanced";
 }
@@ -106,4 +107,7 @@ public sealed record TiaHmiAlarm(
 public sealed record TiaHmiScreen(string Name, string Folder, long? Number, long? Width, long? Height, IReadOnlyList<TiaHmiScreenItem> Items);
 
 /// <summary>A screen item: its type as TIA names it (<c>IOField</c>, <c>TextField</c>, <c>HmiIOField</c>, ...), geometry, and the HMI tags it is bound to.</summary>
-public sealed record TiaHmiScreenItem(string Name, string Type, long? Left, long? Top, long? Width, long? Height, IReadOnlyList<string> Tags);
+public sealed record TiaHmiScreenItem(string Name, string Type, long? Left, long? Top, long? Width, long? Height, IReadOnlyList<string> Tags) {
+    /// <summary>The text a Unified item shows, such as a text's or button's, in the first language stored; null if it has none (spec 0017).</summary>
+    public string? Text { get; init; }
+}

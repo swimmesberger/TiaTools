@@ -77,6 +77,9 @@ public sealed class TiaItem {
     /// <summary>The project's devices and networks.</summary>
     public bool IsHardware => Kind == HardwareReportKind;
 
+    /// <summary>An HMI device's entry that is code (spec 0017): a script, global script module or VB script, shown as its source.</summary>
+    public bool IsHmiSource => IsHmi && HmiPart is TiaHmiPart.Script or TiaHmiPart.ScriptModule or TiaHmiPart.VbScript;
+
     /// <summary>
     /// An OB of the project itself where the program's cycle starts: its stored event class is <c>ProgramCycle</c>, or,
     /// if it stores none, its number is 1. An OB in a master copy is not the project's program.
@@ -104,6 +107,9 @@ public sealed class TiaItem {
 
     /// <summary>A PLC's table of alarms or text lists.</summary>
     public bool IsTable => TablePlc is not null;
+
+    /// <summary>For an HMI entry of the device's code, its position in the list <see cref="HmiPart"/> names.</summary>
+    public int HmiIndex { get; internal init; }
 }
 
 /// <summary>What an HMI device's entry shows; a tag table or screen by the entry's name.</summary>
@@ -113,6 +119,18 @@ public enum TiaHmiPart : byte {
     TagTable,
     Alarms,
     Screen,
+
+    /// <summary>An HMI script, by <see cref="TiaItem.HmiIndex"/> in <see cref="TiaHmiCode.Scripts"/>.</summary>
+    Script,
+
+    /// <summary>A global script module, by <see cref="TiaItem.HmiIndex"/> in <see cref="TiaHmiCode.Modules"/>.</summary>
+    ScriptModule,
+
+    /// <summary>A VB script, by <see cref="TiaItem.HmiIndex"/> in <see cref="TiaHmiCode.VbScripts"/>.</summary>
+    VbScript,
+
+    /// <summary>A custom web control, by <see cref="TiaItem.HmiIndex"/> in <see cref="TiaHmiCode.CustomWebControls"/>.</summary>
+    CustomWebControl,
 }
 
 /// <summary>A node of a project's tree: a folder, or an item with no children.</summary>
@@ -520,7 +538,7 @@ public sealed class TiaProject {
         foreach (var candidate in Items.Where(candidate => candidate.IsProject)) {
             scopes.TryAdd(candidate.Scope[(candidate.Scope.IndexOf('/', StringComparison.Ordinal) + 1)..], candidate.Scope);
         }
-        return HmiDevice(item) is { } device ? TiaHmiDocument.Build(device, item.HmiPart, item.Name, scopes) : new TiaDocument("", []);
+        return HmiDevice(item) is { } device ? TiaHmiDocument.Build(device, item.HmiPart, item.Name, scopes, item.HmiIndex) : new TiaDocument("", []);
     }
 
     /// <summary>Every open line that refers to this item.</summary>
@@ -694,10 +712,11 @@ public sealed class TiaProject {
 
     /// <summary>
     /// Each HMI device of the project as a node at the top: its connections and alarms, its tag tables under "HMI tags"
-    /// and its screens under "Screens", each an entry shown as text.
+    /// and its screens under "Screens", each an entry shown as text; its code under "Scripts", "Script modules",
+    /// "VB scripts" and "Custom web controls" (spec 0017).
     /// </summary>
     private void AddHmiDevices(TiaTreeNode root) {
-        foreach (var device in TiaHmi.Read(Program).Devices) {
+        foreach (var device in TiaHmi.Read(Program, code: true).Devices) {
             _hmi[device.Name] = device;
             var node = new TiaTreeNode(device.Name);
             root.Children.Add(node);
@@ -709,9 +728,24 @@ public sealed class TiaProject {
             foreach (var screen in device.Screens) {
                 Entry(node, string.Join('/', new[] { "Screens", screen.Folder }.Where(part => part.Length != 0)), screen.Name, TiaHmiPart.Screen);
             }
+            var code = device.Code ?? TiaHmiCode.Empty;
+            for (var i = 0; i < code.Scripts.Count; i++) {
+                var script = code.Scripts[i];
+                Entry(node, "Scripts/" + script.Screen, TiaHmiWriter.EntryName(script), TiaHmiPart.Script, i, script.Language);
+            }
+            for (var i = 0; i < code.Modules.Count; i++) {
+                Entry(node, "Script modules", code.Modules[i].Name, TiaHmiPart.ScriptModule, i, code.Modules[i].Language);
+            }
+            for (var i = 0; i < code.VbScripts.Count; i++) {
+                var script = code.VbScripts[i];
+                Entry(node, string.Join('/', new[] { "VB scripts", script.Folder ?? "" }.Where(part => part.Length != 0)), script.Name, TiaHmiPart.VbScript, i, "VBScript");
+            }
+            for (var i = 0; i < code.CustomWebControls.Count; i++) {
+                Entry(node, "Custom web controls", code.CustomWebControls[i].DisplayName ?? code.CustomWebControls[i].Guid, TiaHmiPart.CustomWebControl, i);
+            }
 
-            void Entry(TiaTreeNode holder, string folder, string name, TiaHmiPart part) {
-                var item = new TiaItem(name, TiaItem.HmiKind, null, null, false, "hmi/" + device.Name, true, null, null) { HmiDevice = device.Name, HmiPart = part };
+            void Entry(TiaTreeNode holder, string folder, string name, TiaHmiPart part, int index = 0, string? language = null) {
+                var item = new TiaItem(name, TiaItem.HmiKind, null, language, false, "hmi/" + device.Name, true, null, null) { HmiDevice = device.Name, HmiPart = part, HmiIndex = index };
                 Hmi.Add(item);
                 Place(holder, folder, item);
             }

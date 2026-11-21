@@ -23,7 +23,109 @@ public static class TiaHmiWriter {
             WriteTags(device, output);
             WriteAlarms(device, output);
             WriteScreens(device, output);
+            if (device.Code is { } code) {
+                WriteCode(code, output);
+            }
         }
+    }
+
+    /// <summary>The device's code (spec 0017): its HMI scripts, global script modules, VB scripts and custom web controls.</summary>
+    private static void WriteCode(TiaHmiCode code, TextWriter output) {
+        output.WriteLine();
+        output.WriteLine("### Scripts");
+        if (code.Scripts.Count == 0) {
+            output.WriteLine();
+            output.WriteLine("None.");
+        }
+        foreach (var script in code.Scripts) {
+            output.WriteLine();
+            output.WriteLine($"#### {Attached(script)}");
+            Fence(script.Code, "javascript", output);
+        }
+        if (code.Modules.Count != 0) {
+            output.WriteLine();
+            output.WriteLine("### Global script modules");
+            foreach (var module in code.Modules) {
+                output.WriteLine();
+                output.WriteLine($"#### {module.Name}");
+                Fence(module.Code, "javascript", output);
+            }
+        }
+        if (code.VbScripts.Count != 0) {
+            output.WriteLine();
+            output.WriteLine("### VB scripts");
+            foreach (var script in code.VbScripts) {
+                output.WriteLine();
+                output.WriteLine($"#### {Path(script.Folder ?? "", script.Name)}");
+                Fence(VbSource(script), "vb", output);
+            }
+        }
+        if (code.CustomWebControls.Count != 0) {
+            output.WriteLine();
+            output.WriteLine("### Custom web controls");
+            foreach (var control in code.CustomWebControls) {
+                output.WriteLine();
+                output.WriteLine($"#### {control.DisplayName ?? control.Guid}");
+                output.WriteLine();
+                output.WriteLine($"GUID {control.Guid}; used by {(control.UsedBy.Count == 0 ? "no screen item" : string.Join(", ", control.UsedBy.Select(use => use.Screen + "/" + use.Item)))}.");
+                if (!control.HasPackage) {
+                    output.WriteLine();
+                    output.WriteLine($"The archive does not hold its package, {control.PackagePath}.");
+                }
+                foreach (var file in control.Files) {
+                    output.WriteLine();
+                    output.WriteLine($"##### {file.Path}");
+                    if (file.Text is { } text) {
+                        Fence(text, FenceLanguage(file.Path), output);
+                    } else {
+                        output.WriteLine();
+                        output.WriteLine(Invariant($"{file.Content.Length} bytes."));
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>A script's name in a tree of its screen's scripts: <c>Item.Tapped</c>, or <c>Screen.Loaded</c> for the screen's own.</summary>
+    public static string EntryName(TiaHmiScript script) => (script.Item ?? script.Screen) + "." + script.Name;
+
+    /// <summary>Where a script is attached, as <c>Screen/Item event Tapped</c> or <c>Screen property BackColor</c>.</summary>
+    public static string Attached(TiaHmiScript script) =>
+        $"{script.Screen}{(script.Item is null ? "" : "/" + script.Item)} {(script.Kind == TiaHmiScriptKind.Event ? "event" : "property")} {script.Name}";
+
+    /// <summary>A VB script as source: its <c>Sub</c> or <c>Function</c> line with parameters, its code, and its end line.</summary>
+    public static string VbSource(TiaHmiVbScript script) {
+        var kind = script.ReturnType is null or "Sub" ? "Sub" : "Function";
+        var text = new StringBuilder();
+        text.Append(kind).Append(' ').Append(script.Name).Append('(')
+            .AppendJoin(", ", script.Parameters.Select(parameter => (parameter.Declaration.Length == 0 ? "" : parameter.Declaration + " ") + parameter.Name)).Append(")\n");
+        if (script.PreCode is { Length: > 0 } pre) {
+            text.Append(pre.TrimEnd('\n')).Append('\n');
+        }
+        if (script.Code.Length != 0) {
+            text.Append(script.Code.TrimEnd('\n')).Append('\n');
+        }
+        return text.Append("End ").Append(kind).Append('\n').ToString();
+    }
+
+    private static string FenceLanguage(string path) => System.IO.Path.GetExtension(path).ToLowerInvariant() switch {
+        ".js" or ".mjs" => "javascript",
+        ".htm" or ".html" => "html",
+        ".css" => "css",
+        ".json" => "json",
+        ".svg" or ".xml" => "xml",
+        _ => "",
+    };
+
+    private static void Fence(string code, string language, TextWriter output) {
+        var fence = "```";
+        while (code.Contains(fence, StringComparison.Ordinal)) {
+            fence += "`";
+        }
+        output.WriteLine();
+        output.WriteLine(fence + language);
+        output.WriteLine(code.TrimEnd('\n'));
+        output.WriteLine(fence);
     }
 
     private static void WriteConnections(TiaHmiDevice device, TextWriter output) {
@@ -206,10 +308,88 @@ public static class TiaHmiWriter {
                 json.WriteEndObject();
             }
             json.WriteEndArray();
+            if (device.Code is { } code) {
+                WriteCode(code, json);
+            }
             json.WriteEndObject();
         }
         json.WriteEndArray();
         json.WriteEndObject();
+    }
+
+    private static void WriteCode(TiaHmiCode code, Utf8JsonWriter json) {
+        json.WriteStartArray("scripts");
+        foreach (var script in code.Scripts) {
+            json.WriteStartObject();
+            json.WriteString("screen", script.Screen);
+            json.WriteString("item", script.Item);
+            json.WriteString(script.Kind == TiaHmiScriptKind.Event ? "event" : "property", script.Name);
+            json.WriteString("language", script.Language);
+            json.WriteString("code", script.Code);
+            json.WriteEndObject();
+        }
+        json.WriteEndArray();
+        json.WriteStartArray("scriptModules");
+        foreach (var module in code.Modules) {
+            json.WriteStartObject();
+            json.WriteString("name", module.Name);
+            json.WriteString("language", module.Language);
+            json.WriteStartArray("functions");
+            foreach (var function in module.Functions) {
+                json.WriteStringValue(function);
+            }
+            json.WriteEndArray();
+            json.WriteString("code", module.Code);
+            json.WriteEndObject();
+        }
+        json.WriteEndArray();
+        json.WriteStartArray("vbScripts");
+        foreach (var script in code.VbScripts) {
+            json.WriteStartObject();
+            json.WriteString("name", script.Name);
+            json.WriteString("folder", script.Folder);
+            json.WriteString("returnType", script.ReturnType);
+            json.WriteStartArray("parameters");
+            foreach (var parameter in script.Parameters) {
+                json.WriteStartObject();
+                json.WriteString("name", parameter.Name);
+                json.WriteString("declaration", parameter.Declaration);
+                json.WriteEndObject();
+            }
+            json.WriteEndArray();
+            json.WriteString("preCode", script.PreCode);
+            json.WriteString("code", script.Code);
+            json.WriteEndObject();
+        }
+        json.WriteEndArray();
+        json.WriteStartArray("customWebControls");
+        foreach (var control in code.CustomWebControls) {
+            json.WriteStartObject();
+            json.WriteString("guid", control.Guid);
+            json.WriteString("name", control.DisplayName);
+            json.WriteString("package", control.PackagePath);
+            json.WriteStartArray("usedBy");
+            foreach (var (screen, item) in control.UsedBy) {
+                json.WriteStartObject();
+                json.WriteString("screen", screen);
+                json.WriteString("item", item);
+                json.WriteEndObject();
+            }
+            json.WriteEndArray();
+            json.WriteStartArray("files");
+            foreach (var file in control.Files) {
+                json.WriteStartObject();
+                json.WriteString("path", file.Path);
+                json.WriteNumber("size", file.Content.Length);
+                if (file.Text is { } text) {
+                    json.WriteString("text", text);
+                }
+                json.WriteEndObject();
+            }
+            json.WriteEndArray();
+            json.WriteEndObject();
+        }
+        json.WriteEndArray();
     }
 
     /// <summary>
@@ -230,6 +410,34 @@ public static class TiaHmiWriter {
                 $"# screen {Number(screen.Number)} {screen.Name} {Number(screen.Width)} x {Number(screen.Height)}\n" +
                 Tsv(["item", "type", "left", "top", "width", "height", "hmi tags"],
                     screen.Items.Select(item => new[] { item.Name, item.Type, Number(item.Left), Number(item.Top), Number(item.Width), Number(item.Height), string.Join(", ", item.Tags) })));
+        }
+    }
+
+    /// <summary>
+    /// A dump's files of one HMI device's code (spec 0017), by their path in its folder:
+    /// <c>scripts/&lt;screen&gt;/&lt;item&gt;.&lt;event or property&gt;.js</c> (<c>_screen</c> for the screen's own),
+    /// <c>modules/&lt;name&gt;.js</c>, <c>vbscripts/&lt;name&gt;.vbs</c> and
+    /// <c>custom web controls/&lt;name&gt;/&lt;file&gt;</c> with each package's files as stored.
+    /// </summary>
+    public static IEnumerable<(string Path, byte[] Content)> CodeFiles(TiaHmiDevice device) {
+        if (device.Code is not { } code) {
+            yield break;
+        }
+        foreach (var script in code.Scripts) {
+            yield return (System.IO.Path.Combine("scripts", TiaSourceExport.Safe(script.Screen), TiaSourceExport.Safe((script.Item ?? "_screen") + "." + script.Name + ".js")),
+                Encoding.UTF8.GetBytes(script.Code));
+        }
+        foreach (var module in code.Modules) {
+            yield return (System.IO.Path.Combine("modules", TiaSourceExport.Safe(module.Name) + ".js"), Encoding.UTF8.GetBytes(module.Code));
+        }
+        foreach (var script in code.VbScripts) {
+            yield return (System.IO.Path.Combine("vbscripts", PathOf(script.Folder ?? "", script.Name) + ".vbs"), Encoding.UTF8.GetBytes(VbSource(script)));
+        }
+        foreach (var control in code.CustomWebControls) {
+            var folder = System.IO.Path.Combine("custom web controls", TiaSourceExport.Safe(control.DisplayName ?? control.Guid));
+            foreach (var file in control.Files) {
+                yield return (System.IO.Path.Combine([folder, .. file.Path.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(TiaSourceExport.Safe)]), file.Content);
+            }
         }
     }
 

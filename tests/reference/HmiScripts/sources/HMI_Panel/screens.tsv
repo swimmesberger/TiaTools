@@ -1,0 +1,5 @@
+screen	number	item	type	left	top	width	height	tag or text
+Overview	1	LevelLabel	Text	20	40	160	30	Tank level
+Overview	1	LevelValue	IOField	200	40	120	30	Level
+Overview	1	SpeedValue	IOField	200	90	120	30	Speed
+Overview	1	StartButton	Button	20	150	120	40	

@@ -1,0 +1,4 @@
+Dose_Level	Int	%IW64	Level of the dosing tank in percent
+Dose_Speed	Int	%MW10	Speed of the dosing pump
+Dose_Target	Int	%MW12	Target level
+Dose_Valve	Bool	%Q0.0	The dosing valve is open

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21" />
+  <Hmi.RuntimeScripting.VBScript ID="0">
+    <AttributeList>
+      <Code>If SmartTags("PumpSpeed") &gt; 100 Then
+  ShowSystemAlarm "Pump speed high"
+End If</Code>
+      <Name>CheckPump</Name>
+      <Type>Sub</Type>
+    </AttributeList>
+  </Hmi.RuntimeScripting.VBScript>
+</Document>

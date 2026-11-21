@@ -20,7 +20,10 @@ public sealed class TiaReferenceProjectTest {
 
         var blocks = ReferenceProjects.Compare(project);
 
-        blocks.Should().Contain(block => block.Outcome == TiaComparisonOutcome.Identical);
+        // A project of HMI code alone, such as HmiScripts, has PLCs with tag tables and no block.
+        if (File.ReadLines(Path.Combine(ReferenceProjects.Generated(project), "manifest.tsv")).Skip(1).Any(line => line.Split('\t')[1] != "TAGS")) {
+            blocks.Should().Contain(block => block.Outcome == TiaComparisonOutcome.Identical);
+        }
         ReferenceProjects.Problems(project, blocks, ReferenceProjects.Known(project), ReferenceProjects.ExportedAsXml(project)).Should().BeEmpty();
     }
 

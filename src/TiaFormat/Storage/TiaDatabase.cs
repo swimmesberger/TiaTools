@@ -69,7 +69,7 @@ public sealed class TiaDatabase {
     /// <summary>Opens a <c>.zap*</c> archive, a project or library folder, or a <c>PEData.plf</c> itself.</summary>
     public static TiaDatabase Open(string path, bool verifyHashes = false) {
         var database = Parse(ReadPlf(path), verifyHashes);
-        database.SourcePath = path;
+        database.SourcePath = Path.GetFullPath(path);
         return database;
     }
 
@@ -81,6 +81,7 @@ public sealed class TiaDatabase {
     /// <c>XRef/XRef.db</c>, read whole; null if the project has none. The archive or folder is only read.
     /// </summary>
     public static byte[]? ReadProjectFile(string path, string relative) {
+        relative = relative.Replace('\\', '/').TrimStart('/');
         if (Path.GetExtension(path).StartsWith(".zap", StringComparison.OrdinalIgnoreCase) && File.Exists(path)) {
             using var zip = ZipFile.OpenRead(path);
             var entry = zip.Entries.FirstOrDefault(e => ("/" + e.FullName.Replace('\\', '/')).EndsWith("/" + relative, StringComparison.OrdinalIgnoreCase));
@@ -101,9 +102,15 @@ public sealed class TiaDatabase {
         } else {
             folder = Path.GetDirectoryName(Path.GetFullPath(path));
         }
-        var file = folder is null ? null : Path.Combine(folder, relative);
+        var file = folder is null ? null : Path.Combine(folder, relative.Replace('/', Path.DirectorySeparatorChar));
         return file is not null && File.Exists(file) ? ReadShared(file) : null;
     }
+
+    /// <summary>
+    /// A file of the project beside this database, such as <c>UserFiles/CustomControls/{guid}.zip</c>, as
+    /// <see cref="ReadProjectFile(string, string)"/> reads it; null if there is none, or the database was parsed from memory.
+    /// </summary>
+    public byte[]? ReadProjectFile(string relativePath) => SourcePath is null ? null : ReadProjectFile(SourcePath, relativePath);
 
     /// <summary>Reads a database held in memory; the array is kept, not copied.</summary>
     public static TiaDatabase Parse(byte[] data, bool verifyHashes = false) {
@@ -389,6 +396,84 @@ public sealed class TiaDatabase {
         var length = ReadVarInt(_data, start, out var body);
         var bytes = length - (body - start);
         return bytes < 0 || body + bytes > frame.Offset + frame.Size ? null : Encoding.UTF8.GetString(_data, body, bytes);
+    }
+
+    /// <summary>
+    /// The bytes of a structure or array attribute, from its u32 size on (section 7.4 of the format page: refs inside count
+    /// from its start); empty if the object does not store it or it does not fit in the frame.
+    /// </summary>
+    public ReadOnlySpan<byte> ReadValueBytes(in TiaFrame frame, TiaAttributeHandle attribute) {
+        if (!TryLocate(frame, attribute, out var at, out var segment, out var slot)
+            || slot.Type.Kind is not (TiaValueKind.Structure or TiaValueKind.Array)
+            || !TryFollow(frame, at, segment, out var start)
+            || start + 4 > frame.Offset + frame.Size) {
+            return default;
+        }
+        var size = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(start));
+        return size < 4 || start + size > frame.Offset + frame.Size ? default : _data.AsSpan(start, size);
+    }
+
+    /// <summary>
+    /// The values a simple expando interface holds, in stored order: each name, its value type id, and the bytes from its
+    /// value offset to the end of the segment (section 7.7 of the format page), which the value's type tells how to read.
+    /// </summary>
+    public IReadOnlyList<(string Name, uint TypeId, byte[] Value)> ReadSimpleExpandoValues(in TiaFrame frame) {
+        var result = new List<(string, uint, byte[])>();
+        var type = Schema.FindObjectType(frame.TypeId);
+        if (type is null) {
+            return result;
+        }
+        for (var i = 0; i < type.Interfaces.Length; i++) {
+            if (type.Interfaces[i].Set.Expando != TiaExpandoMode.Simple || !TryGetSegment(frame, i, out var segment, out var size)) {
+                continue;
+            }
+            var end = segment + size;
+            var count = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(segment + 8));
+            var namesAt = segment + 18 + (4 * count);
+            var names = new List<string>();
+            var afterNames = namesAt + (4 * count);
+            for (var entry = 0; entry < count; entry++) {
+                var start = segment + BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(namesAt + (4 * entry)));
+                var stop = start;
+                while (stop + 1 < end && (_data[stop] != 0 || _data[stop + 1] != 0)) {
+                    stop += 2;
+                }
+                names.Add(Encoding.Unicode.GetString(_data, start, stop - start));
+                afterNames = Math.Max(afterNames, stop + 2);
+            }
+            var valuesAt = afterNames;
+            for (var entry = 0; entry < count && valuesAt + (4 * entry) + 4 <= end; entry++) {
+                var typeId = BinaryPrimitives.ReadUInt32LittleEndian(_data.AsSpan(segment + 18 + (4 * entry)));
+                var at = valuesAt + (4 * count) + BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(valuesAt + (4 * entry)));
+                result.Add((names[entry], typeId, at >= segment && at < end ? _data.AsSpan(at, end - at).ToArray() : []));
+            }
+        }
+        return result;
+    }
+
+    /// <summary>The names of the values a simple expando interface holds, in stored order.</summary>
+    public IReadOnlyList<string> ReadSimpleExpandoNames(in TiaFrame frame) {
+        var result = new List<string>();
+        var type = Schema.FindObjectType(frame.TypeId);
+        if (type is null) {
+            return result;
+        }
+        for (var i = 0; i < type.Interfaces.Length; i++) {
+            if (type.Interfaces[i].Set.Expando != TiaExpandoMode.Simple || !TryGetSegment(frame, i, out var segment, out _)) {
+                continue;
+            }
+            var count = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(segment + 8));
+            var namesAt = segment + 18 + (4 * count);
+            for (var entry = 0; entry < count; entry++) {
+                var start = segment + BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(namesAt + (4 * entry)));
+                var end = start;
+                while (end + 1 < frame.Offset + frame.Size && (_data[end] != 0 || _data[end + 1] != 0)) {
+                    end += 2;
+                }
+                result.Add(Encoding.Unicode.GetString(_data, start, end - start));
+            }
+        }
+        return result;
     }
 
     /// <summary>
@@ -731,7 +816,9 @@ public sealed class TiaDatabase {
         return TiaSchema.Parse(inflater);
     }
 
-    internal static int ReadVarInt(byte[] data, int at, out int next) {
+    internal static int ReadVarInt(byte[] data, int at, out int next) => ReadVarInt(data.AsSpan(), at, out next);
+
+    internal static int ReadVarInt(ReadOnlySpan<byte> data, int at, out int next) {
         var value = 0;
         var shift = 0;
         while (true) {

@@ -220,12 +220,12 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
         return count;
     }
 
-    /// <summary>Each HMI device of the project in <c>Project/&lt;HMI device&gt;/</c>, its files as <see cref="TiaHmiWriter.DumpFiles"/> names them.</summary>
+    /// <summary>Each HMI device of the project in <c>Project/&lt;HMI device&gt;/</c>, its files as <see cref="TiaHmiWriter.DumpFiles"/> and <see cref="TiaHmiWriter.CodeFiles"/> name them.</summary>
     private int WriteHmiDevices() {
         var count = 0;
         TiaHmiReport report;
         try {
-            report = TiaHmi.Read(program);
+            report = TiaHmi.Read(program, code: true);
         } catch (Exception e) when (e is TiaFormatException or ArgumentOutOfRangeException or IndexOutOfRangeException or InvalidDataException) {
             _failures.Enqueue($"HMI devices: {e.Message}");
             return 0;
@@ -234,6 +234,10 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             var folder = Path.Combine(root, "Project", Safe(device.Name));
             foreach (var (path, text) in TiaHmiWriter.DumpFiles(device)) {
                 WriteFile(_paths.Reserve(Path.Combine(folder, path), 0), Encoding.UTF8.GetBytes(text));
+                count++;
+            }
+            foreach (var (path, content) in TiaHmiWriter.CodeFiles(device)) {
+                WriteFile(_paths.Reserve(Path.Combine(folder, path), 0), content);
                 count++;
             }
         }

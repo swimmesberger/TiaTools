@@ -1,0 +1,4 @@
+# A Unified Comfort panel with HMI scripts, a global script module and a custom web control (spec 0017).
+family	Unified
+type	OrderNumber:6AV2 128-3GB06-0AXx/21.0.0.0
+plc	PLC_Dosing
