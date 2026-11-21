@@ -274,6 +274,25 @@ public sealed class TiaDatabase {
             ? DecodeBlob(heap + (int)value)
             : default;
 
+    /// <summary>
+    /// A structure value of a dictionary expando interface, by the name of its key: its bytes from the u32 size on, the
+    /// elements inline in schema order after it (section 7.4 of the format page); empty if the object has none, the value
+    /// is no structure, or it does not fit in its frame.
+    /// </summary>
+    public ReadOnlySpan<byte> ReadExpandoStructure(in TiaFrame frame, string name) {
+        if (!TryFindExpandoValue(frame, name, out var value, out var heap, out var key) || value == uint.MaxValue
+            || Schema.FindValueType(key.ValueTypeId)?.Kind != TiaValueKind.Structure) {
+            return default;
+        }
+        var start = heap + (int)value;
+        var end = frame.Offset + frame.Size;
+        if (start < 0 || start + 4 > end) {
+            return default;
+        }
+        var size = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(start));
+        return size < 4 || start + size > end ? default : _data.AsSpan(start, size);
+    }
+
     /// <summary>A boolean value of a dictionary expando interface, by the name of its key; null if the object has none.</summary>
     public bool? ReadExpandoBoolean(in TiaFrame frame, string name) =>
         TryFindExpandoValue(frame, name, out var value, out _, out _) ? value != 0 : null;

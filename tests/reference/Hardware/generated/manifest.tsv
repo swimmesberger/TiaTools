@@ -1,0 +1,7 @@
+plc	object	number	language	status	source	xml	name	note
+Controller	OB	1	SCL	ok	Controller/OB.Main.scl		Main	
+Controller	TAGS			ok		Controller/TAGS.Default tag table.xml	Default tag table	
+Controller	TAGS			ok		Controller/TAGS.IO.xml	IO	
+Partner	OB	1	SCL	ok	Partner/OB.Main.2.scl		Main	
+Partner	TAGS			ok		Partner/TAGS.Default tag table.2.xml	Default tag table	
+Partner	TAGS			ok		Partner/TAGS.IO.2.xml	IO	

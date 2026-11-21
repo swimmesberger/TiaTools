@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using TiaFormat.Hardware;
 using TiaFormat.Storage;
 
 namespace TiaFormat.Program;
@@ -7,6 +8,9 @@ namespace TiaFormat.Program;
 public sealed class TiaItem {
     /// <summary>The kind of a PLC's OPC UA report, which is shown like an item but is no part of the program.</summary>
     public const string OpcUaReportKind = "OPC UA";
+
+    /// <summary>The kind of the project's hardware report (spec 0010), shown like an item but no part of the program.</summary>
+    public const string HardwareReportKind = "Devices & networks";
 
     internal TiaItem(string name, string kind, long? number, string? language, bool isClosed, string scope, bool isProject, TiaBlock? block, TiaTagTable? table) {
         Name = name;
@@ -42,8 +46,11 @@ public sealed class TiaItem {
 
     public TiaTagTable? Table { get; }
 
-    /// <summary>A PLC's OPC UA report: not searched, referenced, counted or exported.</summary>
-    public bool IsReport => Kind == OpcUaReportKind;
+    /// <summary>A PLC's OPC UA report or the project's hardware: not searched, referenced, counted or exported.</summary>
+    public bool IsReport => Kind is OpcUaReportKind or HardwareReportKind;
+
+    /// <summary>The project's devices and networks.</summary>
+    public bool IsHardware => Kind == HardwareReportKind;
 
     /// <summary>
     /// An OB of the project itself where the program's cycle starts: its stored event class is <c>ProgramCycle</c>, or,
@@ -100,6 +107,7 @@ public sealed class TiaProject {
     private readonly ConcurrentDictionary<TiaItem, TiaDocument> _documents = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaPlc> _opcUa = new();
     private readonly ConcurrentDictionary<TiaItem, TiaOpcUaNodeList> _opcUaNodes = new();
+    private TiaHardwareReport? _hardware;
     private readonly Dictionary<(string Scope, string Name), TiaLocation> _names = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _to = [];
     private readonly Dictionary<TiaItem, List<TiaReference>> _from = [];
@@ -112,7 +120,8 @@ public sealed class TiaProject {
         var root = new TiaTreeNode(System.IO.Path.GetFileNameWithoutExtension(path));
         Root = root;
         BuildTree(root);
-        Kinds = [.. Items.Concat(Reports).Select(item => item.Kind).Distinct()
+        // The hardware is one entry, so it has no switch of its own.
+        Kinds = [.. Items.Concat(Reports).Where(item => !item.IsHardware).Select(item => item.Kind).Distinct()
             .OrderBy(kind => Array.IndexOf(KindOrder, kind) is var at and >= 0 ? at : KindOrder.Length)
             .ThenBy(kind => kind, StringComparer.Ordinal)];
     }
@@ -126,10 +135,13 @@ public sealed class TiaProject {
     /// <summary>The blocks and tag tables: what is searched, referenced and exported.</summary>
     public List<TiaItem> Items { get; } = [];
 
-    /// <summary>One OPC UA report per PLC of the project, in the tree beside the PLC's folders.</summary>
+    /// <summary>
+    /// One OPC UA report per PLC of the project, in the tree beside the PLC's folders, and the project's devices and
+    /// networks first in the tree, if it has devices.
+    /// </summary>
     public List<TiaItem> Reports { get; } = [];
 
-    /// <summary>The kinds of the items and reports in the tree, each once: OB, FB, FC, DB, UDT, Tags, OPC UA, then others by name.</summary>
+    /// <summary>The kinds of the items and PLC reports in the tree, each once: OB, FB, FC, DB, UDT, Tags, OPC UA, then others by name.</summary>
     public IReadOnlyList<string> Kinds { get; }
 
     /// <summary>Opens a <c>.zap*</c> archive, a project or library file or folder, or a <c>PEData.plf</c>.</summary>
@@ -137,7 +149,8 @@ public sealed class TiaProject {
 
     /// <summary>The item's text, made once, when it is first asked for.</summary>
     public TiaDocument Document(TiaItem item) => _documents.GetOrAdd(item, static (key, project) =>
-        key.ReportPlc is not null ? project.Report(key)
+        key.IsHardware ? project.HardwareText()
+        : key.ReportPlc is not null ? project.Report(key)
         : key.Table is { } table ? TiaDocumentBuilder.Build(table)
         : TiaDocumentBuilder.Build(project.Program, key.Block!), this);
 
@@ -148,6 +161,26 @@ public sealed class TiaProject {
     /// <summary>The nodes of a report's PLC (spec 0006), derived once, when first asked for; null for any other item.</summary>
     public TiaOpcUaNodeList? OpcUaNodes(TiaItem item) => item.ReportPlc is null ? null : _opcUaNodes.GetOrAdd(item, static (key, program) =>
         TiaOpcUaNodes.Read(program, key.ReportPlc).SingleOrDefault() ?? new TiaOpcUaNodeList(key.ReportPlc!, []), Program);
+
+    /// <summary>The project's devices, subnets and IO systems (spec 0010), read once, when first asked for; null for any other item.</summary>
+    public TiaHardwareReport? Hardware(TiaItem item) => item.IsHardware ? _hardware ??= TiaHardware.Read(Program) : null;
+
+    /// <summary>The text <c>tiadump devices</c> writes.</summary>
+    private TiaDocument HardwareText() {
+        var output = new StringWriter { NewLine = "\n" };
+        TiaHardwareWriter.WriteText(_hardware ??= TiaHardware.Read(Program), output);
+        return new TiaDocument(output.ToString(), []);
+    }
+
+    /// <summary>Where a name stands in a PLC of the project itself: a block, or a tag or constant at its line; null if nowhere.</summary>
+    public TiaLocation? Resolve(string plc, string name) {
+        foreach (var ((scope, entry), location) in _names) {
+            if (entry == name && location.Item.IsProject && scope.EndsWith("/" + plc, StringComparison.Ordinal)) {
+                return location;
+            }
+        }
+        return null;
+    }
 
     /// <summary>The report <c>tiadump opcua --plc</c> writes for a report's PLC, as plain text.</summary>
     private TiaDocument Report(TiaItem item) {
@@ -304,6 +337,11 @@ public sealed class TiaProject {
                 Reports.Add(report);
                 holder.Children.Add(new TiaTreeNode(report.Name, report));
             }
+        }
+        if (TiaHardware.HasDevices(Program)) {
+            var hardware = new TiaItem(TiaItem.HardwareReportKind, TiaItem.HardwareReportKind, null, null, false, "", true, null, null);
+            Reports.Add(hardware);
+            root.Children.Add(new TiaTreeNode(hardware.Name, hardware));
         }
         Sort(root);
         Sort(libraries);

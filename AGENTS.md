@@ -4,7 +4,7 @@ A read-only reader for Siemens TIA Portal projects that needs no TIA Portal: a v
 
 ## Layout
 
-- `src/TiaFormat`: the library, base class library only. `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL, STL, LAD, FBD and GRAPH text, tag tables, `TiaSourceExport`, `TiaProject`).
+- `src/TiaFormat`: the library, base class library only. `Storage` (frames, values, blobs, relations), `Schema`, `Xml`, `Program` (blocks, interface, SCL, STL, LAD, FBD and GRAPH text, tag tables, `TiaSourceExport`, `TiaProject`), `Hardware` (devices, subnets, IO systems).
 - `src/TiaDump`: the `tiadump` command line tool.
 - `src/TiaViewer`: the viewer, in Avalonia, published through Native AOT. `macos/bundle.sh` builds the Mac app; `Assets/make_icons.py` draws the app icon, and the files it writes are committed.
 - `tests/TiaFormat.Tests`: the library's tests. `TiaFileBuilder` builds the small files most of them read; the reference projects are the rest.

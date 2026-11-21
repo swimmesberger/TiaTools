@@ -6,9 +6,9 @@ status: stable
 ---
 # The TIA Portal project database format
 
-Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers). `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
+Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers), the OPC UA configuration and the hardware. `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Six reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run. Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Seven reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run; one of them, `Hardware`, for the hardware (section 19). Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -237,6 +237,8 @@ Some of what a source file shows is only here. Names are keys in the object type
 | `DataBlockData` | `NonRetain` | Bool: a source file's `NON_RETAIN` **[S]** |
 | `DataBlockData` | `DBAccessibleFromOPCUA`, `DBAccessibleFromWebserver` | Bool: false adds that block attribute. Absent means true. **[S]** |
 | `DeviceItemData`, `OpcUaServerConfigurationData` | the OPC UA settings | Section 18 |
+| `DeviceItemData` | `AM_<n>_AddrData_<m>`: an I/O address, a structure | Section 19 |
+| `NodeData`, `MastersystemData` | an interface's addresses; an IO system's number | Section 19 |
 
 **`expando="simple"`**: names are in the value itself. **[S]** This is where interface comments are.
 
@@ -595,6 +597,8 @@ Tag tables, from TIA's export of them: all 208 tags and constants in them agree 
 
 **The reference projects.** Six small projects TIA Portal V21 built from sources written for this repository, committed in `tests/reference` with the source TIA generated and its export of each tag table ([spec 0008](../specs/0008-reference-projects.md)). The library's tests compare the reader with them in every run. They hold every elementary type with start values, arrays, nested UDTs, a DB of a UDT, a retained DB and a standard-access DB, an FB with every interface section and constants and its instance DB, a multi-instance, text in German, French, Japanese and Chinese with string escapes, two PLCs with folders four deep, and one know-how protected block. All 34 blocks TIA generated source for are identical, the protected one is closed and shows nothing of its body, and all 27 tags agree in name, type, address, comment and external access. These are new programs, so unlike A's comparison they test the rules on something they were not worked out from.
 
+The seventh, `Hardware` ([spec 0010](../specs/0010-hardware.md)), holds hardware TIA built through Openness from an invented description: two CPUs, four S7-1500 modules, four ET 200SP devices on PROFINET and one on PROFIBUS, two PROFINET subnets and one PROFIBUS subnet, three IO systems, a device in a device group, one device in no IO system, a start address and a PROFINET device name set by hand, and an IP address set at the device. Its build writes, beside the generated source, what TIA reports about the hardware through Openness, and the tests compare the reader with it (section 19): all 7 devices, all 73 device items TIA lists with their slots, order numbers, firmware and type names, all 11 I/O address ranges, all 9 interfaces' subnets, IP addresses, masks and PROFINET device names, the 3 subnets and the 3 IO systems with their numbers, IO controllers and IO devices agree, and every hardware identifier that a system constant holds sits where TIA puts it.
+
 The sixth, `Languages` ([spec 0009](../specs/0009-logic-languages.md)), holds blocks TIA takes no text source for, imported as SimaticML written for it and compiled by TIA: LAD and FBD with contacts in series and in parallel, negated contacts, inputs and outputs, set and reset coils and boxes, edges, a jump to a label, a move, a comparison, an addition, a timer as a multi-instance and with a data block of its own, a counter, a call of an FC and of an FB; a LAD block with an SCL and an STL network; an STL block with bit logic in brackets, load and transfer, arithmetic, a jump and a call; and a GRAPH block with a simultaneous and an alternative branch, a jump, actions with the qualifiers N, S, R and D, an event, an interlocked action, an assignment and a call, a supervision, an interlock and permanent instructions before and after. Its STL block and the timer's data block are identical to TIA's generated source; its 27 LAD and FBD networks and its GRAPH sequence give the same statement form from the archive as from TIA's SimaticML export (section 13). Invented blocks test the rules on the forms TIA writes, not on the habits of a real program.
 
 The text is the same after compiling. TIA exports SimaticML only for a compiled block, so a retrieved copy was compiled block by block, with every block that is not fail-safe, and closed unsaved. It refuses to compile the whole PLC without permission for the safety program. That gave SimaticML for all 319 UDTs, 85 of 92 open DBs, 194 of 379 open SCL blocks, and the same table as above.
@@ -673,6 +677,55 @@ The schema also has `OpcUaInterfaceData`, `OpcUaNodeData`, `OpcUaListData` and `
 
 Four tags of the demo, set through Openness to not accessible, not writable, not visible, and visible again after not accessible, stored what this table says, and `tiadump opcua` reported each as TIA showed it. TIA ties the columns together: clearing Accessible clears Writable and Visible, and setting Visible sets Accessible again. So the tags of the samples with `HmiStructureTypeRelevant` clear and `HmiVisible` set hold a combination TIA V21 does not make; the reader reports them not accessible, and what TIA shows for them is **[?]**. A tag without an `IStructureItem` segment stores none of the three.
 
+## 19. Hardware
+
+Where a project's devices, subnets and IO systems are stored. Found by reading every object of the reference project `Hardware` (section 17), whose hardware TIA Portal V21 built through Openness from an invented description, and checked against every attribute TIA reports for the same project through Openness. `tiadump devices` lists it ([spec 0010](../specs/0010-hardware.md)). A claim marked **[S]** below was compared with TIA's report and agrees.
+
+**Devices** are `Siemens.Simatic.HwConfiguration.Model.DeviceData` objects whose environment is the project: `ICoreAttributes.Name`, and `IDeviceData.InvariantTypeName`, TIA's type name (`S7-1500 station`, `ET 200SP-Station`). **[S]** A device in a device group has `AggregatingFolder` to the group's folder, and the path of folder names is the group path, as for a program folder (section 10); a device in no group has none. **[S]**
+
+**Device items** are the objects whose type implements `...Model.IDeviceItemData`: `DeviceItemData`, `S7ControllerTargetData` for a CPU (the same object is the PLC, section 10), `HeadDeviceItemData` for an interface module, and `IODeviceModuleData`. `Parent` leads to the device for a rack and everything plugged into it, and to the device item it is built into for anything else: that is how TIA nests them. **[S]**
+
+| Attribute | Holds |
+|---|---|
+| `ICoreAttributes.Name` | The name. An ET 200SP interface module's own submodule stores `_1`, and TIA names it as the module. **[S]** for the ET 200SP; that any `_<digits>` name works so is **[I]** |
+| `IDeviceItemData.PositionNumber` | The slot: 0 a rack, 1 a CPU, 2 and up its modules; an interface 32768 and up, its ports after it. **[S]** |
+| `OrderNumber`, `FwVersion`, `InvariantTypeName` | For a device item plugged into the device: its order number, firmware and type name, as TIA shows them. **[S]** Built-in items store some too (a CPU display's order number, a bus adapter port's firmware), and TIA shows none of them. **[S]** An ET 200SP rack stores the placeholder `6ES5 710-8MAx1`, which TIA does not show; the reader leaves out an order number with a lowercase letter. **[S]** for this one, the rule **[I]** |
+| `InvariantTypeName` of a built-in interface or port | Its label: `X1`, `X3`, `X1 P1`. **[S]** for interfaces. TIA's own label of a port comes from its catalog and can differ: `P1R` for a ring port. **[S]** An ET 200SP's interface stores none, where TIA shows `X1`. **[S]** |
+| `DeviceItemType` | Bits: 0x2000 an interface, 0x4000 a port. **[I]** |
+
+**What TIA does not list.** Of the stored device items TIA lists none whose subtype starts with `Internal.` (an interface's IO controller and IO device objects), nor a CPU's proxy, common part, execution unit and licence manager (subtypes ending in `.CpuProxy`, `.CpuCommon`, `.CPUexecUnit`, `.LicenseManager`), nor its virtual communication interface, whose node has `INodeData.NodeFeatures` 2 where an interface TIA lists has 4. **[S]** on a 1516-3 PN/DP and a 1511-1 PN. Nothing stored marks them: TIA decides from its catalog, so for other CPUs the rule is **[I]**.
+
+**I/O addresses** are dictionary expando values `AM_<n>_AddrData_<m>` (section 7.7) of the device item that has them, the submodule of a module. Each is the schema's structure `...Model.AddressItem` (section 7.4), after its u32 size: **[S]**, all 11 ranges of the reference project.
+
+| Offset | Size | Element |
+|---|---|---|
+| 4 | u32 | `AdditionalInfo`: 2 inputs, 4 outputs |
+| 8 | u16 | `AlarmObNumber` |
+| 10 | u64 | `Length`, in bits |
+| 18 | u32 | `ProcessImagePartNumber` |
+| 22 | u64 | `StartAddress`, in bits: I 10 is 80 |
+| 30 | u32 | `UniqueNumber` |
+
+A device that is in no IO system has no address stored, where TIA reports start -1. **[S]** `AssignedAM_<n>`, an `ExpandoLink`, ties a range to an `AddressManagerNGData` **[I]**; other values of `AdditionalInfo`, and the `AddressMap` blobs of `AddressManagerV2Data`, are **[?]**.
+
+**An interface's addresses** are a `NodeData` reached from the interface by `DeviceItemNodes`: `ICoreAttributes.Name` (`X1`, `IE1`, `PB1`), `INodeData.NodeType` (3 Ethernet, 1 PROFIBUS), and the relation `Subnet`. **[S]** Its dictionary expando values: **[S]**
+
+| Key | Holds |
+|---|---|
+| `NodeIPAddress`, `NodeIPSubnetMask` | u32, the first byte the most significant: 3232235521 is 192.168.0.1 |
+| `NodeIPConfiguration` | 0 the IP address is set in the project, 3 it is set directly at the device, and the address still stored is not the one used. Other values **[?]** |
+| `PnNameOfStation` | The PROFINET device name; a generated one is stored as generated (`remote_pn_2`) |
+| `PnPnNoSAutoGenerate` | 1: the device name is generated from the device's name |
+| `NodePBMpiAddress` | The PROFIBUS address |
+
+**Subnets** are `SubnetData`: `ICoreAttributes.Name`, `ISubnetData.NetType` (3 Ethernet, 1 PROFIBUS), `SubnetNodes` to the nodes on it, `Mastersystems` to its IO systems. **[S]**
+
+**IO systems** are `MastersystemData`: `ICoreAttributes.Name`; subtype `BusSystem.IOSystem` for PROFINET, `BusSystem.Mastersystem` for a DP master system; the expando value `PositionNumber`, the number; `Subnet`; `Master`, the IO controller: the interface's internal `IOController_PROFINET` item, whose parent is the interface, or the DP interface itself; and `HeadModules`, the IO devices: an `IODeviceModuleData` below the IO device's interface, or a DP device's interface module. **[S]**
+
+**Hardware identifiers** are not attributes of the device items. A system constant holds each, a `SimaticConstantTagData` reached from the device item by `ConstantTags`: its name (`Local~DI_Main`), `IDefaultStrategyData.DefaultValue` the identifier, `IStructureItem.DisplayTypeName` its type (`Hw_SubModule`, `Hw_Interface`, `Hw_Device`, `Hw_DpSlave`, `Hw_IoSystem`), and `Target` the PLC whose tag table lists it; an IO device's constants are its IO controller's. **[S]** TIA reports a `Hw_Device` or `Hw_DpSlave` identifier on the device, a `Hw_IoSystem` one on the IO system, and the identifiers of the items it does not list on the nearest one it does. **[S]** It also reports identifiers that no constant holds (48 and 136 on each CPU), and puts the constant `Local~Configuration` on no object; the reader lists the constants, so only identifiers a constant holds. **[S]** Identifiers count per PLC: the same number means another thing on another PLC.
+
+The CPU's common part also holds `EncryptedPassword*` and similar keys; the reader reads only the attributes named here, and `tiadump inspect` withholds those.
+
 ## Open questions
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
@@ -681,17 +734,17 @@ What is left of the comparison with TIA Portal, most important first. [Comparing
 2. **Fail-safe FBD.** All 48 FBD blocks of A are `F_FBD`, and TIA exports SimaticML only for a compiled block. Compiling fail-safe blocks needs permission for the safety program, which a script has no business looking for, so someone who has it logs in to the copy in TIA and compiles, as the comparison page says. Then compare them in statement form with TIA's export, as the reference project does for LAD and FBD (section 13).
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, FBD, STL and GRAPH in a real program.** The reference project `Languages` checks each on invented blocks (section 13), but no sample has any unprotected, so a real program's habits are untried: other instructions, nested branches, GRAPH with several sequences or step times, STL with indirect addressing.
-5. **Hardware, optional.** The reader lists no devices. A `tiadump devices` command (name, type, address, network) could be checked against TIA's Network overview.
+5. **Hardware beyond the reference project.** Section 19 rests on one invented project of S7-1500 and ET 200SP devices: other families, GSD devices, HMI devices, a module whose inputs and outputs share one range, IP addresses from DHCP, and a real project's hardware are untried, and which device items TIA leaves out comes from its catalog, not the file. Module parameters are not read.
 6. **OPC UA.** The server's settings, all security policies, the tags' access columns and the members' access are checked (sections 11 and 18), and the node ids of TIA's node set export are in the [research note](research/2026-11-20-tia-opc-ua-server-settings.md). Left: what TIA shows for a sample's tag stored as not accessible but visible, a combination TIA does not let a person make; and a project with a user-defined server interface, for what the journals and `OpcUaInterfaceData` hold.
 
 ## This repository's reader
 
-`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and the booleans, integers, strings, dates and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them. For the OPC UA roles (section 18) it has a reader of the .NET binary serialization format that only reads values and creates no type the stream names.
+`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and the booleans, integers, strings, dates and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them; it reads one structure, the hardware's I/O address (section 19), by its offsets. For the OPC UA roles (section 18) it has a reader of the .NET binary serialization format that only reads values and creates no type the stream names.
 
 ```bash
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, `devices` section 19, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.

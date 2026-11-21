@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using ConsoleAppFramework;
 using TiaFormat;
+using TiaFormat.Hardware;
 using TiaFormat.Program;
 using TiaFormat.Storage;
 
@@ -129,6 +130,22 @@ internal sealed class TiaDumpCommands {
             stdout.Write("\n"u8);
         } else {
             TiaOpcUaWriter.WriteMarkdown(report, TiaOpcUaWriter.Title(archive), Console.Out);
+        }
+        return 0;
+    }
+
+    /// <summary>Lists the devices with their racks, modules, I/O addresses and interfaces, then the subnets and IO systems.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="json">Write JSON instead of text.</param>
+    [Command("devices")]
+    public int Devices([Argument] string archive, bool json = false) {
+        var report = TiaHardware.Read(new TiaProgram(TiaDatabase.Open(archive)));
+        if (json) {
+            using var stdout = Console.OpenStandardOutput();
+            TiaHardwareWriter.WriteJson(report, stdout);
+            stdout.Write("\n"u8);
+        } else {
+            TiaHardwareWriter.WriteText(report, Console.Out);
         }
         return 0;
     }

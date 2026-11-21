@@ -1,0 +1,1597 @@
+kind	path	attribute	value
+device	Controller	group	
+device	Controller	HwIdentifier	32
+device	Controller	Comment	
+device	Controller	IsGsd	False
+device	Controller	Name	Controller
+device	Controller	TypeIdentifier	System:Device.S71500
+device	Controller	TypeIdentifierNormalized	System:Device.S71500
+device	Controller	TypeName	S7-1500 station
+item	Controller » Rail_0	Classification	None
+item	Controller » Rail_0	Comment	
+item	Controller » Rail_0	FirmwareVersion	
+item	Controller » Rail_0	IsBuiltIn	False
+item	Controller » Rail_0	IsPlugged	True
+item	Controller » Rail_0	Name	Rail_0
+item	Controller » Rail_0	OrderNumber	6ES7 590-1***0-0AA0
+item	Controller » Rail_0	PositionNumber	0
+item	Controller » Rail_0	TypeIdentifier	OrderNumber:6ES7 590-1***0-0AA0
+item	Controller » Rail_0	TypeIdentifierNormalized	OrderNumber:6ES7590-1***0-0AA0
+item	Controller » Rail_0	TypeName	Rack
+item	Controller » Rail_0	HwIdentifier	256
+item	Controller » Controller	AdditionalInformation	
+item	Controller » Controller	CentralAlarmManagement	True
+item	Controller » Controller	Classification	CPU
+item	Controller » Controller	ClockMemoryByte	False
+item	Controller » Controller	Comment	
+item	Controller » Controller	CommunicationMode	1
+item	Controller » Controller	ConfigurationControl	False
+item	Controller » Controller	CycleCommunicationLoad	50
+item	Controller » Controller	CycleEnableMinimumCycleTime	True
+item	Controller » Controller	CycleMaximumCycleTime	150
+item	Controller » Controller	CycleMinimumCycleTime	1
+item	Controller » Controller	FirmwareVersion	V2.9
+item	Controller » Controller	HostAndDomainnameActive	False
+item	Controller » Controller	IPv4ForwardingActive	False
+item	Controller » Controller	IsBuiltIn	False
+item	Controller » Controller	IsPlugged	True
+item	Controller » Controller	IsochronousMode	False
+item	Controller » Controller	LocationIdentifier	
+item	Controller » Controller	MacRtLicensePurchased	0
+item	Controller » Controller	Name	Controller
+item	Controller » Controller	NetworkFaultsAsMaintenance	False
+item	Controller » Controller	OpcUaPurchasedLicense	0
+item	Controller » Controller	OrderNumber	6ES7 516-3AN02-0AB0
+item	Controller » Controller	PlantDesignation	
+item	Controller » Controller	PnDnsConfigNameResolve	Deactivated
+item	Controller » Controller	PositionNumber	1
+item	Controller » Controller	ProDiagUsedLicenses	0
+item	Controller » Controller	ProtectionIntervalForSummarizeOfSecurityEvents	20
+item	Controller » Controller	ProtectionSummarizeSecurityEventsOnHighLoad	True
+item	Controller » Controller	ProtectionUnitForSummarizeOfSecurityEvents	2
+item	Controller » Controller	SendClock	1
+item	Controller » Controller	ShortDesignation	CPU 1516-3 PN/DP
+item	Controller » Controller	StartupActionAfterPowerOn	3
+item	Controller » Controller	StartupComparisonPresetToActualModule	2
+item	Controller » Controller	StartupConfigurationTimeout	60000
+item	Controller » Controller	SystemMemoryByte	False
+item	Controller » Controller	SystemPowerSupplyExternal	1
+item	Controller » Controller	TimeOfDayActivateDaylightSavingTime	True
+item	Controller » Controller	TimeOfDayDaylightSavingTimeOffset	60
+item	Controller » Controller	TimeOfDayDaylightSavingTimeStartHour	1
+item	Controller » Controller	TimeOfDayDaylightSavingTimeStartMonth	3
+item	Controller » Controller	TimeOfDayDaylightSavingTimeStartWeek	5
+item	Controller » Controller	TimeOfDayDaylightSavingTimeStartWeekday	1
+item	Controller » Controller	TimeOfDayLocalTimeZone	22
+item	Controller » Controller	TimeOfDayStandardTimeStartHour	2
+item	Controller » Controller	TimeOfDayStandardTimeStartMonth	10
+item	Controller » Controller	TimeOfDayStandardTimeStartWeek	5
+item	Controller » Controller	TimeOfDayStandardTimeStartWeekday	1
+item	Controller » Controller	TimeSynchronizationNtpV2	0
+item	Controller » Controller	TypeIdentifier	OrderNumber:6ES7 516-3AN02-0AB0/V2.9
+item	Controller » Controller	TypeIdentifierNormalized	OrderNumber:6ES7516-3AN02-0AB0/V2.9
+item	Controller » Controller	TypeName	CPU 1516-3 PN/DP
+item	Controller » Controller	UseFixedSystemDiagnosticsAlarmIds	True
+item	Controller » Controller	WebserverActivate	False
+item	Controller » Controller	HwIdentifier	48
+item	Controller » Controller	HwIdentifier	50
+item	Controller » Controller	HwIdentifier	52
+item	Controller » Controller	HwIdentifier	49
+item	Controller » Controller	HwIdentifier	135
+item	Controller » Controller	HwIdentifier	136
+item	Controller » Controller	HwIdentifier	42
+item	Controller » Controller » Card reader/writer_1	Classification	None
+item	Controller » Controller » Card reader/writer_1	DiagnosticsAgingSimaticMemoryCard	False
+item	Controller » Controller » Card reader/writer_1	IsBuiltIn	True
+item	Controller » Controller » Card reader/writer_1	IsPlugged	True
+item	Controller » Controller » Card reader/writer_1	Name	Card reader/writer_1
+item	Controller » Controller » Card reader/writer_1	PnSubslotNumber	4
+item	Controller » Controller » Card reader/writer_1	PositionNumber	4
+item	Controller » Controller » Card reader/writer_1	HwIdentifier	51
+item	Controller » Controller » CPU display_1	Classification	None
+item	Controller » Controller » CPU display_1	DisplayDefaultLanguage	0
+item	Controller » Controller » CPU display_1	DisplayProtection	False
+item	Controller » Controller » CPU display_1	DisplayTimeToEnergySavingMode	900
+item	Controller » Controller » CPU display_1	DisplayTimeToStandbyMode	1800
+item	Controller » Controller » CPU display_1	DisplayUpdateInterval	5
+item	Controller » Controller » CPU display_1	DisplayWriteAccess	True
+item	Controller » Controller » CPU display_1	IsBuiltIn	True
+item	Controller » Controller » CPU display_1	IsPlugged	True
+item	Controller » Controller » CPU display_1	Name	CPU display_1
+item	Controller » Controller » CPU display_1	PnSubslotNumber	3
+item	Controller » Controller » CPU display_1	PositionNumber	3
+item	Controller » Controller » CPU display_1	HwIdentifier	54
+item	Controller » Controller » OPC UA_1	Classification	None
+item	Controller » Controller » OPC UA_1	IsBuiltIn	True
+item	Controller » Controller » OPC UA_1	IsPlugged	True
+item	Controller » Controller » OPC UA_1	Name	OPC UA_1
+item	Controller » Controller » OPC UA_1	OpcUaApplicationName	SIMATIC.S7-1500.OPC-UA.Application:Controller
+item	Controller » Controller » OPC UA_1	OpcUaClient	False
+item	Controller » Controller » OPC UA_1	OpcUaExportArrayMembers	True
+item	Controller » Controller » OPC UA_1	OpcUaServer	False
+item	Controller » Controller » OPC UA_1	PnSubslotNumber	254
+item	Controller » Controller » OPC UA_1	PositionNumber	254
+item	Controller » Controller » OPC UA_1	HwIdentifier	117
+item	Controller » Controller » DP interface_1	Classification	None
+item	Controller » Controller » DP interface_1	Comment	
+item	Controller » Controller » DP interface_1	InterfaceOperatingMode	IoController
+item	Controller » Controller » DP interface_1	InterfaceType	Profibus
+item	Controller » Controller » DP interface_1	IsBuiltIn	True
+item	Controller » Controller » DP interface_1	IsPlugged	True
+item	Controller » Controller » DP interface_1	Label	X3
+item	Controller » Controller » DP interface_1	Name	DP interface_1
+item	Controller » Controller » DP interface_1	PnSubslotNumber	33280
+item	Controller » Controller » DP interface_1	PositionNumber	33280
+item	Controller » Controller » DP interface_1	TimeOfDayTypeOfSynchronizationOnDp	0
+item	Controller » Controller » DP interface_1	HwIdentifier	60
+node	Controller » Controller » DP interface_1 » X3	Address	2
+node	Controller » Controller » DP interface_1 » X3	Name	X3
+node	Controller » Controller » DP interface_1 » X3	NodeId	P1
+node	Controller » Controller » DP interface_1 » X3	NodeType	Profibus
+node	Controller » Controller » DP interface_1 » X3	subnet	PROFIBUS_1
+interface	Controller » Controller » DP interface_1	controls	Line DP system
+item	Controller » Controller » PROFINET interface_1	AlternativeRedundancy	True
+item	Controller » Controller » PROFINET interface_1	CalculatedBandwidthForCyclicIoData	0
+item	Controller » Controller » PROFINET interface_1	Classification	None
+item	Controller » Controller » PROFINET interface_1	Comment	
+item	Controller » Controller » PROFINET interface_1	DeviceReplacementWithoutExchangeableMedium	True
+item	Controller » Controller » PROFINET interface_1	DiagnosticsCommunicationError	False
+item	Controller » Controller » PROFINET interface_1	IECV22LLDPMode	False
+item	Controller » Controller » PROFINET interface_1	InterfaceOperatingMode	IoController
+item	Controller » Controller » PROFINET interface_1	InterfaceType	Ethernet
+item	Controller » Controller » PROFINET interface_1	IsBuiltIn	True
+item	Controller » Controller » PROFINET interface_1	IsIoController	True
+item	Controller » Controller » PROFINET interface_1	IsIoDevice	False
+item	Controller » Controller » PROFINET interface_1	IsPlugged	True
+item	Controller » Controller » PROFINET interface_1	KeepAlivesInterval	30
+item	Controller » Controller » PROFINET interface_1	Label	X1
+item	Controller » Controller » PROFINET interface_1	LoadLimitation	True
+item	Controller » Controller » PROFINET interface_1	MaxBandwidthForCyclicIoData	500000
+item	Controller » Controller » PROFINET interface_1	MediaRedundancyRole	NotInRing
+item	Controller » Controller » PROFINET interface_1	Name	PROFINET interface_1
+item	Controller » Controller » PROFINET interface_1	OverwriteDeviceNames	False
+item	Controller » Controller » PROFINET interface_1	PnSendClock	1000000
+item	Controller » Controller » PROFINET interface_1	PnSubslotNumber	32768
+item	Controller » Controller » PROFINET interface_1	PositionNumber	32768
+item	Controller » Controller » PROFINET interface_1	TimeSynchronizationNtp	False
+item	Controller » Controller » PROFINET interface_1	UseWebServerForInterface	False
+item	Controller » Controller » PROFINET interface_1	HwIdentifier	64
+node	Controller » Controller » PROFINET interface_1 » X1	Address	192.168.0.1
+node	Controller » Controller » PROFINET interface_1 » X1	IpProtocolSelection	Project
+node	Controller » Controller » PROFINET interface_1 » X1	Name	X1
+node	Controller » Controller » PROFINET interface_1 » X1	NodeId	E1
+node	Controller » Controller » PROFINET interface_1 » X1	NodeType	Ethernet
+node	Controller » Controller » PROFINET interface_1 » X1	PnDeviceName	controller
+node	Controller » Controller » PROFINET interface_1 » X1	PnDeviceNameAutoGeneration	False
+node	Controller » Controller » PROFINET interface_1 » X1	PnDeviceNameConverted	controller
+node	Controller » Controller » PROFINET interface_1 » X1	PnDeviceNameSetDirectly	False
+node	Controller » Controller » PROFINET interface_1 » X1	SubnetMask	255.255.255.0
+node	Controller » Controller » PROFINET interface_1 » X1	UseIpProtocol	True
+node	Controller » Controller » PROFINET interface_1 » X1	UseIsoProtocol	False
+node	Controller » Controller » PROFINET interface_1 » X1	UseRouter	False
+node	Controller » Controller » PROFINET interface_1 » X1	subnet	PN/IE_1
+interface	Controller » Controller » PROFINET interface_1	controls	Line IO system
+item	Controller » Controller » PROFINET interface_1 » Port_1	AlternativePartnerPorts	False
+item	Controller » Controller » PROFINET interface_1 » Port_1	CableName	None
+item	Controller » Controller » PROFINET interface_1 » Port_1	Classification	None
+item	Controller » Controller » PROFINET interface_1 » Port_1	Comment	
+item	Controller » Controller » PROFINET interface_1 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	Controller » Controller » PROFINET interface_1 » Port_1	EndOfSyncDomain	False
+item	Controller » Controller » PROFINET interface_1 » Port_1	EndOfTopologyDiscovery	False
+item	Controller » Controller » PROFINET interface_1 » Port_1	IsBuiltIn	True
+item	Controller » Controller » PROFINET interface_1 » Port_1	IsPlugged	True
+item	Controller » Controller » PROFINET interface_1 » Port_1	Label	P1R
+item	Controller » Controller » PROFINET interface_1 » Port_1	MediumAttachmentType	Copper
+item	Controller » Controller » PROFINET interface_1 » Port_1	Name	Port_1
+item	Controller » Controller » PROFINET interface_1 » Port_1	PnSubslotNumber	32769
+item	Controller » Controller » PROFINET interface_1 » Port_1	PortActivation	True
+item	Controller » Controller » PROFINET interface_1 » Port_1	PortMonitoring	False
+item	Controller » Controller » PROFINET interface_1 » Port_1	PositionNumber	32769
+item	Controller » Controller » PROFINET interface_1 » Port_1	TransmissionRateAndDuplex	Automatic
+item	Controller » Controller » PROFINET interface_1 » Port_1	TransmissionRateAutoNegotiation	True
+item	Controller » Controller » PROFINET interface_1 » Port_1	HwIdentifier	65
+item	Controller » Controller » PROFINET interface_1 » Port_2	AlternativePartnerPorts	False
+item	Controller » Controller » PROFINET interface_1 » Port_2	CableName	None
+item	Controller » Controller » PROFINET interface_1 » Port_2	Classification	None
+item	Controller » Controller » PROFINET interface_1 » Port_2	Comment	
+item	Controller » Controller » PROFINET interface_1 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	Controller » Controller » PROFINET interface_1 » Port_2	EndOfSyncDomain	False
+item	Controller » Controller » PROFINET interface_1 » Port_2	EndOfTopologyDiscovery	False
+item	Controller » Controller » PROFINET interface_1 » Port_2	IsBuiltIn	True
+item	Controller » Controller » PROFINET interface_1 » Port_2	IsPlugged	True
+item	Controller » Controller » PROFINET interface_1 » Port_2	Label	P2R
+item	Controller » Controller » PROFINET interface_1 » Port_2	MediumAttachmentType	Copper
+item	Controller » Controller » PROFINET interface_1 » Port_2	Name	Port_2
+item	Controller » Controller » PROFINET interface_1 » Port_2	PnSubslotNumber	32770
+item	Controller » Controller » PROFINET interface_1 » Port_2	PortActivation	True
+item	Controller » Controller » PROFINET interface_1 » Port_2	PortMonitoring	False
+item	Controller » Controller » PROFINET interface_1 » Port_2	PositionNumber	32770
+item	Controller » Controller » PROFINET interface_1 » Port_2	TransmissionRateAndDuplex	Automatic
+item	Controller » Controller » PROFINET interface_1 » Port_2	TransmissionRateAutoNegotiation	True
+item	Controller » Controller » PROFINET interface_1 » Port_2	HwIdentifier	66
+item	Controller » Controller » PROFINET interface_2	CalculatedBandwidthForCyclicIoData	0
+item	Controller » Controller » PROFINET interface_2	Classification	None
+item	Controller » Controller » PROFINET interface_2	Comment	
+item	Controller » Controller » PROFINET interface_2	DeviceReplacementWithoutExchangeableMedium	True
+item	Controller » Controller » PROFINET interface_2	DiagnosticsCommunicationError	False
+item	Controller » Controller » PROFINET interface_2	IECV22LLDPMode	False
+item	Controller » Controller » PROFINET interface_2	InterfaceOperatingMode	IoController
+item	Controller » Controller » PROFINET interface_2	InterfaceType	Ethernet
+item	Controller » Controller » PROFINET interface_2	IsBuiltIn	True
+item	Controller » Controller » PROFINET interface_2	IsIoController	True
+item	Controller » Controller » PROFINET interface_2	IsIoDevice	False
+item	Controller » Controller » PROFINET interface_2	IsPlugged	True
+item	Controller » Controller » PROFINET interface_2	KeepAlivesInterval	30
+item	Controller » Controller » PROFINET interface_2	Label	X2
+item	Controller » Controller » PROFINET interface_2	MaxBandwidthForCyclicIoData	500000
+item	Controller » Controller » PROFINET interface_2	Name	PROFINET interface_2
+item	Controller » Controller » PROFINET interface_2	OverwriteDeviceNames	False
+item	Controller » Controller » PROFINET interface_2	PnSendClock	1000000
+item	Controller » Controller » PROFINET interface_2	PnSubslotNumber	33024
+item	Controller » Controller » PROFINET interface_2	PositionNumber	33024
+item	Controller » Controller » PROFINET interface_2	UseWebServerForInterface	False
+item	Controller » Controller » PROFINET interface_2	HwIdentifier	72
+node	Controller » Controller » PROFINET interface_2 » X2	IpProtocolSelection	OtherPath
+node	Controller » Controller » PROFINET interface_2 » X2	Name	X2
+node	Controller » Controller » PROFINET interface_2 » X2	NodeId	E1
+node	Controller » Controller » PROFINET interface_2 » X2	NodeType	Ethernet
+node	Controller » Controller » PROFINET interface_2 » X2	PnDeviceName	controller.profinet interface_2
+node	Controller » Controller » PROFINET interface_2 » X2	PnDeviceNameAutoGeneration	True
+node	Controller » Controller » PROFINET interface_2 » X2	PnDeviceNameConverted	controller.profinetxainterfacexb25f11
+node	Controller » Controller » PROFINET interface_2 » X2	PnDeviceNameSetDirectly	False
+node	Controller » Controller » PROFINET interface_2 » X2	UseIpProtocol	True
+node	Controller » Controller » PROFINET interface_2 » X2	UseIsoProtocol	False
+node	Controller » Controller » PROFINET interface_2 » X2	subnet	PN/IE_2
+interface	Controller » Controller » PROFINET interface_2	controls	
+item	Controller » Controller » PROFINET interface_2 » Port_1	AlternativePartnerPorts	False
+item	Controller » Controller » PROFINET interface_2 » Port_1	CableName	None
+item	Controller » Controller » PROFINET interface_2 » Port_1	Classification	None
+item	Controller » Controller » PROFINET interface_2 » Port_1	Comment	
+item	Controller » Controller » PROFINET interface_2 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	Controller » Controller » PROFINET interface_2 » Port_1	EndOfTopologyDiscovery	False
+item	Controller » Controller » PROFINET interface_2 » Port_1	IsBuiltIn	True
+item	Controller » Controller » PROFINET interface_2 » Port_1	IsPlugged	True
+item	Controller » Controller » PROFINET interface_2 » Port_1	Label	P1
+item	Controller » Controller » PROFINET interface_2 » Port_1	MediumAttachmentType	Copper
+item	Controller » Controller » PROFINET interface_2 » Port_1	Name	Port_1
+item	Controller » Controller » PROFINET interface_2 » Port_1	PnSubslotNumber	33025
+item	Controller » Controller » PROFINET interface_2 » Port_1	PortActivation	True
+item	Controller » Controller » PROFINET interface_2 » Port_1	PortMonitoring	False
+item	Controller » Controller » PROFINET interface_2 » Port_1	PositionNumber	33025
+item	Controller » Controller » PROFINET interface_2 » Port_1	TransmissionRateAndDuplex	Automatic
+item	Controller » Controller » PROFINET interface_2 » Port_1	TransmissionRateAutoNegotiation	True
+item	Controller » Controller » PROFINET interface_2 » Port_1	HwIdentifier	73
+item	Controller » DI_Main	AdditionalInformation	
+item	Controller » DI_Main	Classification	None
+item	Controller » DI_Main	Comment	
+item	Controller » DI_Main	CountingConfigurationOnChannel0andChannel1	False
+item	Controller » DI_Main	EnableValueStatus	False
+item	Controller » DI_Main	FirmwareVersion	V2.2
+item	Controller » DI_Main	IsBuiltIn	False
+item	Controller » DI_Main	IsPlugged	True
+item	Controller » DI_Main	LocationIdentifier	
+item	Controller » DI_Main	ModuleDistribution	0
+item	Controller » DI_Main	Name	DI_Main
+item	Controller » DI_Main	OrderNumber	6ES7 521-1BL00-0AB0
+item	Controller » DI_Main	PlantDesignation	
+item	Controller » DI_Main	PositionNumber	2
+item	Controller » DI_Main	SharedDeviceCopyOfModule	0
+item	Controller » DI_Main	ShortDesignation	DI 32x24VDC HF
+item	Controller » DI_Main	StartupComparisonPresetToActualModule	0
+item	Controller » DI_Main	TypeIdentifier	OrderNumber:6ES7 521-1BL00-0AB0/V2.2
+item	Controller » DI_Main	TypeIdentifierNormalized	OrderNumber:6ES7521-1BL00-0AB0/V2.2
+item	Controller » DI_Main	TypeName	DI 32x24VDC HF
+item	Controller » DI_Main » DI_Main	Classification	None
+item	Controller » DI_Main » DI_Main	Comment	
+item	Controller » DI_Main » DI_Main	IsBuiltIn	True
+item	Controller » DI_Main » DI_Main	IsPlugged	True
+item	Controller » DI_Main » DI_Main	Name	DI_Main
+item	Controller » DI_Main » DI_Main	PnSubslotNumber	1
+item	Controller » DI_Main » DI_Main	PositionNumber	1
+item	Controller » DI_Main » DI_Main	ReactionToError	2
+item	Controller » DI_Main » DI_Main	HwIdentifier	257
+address	Controller » DI_Main » DI_Main » 0	IoType	Input
+address	Controller » DI_Main » DI_Main » 0	IsochronousMode	False
+address	Controller » DI_Main » DI_Main » 0	Length	32
+address	Controller » DI_Main » DI_Main » 0	ProcessImage	0
+address	Controller » DI_Main » DI_Main » 0	StartAddress	10
+item	Controller » DQ_Main	AdditionalInformation	
+item	Controller » DQ_Main	Classification	None
+item	Controller » DQ_Main	Comment	
+item	Controller » DQ_Main	EnableValueStatus	False
+item	Controller » DQ_Main	FirmwareVersion	V1.1
+item	Controller » DQ_Main	IsBuiltIn	False
+item	Controller » DQ_Main	IsPlugged	True
+item	Controller » DQ_Main	LocationIdentifier	
+item	Controller » DQ_Main	ModuleDistribution	0
+item	Controller » DQ_Main	Name	DQ_Main
+item	Controller » DQ_Main	OrderNumber	6ES7 522-1BL01-0AB0
+item	Controller » DQ_Main	PlantDesignation	
+item	Controller » DQ_Main	PositionNumber	3
+item	Controller » DQ_Main	SharedDeviceCopyOfModule	0
+item	Controller » DQ_Main	ShortDesignation	DQ 32x24VDC/0.5A HF
+item	Controller » DQ_Main	StartupComparisonPresetToActualModule	0
+item	Controller » DQ_Main	TypeIdentifier	OrderNumber:6ES7 522-1BL01-0AB0/V1.1
+item	Controller » DQ_Main	TypeIdentifierNormalized	OrderNumber:6ES7522-1BL01-0AB0/V1.1
+item	Controller » DQ_Main	TypeName	DQ 32x24VDC/0.5A HF
+item	Controller » DQ_Main » DQ_Main	Classification	None
+item	Controller » DQ_Main » DQ_Main	Comment	
+item	Controller » DQ_Main » DQ_Main	IsBuiltIn	True
+item	Controller » DQ_Main » DQ_Main	IsPlugged	True
+item	Controller » DQ_Main » DQ_Main	Name	DQ_Main
+item	Controller » DQ_Main » DQ_Main	PnSubslotNumber	1
+item	Controller » DQ_Main » DQ_Main	PositionNumber	1
+item	Controller » DQ_Main » DQ_Main	HwIdentifier	258
+address	Controller » DQ_Main » DQ_Main » 0	IoType	Output
+address	Controller » DQ_Main » DQ_Main » 0	IsochronousMode	False
+address	Controller » DQ_Main » DQ_Main » 0	Length	32
+address	Controller » DQ_Main » DQ_Main » 0	ProcessImage	0
+address	Controller » DQ_Main » DQ_Main » 0	StartAddress	0
+item	Controller » AI_Main	AdditionalInformation	
+item	Controller » AI_Main	Classification	None
+item	Controller » AI_Main	Comment	
+item	Controller » AI_Main	EnableValueStatus	False
+item	Controller » AI_Main	FirmwareVersion	V2.2
+item	Controller » AI_Main	IsBuiltIn	False
+item	Controller » AI_Main	IsPlugged	True
+item	Controller » AI_Main	LocationIdentifier	
+item	Controller » AI_Main	ModuleDistribution	0
+item	Controller » AI_Main	Name	AI_Main
+item	Controller » AI_Main	OrderNumber	6ES7 531-7KF00-0AB0
+item	Controller » AI_Main	PlantDesignation	
+item	Controller » AI_Main	PositionNumber	4
+item	Controller » AI_Main	SharedDeviceCopyOfModule	0
+item	Controller » AI_Main	ShortDesignation	AI 8xU/I/RTD/TC ST
+item	Controller » AI_Main	StartupComparisonPresetToActualModule	0
+item	Controller » AI_Main	TypeIdentifier	OrderNumber:6ES7 531-7KF00-0AB0/V2.2
+item	Controller » AI_Main	TypeIdentifierNormalized	OrderNumber:6ES7531-7KF00-0AB0/V2.2
+item	Controller » AI_Main	TypeName	AI 8xU/I/RTD/TC ST
+item	Controller » AI_Main » AI_Main	Classification	None
+item	Controller » AI_Main » AI_Main	Comment	
+item	Controller » AI_Main » AI_Main	IsBuiltIn	True
+item	Controller » AI_Main » AI_Main	IsPlugged	True
+item	Controller » AI_Main » AI_Main	Name	AI_Main
+item	Controller » AI_Main » AI_Main	PnSubslotNumber	1
+item	Controller » AI_Main » AI_Main	PositionNumber	1
+item	Controller » AI_Main » AI_Main	HwIdentifier	259
+address	Controller » AI_Main » AI_Main » 0	IoType	Input
+address	Controller » AI_Main » AI_Main » 0	Length	128
+address	Controller » AI_Main » AI_Main » 0	ProcessImage	0
+address	Controller » AI_Main » AI_Main » 0	StartAddress	14
+item	Controller » AQ_Main	AdditionalInformation	
+item	Controller » AQ_Main	Classification	None
+item	Controller » AQ_Main	Comment	
+item	Controller » AQ_Main	EnableValueStatus	False
+item	Controller » AQ_Main	FirmwareVersion	V2.2
+item	Controller » AQ_Main	IsBuiltIn	False
+item	Controller » AQ_Main	IsPlugged	True
+item	Controller » AQ_Main	LocationIdentifier	
+item	Controller » AQ_Main	ModuleDistribution	0
+item	Controller » AQ_Main	Name	AQ_Main
+item	Controller » AQ_Main	OrderNumber	6ES7 532-5HD00-0AB0
+item	Controller » AQ_Main	PlantDesignation	
+item	Controller » AQ_Main	PositionNumber	5
+item	Controller » AQ_Main	SharedDeviceCopyOfModule	0
+item	Controller » AQ_Main	ShortDesignation	AQ 4xU/I ST
+item	Controller » AQ_Main	StartupComparisonPresetToActualModule	0
+item	Controller » AQ_Main	TypeIdentifier	OrderNumber:6ES7 532-5HD00-0AB0/V2.2
+item	Controller » AQ_Main	TypeIdentifierNormalized	OrderNumber:6ES7532-5HD00-0AB0/V2.2
+item	Controller » AQ_Main	TypeName	AQ 4xU/I ST
+item	Controller » AQ_Main » AQ_Main	Classification	None
+item	Controller » AQ_Main » AQ_Main	Comment	
+item	Controller » AQ_Main » AQ_Main	IsBuiltIn	True
+item	Controller » AQ_Main » AQ_Main	IsPlugged	True
+item	Controller » AQ_Main » AQ_Main	Name	AQ_Main
+item	Controller » AQ_Main » AQ_Main	PnSubslotNumber	1
+item	Controller » AQ_Main » AQ_Main	PositionNumber	1
+item	Controller » AQ_Main » AQ_Main	HwIdentifier	260
+address	Controller » AQ_Main » AQ_Main » 0	IoType	Output
+address	Controller » AQ_Main » AQ_Main » 0	Length	64
+address	Controller » AQ_Main » AQ_Main » 0	ProcessImage	0
+address	Controller » AQ_Main » AQ_Main » 0	StartAddress	4
+device	Remote_PN_1	group	
+device	Remote_PN_1	HwIdentifier	265
+device	Remote_PN_1	Comment	
+device	Remote_PN_1	IsGsd	False
+device	Remote_PN_1	Name	Remote_PN_1
+device	Remote_PN_1	TypeIdentifier	System:Device.ET200SP
+device	Remote_PN_1	TypeIdentifierNormalized	System:Device.ET200SP
+device	Remote_PN_1	TypeName	ET 200SP-Station
+item	Remote_PN_1 » Rack_0	Classification	None
+item	Remote_PN_1 » Rack_0	Comment	
+item	Remote_PN_1 » Rack_0	IsBuiltIn	False
+item	Remote_PN_1 » Rack_0	IsPlugged	True
+item	Remote_PN_1 » Rack_0	Name	Rack_0
+item	Remote_PN_1 » Rack_0	PositionNumber	0
+item	Remote_PN_1 » Rack_0	TypeIdentifier	System:Rack.ET200SP
+item	Remote_PN_1 » Rack_0	TypeIdentifierNormalized	System:Rack.ET200SP
+item	Remote_PN_1 » Rack_0	TypeName	Rack
+item	Remote_PN_1 » Rack_0	HwIdentifier	266
+item	Remote_PN_1 » Remote_PN_1	AdditionalInformation	
+item	Remote_PN_1 » Remote_PN_1	Classification	HM
+item	Remote_PN_1 » Remote_PN_1	Comment	
+item	Remote_PN_1 » Remote_PN_1	FirmwareVersion	V4.2
+item	Remote_PN_1 » Remote_PN_1	IsBuiltIn	False
+item	Remote_PN_1 » Remote_PN_1	IsPlugged	True
+item	Remote_PN_1 » Remote_PN_1	LocationIdentifier	
+item	Remote_PN_1 » Remote_PN_1	Name	Remote_PN_1
+item	Remote_PN_1 » Remote_PN_1	OrderNumber	6ES7 155-6AU01-0BN0
+item	Remote_PN_1 » Remote_PN_1	PlantDesignation	
+item	Remote_PN_1 » Remote_PN_1	PositionNumber	0
+item	Remote_PN_1 » Remote_PN_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Remote_PN_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Remote_PN_1	ShortDesignation	IM 155-6 PN ST
+item	Remote_PN_1 » Remote_PN_1	TypeIdentifier	OrderNumber:6ES7 155-6AU01-0BN0/V4.2
+item	Remote_PN_1 » Remote_PN_1	TypeIdentifierNormalized	OrderNumber:6ES7155-6AU01-0BN0/V4.2
+item	Remote_PN_1 » Remote_PN_1	TypeName	IM 155-6 PN ST
+item	Remote_PN_1 » Remote_PN_1	HwIdentifier	267
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	Classification	None
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	IsBuiltIn	True
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	IsPlugged	True
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	Name	Remote_PN_1
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	OptionHandling	False
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	PnSubslotNumber	1
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	PositionNumber	0
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	StartupComparisonPresetToActualModule	0
+item	Remote_PN_1 » Remote_PN_1 » Remote_PN_1	HwIdentifier	268
+address	Remote_PN_1 » Remote_PN_1 » Remote_PN_1 » 0	IoType	Diagnosis
+address	Remote_PN_1 » Remote_PN_1 » Remote_PN_1 » 0	Length	0
+address	Remote_PN_1 » Remote_PN_1 » Remote_PN_1 » 0	StartAddress	-1
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	AlternativeRedundancy	True
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	Classification	None
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	Comment	
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	IECV22LLDPMode	False
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	InterfaceOperatingMode	IoDevice
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	InterfaceType	Ethernet
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	IsBuiltIn	True
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	IsPlugged	True
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	Label	X1
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	MediaRedundancyRole	NotInRing
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	Name	PROFINET interface
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	NumberOfExternalIoControllers	0
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	OptionalIoDevice	False
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	PnSubslotNumber	32768
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	PositionNumber	1
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	PrioritizedStartup	False
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Remote_PN_1 » PROFINET interface	HwIdentifier	269
+address	Remote_PN_1 » Remote_PN_1 » PROFINET interface » 0	IoType	Diagnosis
+address	Remote_PN_1 » Remote_PN_1 » PROFINET interface » 0	Length	0
+address	Remote_PN_1 » Remote_PN_1 » PROFINET interface » 0	StartAddress	-1
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	Address	192.168.0.10
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	IpProtocolSelection	Project
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	Name	IE1
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	NodeId	IE1
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	NodeType	Ethernet
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	PnDeviceName	remote-pn-one
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	PnDeviceNameAutoGeneration	False
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	PnDeviceNameConverted	remote-pn-one
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	SubnetMask	255.255.255.0
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	SyncRouterSettingsWithIoController	True
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	UseIpProtocol	True
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	UseIsoProtocol	False
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	UseRouter	False
+node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1	subnet	PN/IE_1
+interface	Remote_PN_1 » Remote_PN_1 » PROFINET interface	connectedTo	Line IO system
+interface	Remote_PN_1 » Remote_PN_1 » PROFINET interface	connectedTo	
+item	Remote_PN_1 » BA 2xRJ45	AdditionalInformation	
+item	Remote_PN_1 » BA 2xRJ45	Classification	None
+item	Remote_PN_1 » BA 2xRJ45	Comment	
+item	Remote_PN_1 » BA 2xRJ45	FirmwareVersion	V0.0
+item	Remote_PN_1 » BA 2xRJ45	IsBuiltIn	False
+item	Remote_PN_1 » BA 2xRJ45	IsPlugged	True
+item	Remote_PN_1 » BA 2xRJ45	LocationIdentifier	
+item	Remote_PN_1 » BA 2xRJ45	Name	BA 2xRJ45
+item	Remote_PN_1 » BA 2xRJ45	OrderNumber	6ES7 193-6AR00-0AA0
+item	Remote_PN_1 » BA 2xRJ45	PlantDesignation	
+item	Remote_PN_1 » BA 2xRJ45	PnSubslotNumber	32895
+item	Remote_PN_1 » BA 2xRJ45	PositionNumber	127
+item	Remote_PN_1 » BA 2xRJ45	ShortDesignation	BA 2xRJ45
+item	Remote_PN_1 » BA 2xRJ45	TypeIdentifier	OrderNumber:6ES7 193-6AR00-0AA0/V0.0
+item	Remote_PN_1 » BA 2xRJ45	TypeIdentifierNormalized	OrderNumber:6ES7193-6AR00-0AA0/V0.0
+item	Remote_PN_1 » BA 2xRJ45	TypeName	BA 2xRJ45
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	CableName	None
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	Classification	None
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	Comment	
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	EndOfSyncDomain	False
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	EndOfTopologyDiscovery	False
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	IsBuiltIn	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	IsPlugged	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	Label	P1R
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	MediumAttachmentType	Copper
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	Name	Port_1
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	PnSubslotNumber	32769
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	PortActivation	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	PortMonitoring	False
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	PositionNumber	1
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	TransmissionRateAndDuplex	Automatic
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	TransmissionRateAutoNegotiation	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_1	HwIdentifier	270
+address	Remote_PN_1 » BA 2xRJ45 » Port_1 » 0	IoType	Diagnosis
+address	Remote_PN_1 » BA 2xRJ45 » Port_1 » 0	Length	0
+address	Remote_PN_1 » BA 2xRJ45 » Port_1 » 0	StartAddress	-1
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	CableName	None
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	Classification	None
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	Comment	
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	EndOfSyncDomain	False
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	EndOfTopologyDiscovery	False
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	IsBuiltIn	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	IsPlugged	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	Label	P2R
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	MediumAttachmentType	Copper
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	Name	Port_2
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	PnSubslotNumber	32770
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	PortActivation	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	PortMonitoring	False
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	PositionNumber	2
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	TransmissionRateAndDuplex	Automatic
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	TransmissionRateAutoNegotiation	True
+item	Remote_PN_1 » BA 2xRJ45 » Port_2	HwIdentifier	271
+address	Remote_PN_1 » BA 2xRJ45 » Port_2 » 0	IoType	Diagnosis
+address	Remote_PN_1 » BA 2xRJ45 » Port_2 » 0	Length	0
+address	Remote_PN_1 » BA 2xRJ45 » Port_2 » 0	StartAddress	-1
+item	Remote_PN_1 » Inputs_1	AdditionalInformation	
+item	Remote_PN_1 » Inputs_1	BaseUnit	
+item	Remote_PN_1 » Inputs_1	Classification	None
+item	Remote_PN_1 » Inputs_1	Comment	
+item	Remote_PN_1 » Inputs_1	EnableValueStatus	False
+item	Remote_PN_1 » Inputs_1	FirmwareVersion	V0.0
+item	Remote_PN_1 » Inputs_1	IsBuiltIn	False
+item	Remote_PN_1 » Inputs_1	IsPlugged	True
+item	Remote_PN_1 » Inputs_1	LocationIdentifier	
+item	Remote_PN_1 » Inputs_1	Name	Inputs_1
+item	Remote_PN_1 » Inputs_1	OrderNumber	6ES7 131-6BF01-0BA0
+item	Remote_PN_1 » Inputs_1	PlantDesignation	
+item	Remote_PN_1 » Inputs_1	PositionNumber	1
+item	Remote_PN_1 » Inputs_1	PotentialGroup	1
+item	Remote_PN_1 » Inputs_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Inputs_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Inputs_1	ShortDesignation	DI 8x24VDC ST
+item	Remote_PN_1 » Inputs_1	StartupComparisonPresetToActualModule	0
+item	Remote_PN_1 » Inputs_1	TypeIdentifier	OrderNumber:6ES7 131-6BF01-0BA0/V0.0
+item	Remote_PN_1 » Inputs_1	TypeIdentifierNormalized	OrderNumber:6ES7131-6BF01-0BA0/V0.0
+item	Remote_PN_1 » Inputs_1	TypeName	DI 8x24VDC ST
+item	Remote_PN_1 » Inputs_1 » Inputs_1	Classification	None
+item	Remote_PN_1 » Inputs_1 » Inputs_1	Comment	
+item	Remote_PN_1 » Inputs_1 » Inputs_1	DiagnosticsNoSupplyVoltage	False
+item	Remote_PN_1 » Inputs_1 » Inputs_1	DiagnosticsShortCircuitToGround	False
+item	Remote_PN_1 » Inputs_1 » Inputs_1	DiagnosticsWireBreak	False
+item	Remote_PN_1 » Inputs_1 » Inputs_1	IsBuiltIn	True
+item	Remote_PN_1 » Inputs_1 » Inputs_1	IsPlugged	True
+item	Remote_PN_1 » Inputs_1 » Inputs_1	Name	Inputs_1
+item	Remote_PN_1 » Inputs_1 » Inputs_1	PnSubslotNumber	1
+item	Remote_PN_1 » Inputs_1 » Inputs_1	PositionNumber	1
+item	Remote_PN_1 » Inputs_1 » Inputs_1	ReactionToError	2
+item	Remote_PN_1 » Inputs_1 » Inputs_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Inputs_1 » Inputs_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Inputs_1 » Inputs_1	HwIdentifier	272
+address	Remote_PN_1 » Inputs_1 » Inputs_1 » 0	IoType	Input
+address	Remote_PN_1 » Inputs_1 » Inputs_1 » 0	Length	8
+address	Remote_PN_1 » Inputs_1 » Inputs_1 » 0	ProcessImage	0
+address	Remote_PN_1 » Inputs_1 » Inputs_1 » 0	StartAddress	0
+item	Remote_PN_1 » Outputs_1	AdditionalInformation	
+item	Remote_PN_1 » Outputs_1	BaseUnit	
+item	Remote_PN_1 » Outputs_1	Classification	None
+item	Remote_PN_1 » Outputs_1	Comment	
+item	Remote_PN_1 » Outputs_1	EnableValueStatus	False
+item	Remote_PN_1 » Outputs_1	FirmwareVersion	V0.0
+item	Remote_PN_1 » Outputs_1	IsBuiltIn	False
+item	Remote_PN_1 » Outputs_1	IsPlugged	True
+item	Remote_PN_1 » Outputs_1	LocationIdentifier	
+item	Remote_PN_1 » Outputs_1	Name	Outputs_1
+item	Remote_PN_1 » Outputs_1	OrderNumber	6ES7 132-6BF01-0BA0
+item	Remote_PN_1 » Outputs_1	PlantDesignation	
+item	Remote_PN_1 » Outputs_1	PositionNumber	2
+item	Remote_PN_1 » Outputs_1	PotentialGroup	0
+item	Remote_PN_1 » Outputs_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Outputs_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Outputs_1	ShortDesignation	DQ 8x24VDC/0.5A ST
+item	Remote_PN_1 » Outputs_1	StartupComparisonPresetToActualModule	0
+item	Remote_PN_1 » Outputs_1	TypeIdentifier	OrderNumber:6ES7 132-6BF01-0BA0/V0.0
+item	Remote_PN_1 » Outputs_1	TypeIdentifierNormalized	OrderNumber:6ES7132-6BF01-0BA0/V0.0
+item	Remote_PN_1 » Outputs_1	TypeName	DQ 8x24VDC/0.5A ST
+item	Remote_PN_1 » Outputs_1 » Outputs_1	Classification	None
+item	Remote_PN_1 » Outputs_1 » Outputs_1	Comment	
+item	Remote_PN_1 » Outputs_1 » Outputs_1	DiagnosticsNoSupplyVoltage	False
+item	Remote_PN_1 » Outputs_1 » Outputs_1	DiagnosticsShortCircuitToGround	False
+item	Remote_PN_1 » Outputs_1 » Outputs_1	DiagnosticsShortCircuitToLplus	False
+item	Remote_PN_1 » Outputs_1 » Outputs_1	DiagnosticsWireBreak	False
+item	Remote_PN_1 » Outputs_1 » Outputs_1	IsBuiltIn	True
+item	Remote_PN_1 » Outputs_1 » Outputs_1	IsPlugged	True
+item	Remote_PN_1 » Outputs_1 » Outputs_1	Name	Outputs_1
+item	Remote_PN_1 » Outputs_1 » Outputs_1	PnSubslotNumber	1
+item	Remote_PN_1 » Outputs_1 » Outputs_1	PositionNumber	1
+item	Remote_PN_1 » Outputs_1 » Outputs_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Outputs_1 » Outputs_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Outputs_1 » Outputs_1	HwIdentifier	263
+address	Remote_PN_1 » Outputs_1 » Outputs_1 » 0	IoType	Output
+address	Remote_PN_1 » Outputs_1 » Outputs_1 » 0	Length	8
+address	Remote_PN_1 » Outputs_1 » Outputs_1 » 0	ProcessImage	0
+address	Remote_PN_1 » Outputs_1 » Outputs_1 » 0	StartAddress	12
+item	Remote_PN_1 » Analog_1	AdditionalInformation	
+item	Remote_PN_1 » Analog_1	BaseUnit	
+item	Remote_PN_1 » Analog_1	Classification	None
+item	Remote_PN_1 » Analog_1	Comment	
+item	Remote_PN_1 » Analog_1	EnableValueStatus	False
+item	Remote_PN_1 » Analog_1	FirmwareVersion	V2.0
+item	Remote_PN_1 » Analog_1	IsBuiltIn	False
+item	Remote_PN_1 » Analog_1	IsPlugged	True
+item	Remote_PN_1 » Analog_1	LocationIdentifier	
+item	Remote_PN_1 » Analog_1	Name	Analog_1
+item	Remote_PN_1 » Analog_1	OrderNumber	6ES7 134-6GD01-0BA1
+item	Remote_PN_1 » Analog_1	PlantDesignation	
+item	Remote_PN_1 » Analog_1	PositionNumber	3
+item	Remote_PN_1 » Analog_1	PotentialGroup	0
+item	Remote_PN_1 » Analog_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Analog_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Analog_1	ShortDesignation	AI 4xI 2-/4-wire ST
+item	Remote_PN_1 » Analog_1	StartupComparisonPresetToActualModule	0
+item	Remote_PN_1 » Analog_1	TypeIdentifier	OrderNumber:6ES7 134-6GD01-0BA1/V2.0
+item	Remote_PN_1 » Analog_1	TypeIdentifierNormalized	OrderNumber:6ES7134-6GD01-0BA1/V2.0
+item	Remote_PN_1 » Analog_1	TypeName	AI 4xI 2-,4-wire ST
+item	Remote_PN_1 » Analog_1 » Analog_1	Classification	None
+item	Remote_PN_1 » Analog_1 » Analog_1	Comment	
+item	Remote_PN_1 » Analog_1 » Analog_1	DiagnosticsNoSupplyVoltage	False
+item	Remote_PN_1 » Analog_1 » Analog_1	DiagnosticsOverflow	False
+item	Remote_PN_1 » Analog_1 » Analog_1	DiagnosticsUnderflow	False
+item	Remote_PN_1 » Analog_1 » Analog_1	DiagnosticsWireBreak	False
+item	Remote_PN_1 » Analog_1 » Analog_1	IsBuiltIn	True
+item	Remote_PN_1 » Analog_1 » Analog_1	IsPlugged	True
+item	Remote_PN_1 » Analog_1 » Analog_1	Name	Analog_1
+item	Remote_PN_1 » Analog_1 » Analog_1	PnSubslotNumber	1
+item	Remote_PN_1 » Analog_1 » Analog_1	PositionNumber	1
+item	Remote_PN_1 » Analog_1 » Analog_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_1 » Analog_1 » Analog_1	SharedDeviceAccessType	PLC
+item	Remote_PN_1 » Analog_1 » Analog_1	HwIdentifier	264
+address	Remote_PN_1 » Analog_1 » Analog_1 » 0	IoType	Input
+address	Remote_PN_1 » Analog_1 » Analog_1 » 0	Length	64
+address	Remote_PN_1 » Analog_1 » Analog_1 » 0	ProcessImage	0
+address	Remote_PN_1 » Analog_1 » Analog_1 » 0	StartAddress	1
+device	Remote_PN_2	group	
+device	Remote_PN_2	HwIdentifier	273
+device	Remote_PN_2	Comment	
+device	Remote_PN_2	IsGsd	False
+device	Remote_PN_2	Name	Remote_PN_2
+device	Remote_PN_2	TypeIdentifier	System:Device.ET200SP
+device	Remote_PN_2	TypeIdentifierNormalized	System:Device.ET200SP
+device	Remote_PN_2	TypeName	ET 200SP-Station
+item	Remote_PN_2 » Rack_0	Classification	None
+item	Remote_PN_2 » Rack_0	Comment	
+item	Remote_PN_2 » Rack_0	IsBuiltIn	False
+item	Remote_PN_2 » Rack_0	IsPlugged	True
+item	Remote_PN_2 » Rack_0	Name	Rack_0
+item	Remote_PN_2 » Rack_0	PositionNumber	0
+item	Remote_PN_2 » Rack_0	TypeIdentifier	System:Rack.ET200SP
+item	Remote_PN_2 » Rack_0	TypeIdentifierNormalized	System:Rack.ET200SP
+item	Remote_PN_2 » Rack_0	TypeName	Rack
+item	Remote_PN_2 » Rack_0	HwIdentifier	274
+item	Remote_PN_2 » Remote_PN_2	AdditionalInformation	
+item	Remote_PN_2 » Remote_PN_2	Classification	HM
+item	Remote_PN_2 » Remote_PN_2	Comment	
+item	Remote_PN_2 » Remote_PN_2	FirmwareVersion	V4.2
+item	Remote_PN_2 » Remote_PN_2	IsBuiltIn	False
+item	Remote_PN_2 » Remote_PN_2	IsPlugged	True
+item	Remote_PN_2 » Remote_PN_2	LocationIdentifier	
+item	Remote_PN_2 » Remote_PN_2	Name	Remote_PN_2
+item	Remote_PN_2 » Remote_PN_2	OrderNumber	6ES7 155-6AU01-0BN0
+item	Remote_PN_2 » Remote_PN_2	PlantDesignation	
+item	Remote_PN_2 » Remote_PN_2	PositionNumber	0
+item	Remote_PN_2 » Remote_PN_2	SharedDeviceAccessConfigured	True
+item	Remote_PN_2 » Remote_PN_2	SharedDeviceAccessType	PLC
+item	Remote_PN_2 » Remote_PN_2	ShortDesignation	IM 155-6 PN ST
+item	Remote_PN_2 » Remote_PN_2	TypeIdentifier	OrderNumber:6ES7 155-6AU01-0BN0/V4.2
+item	Remote_PN_2 » Remote_PN_2	TypeIdentifierNormalized	OrderNumber:6ES7155-6AU01-0BN0/V4.2
+item	Remote_PN_2 » Remote_PN_2	TypeName	IM 155-6 PN ST
+item	Remote_PN_2 » Remote_PN_2	HwIdentifier	275
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	Classification	None
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	IsBuiltIn	True
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	IsPlugged	True
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	Name	Remote_PN_2
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	OptionHandling	False
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	PnSubslotNumber	1
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	PositionNumber	0
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	SharedDeviceAccessConfigured	True
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	SharedDeviceAccessType	PLC
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	StartupComparisonPresetToActualModule	0
+item	Remote_PN_2 » Remote_PN_2 » Remote_PN_2	HwIdentifier	276
+address	Remote_PN_2 » Remote_PN_2 » Remote_PN_2 » 0	IoType	Diagnosis
+address	Remote_PN_2 » Remote_PN_2 » Remote_PN_2 » 0	Length	0
+address	Remote_PN_2 » Remote_PN_2 » Remote_PN_2 » 0	StartAddress	-1
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	AlternativeRedundancy	True
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	Classification	None
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	Comment	
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	IECV22LLDPMode	False
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	InterfaceOperatingMode	IoDevice
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	InterfaceType	Ethernet
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	IsBuiltIn	True
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	IsPlugged	True
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	Label	X1
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	MediaRedundancyRole	NotInRing
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	Name	PROFINET interface
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	NumberOfExternalIoControllers	0
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	OptionalIoDevice	False
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	PnSubslotNumber	32768
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	PositionNumber	1
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	PrioritizedStartup	False
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	SharedDeviceAccessConfigured	True
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	SharedDeviceAccessType	PLC
+item	Remote_PN_2 » Remote_PN_2 » PROFINET interface	HwIdentifier	277
+address	Remote_PN_2 » Remote_PN_2 » PROFINET interface » 0	IoType	Diagnosis
+address	Remote_PN_2 » Remote_PN_2 » PROFINET interface » 0	Length	0
+address	Remote_PN_2 » Remote_PN_2 » PROFINET interface » 0	StartAddress	-1
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	Address	192.168.0.11
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	IpProtocolSelection	Project
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	Name	IE1
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	NodeId	IE1
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	NodeType	Ethernet
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	PnDeviceName	remote_pn_2
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	PnDeviceNameAutoGeneration	True
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	PnDeviceNameConverted	remotexbpnxb202d6
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	SubnetMask	255.255.255.0
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	SyncRouterSettingsWithIoController	True
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	UseIpProtocol	True
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	UseIsoProtocol	False
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	UseRouter	False
+node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1	subnet	PN/IE_1
+interface	Remote_PN_2 » Remote_PN_2 » PROFINET interface	connectedTo	Line IO system
+interface	Remote_PN_2 » Remote_PN_2 » PROFINET interface	connectedTo	
+item	Remote_PN_2 » BA 2xRJ45	AdditionalInformation	
+item	Remote_PN_2 » BA 2xRJ45	Classification	None
+item	Remote_PN_2 » BA 2xRJ45	Comment	
+item	Remote_PN_2 » BA 2xRJ45	FirmwareVersion	V0.0
+item	Remote_PN_2 » BA 2xRJ45	IsBuiltIn	False
+item	Remote_PN_2 » BA 2xRJ45	IsPlugged	True
+item	Remote_PN_2 » BA 2xRJ45	LocationIdentifier	
+item	Remote_PN_2 » BA 2xRJ45	Name	BA 2xRJ45
+item	Remote_PN_2 » BA 2xRJ45	OrderNumber	6ES7 193-6AR00-0AA0
+item	Remote_PN_2 » BA 2xRJ45	PlantDesignation	
+item	Remote_PN_2 » BA 2xRJ45	PnSubslotNumber	32895
+item	Remote_PN_2 » BA 2xRJ45	PositionNumber	127
+item	Remote_PN_2 » BA 2xRJ45	ShortDesignation	BA 2xRJ45
+item	Remote_PN_2 » BA 2xRJ45	TypeIdentifier	OrderNumber:6ES7 193-6AR00-0AA0/V0.0
+item	Remote_PN_2 » BA 2xRJ45	TypeIdentifierNormalized	OrderNumber:6ES7193-6AR00-0AA0/V0.0
+item	Remote_PN_2 » BA 2xRJ45	TypeName	BA 2xRJ45
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	CableName	None
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	Classification	None
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	Comment	
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	EndOfSyncDomain	False
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	EndOfTopologyDiscovery	False
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	IsBuiltIn	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	IsPlugged	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	Label	P1R
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	MediumAttachmentType	Copper
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	Name	Port_1
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	PnSubslotNumber	32769
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	PortActivation	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	PortMonitoring	False
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	PositionNumber	1
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	SharedDeviceAccessConfigured	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	SharedDeviceAccessType	PLC
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	TransmissionRateAndDuplex	Automatic
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	TransmissionRateAutoNegotiation	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_1	HwIdentifier	278
+address	Remote_PN_2 » BA 2xRJ45 » Port_1 » 0	IoType	Diagnosis
+address	Remote_PN_2 » BA 2xRJ45 » Port_1 » 0	Length	0
+address	Remote_PN_2 » BA 2xRJ45 » Port_1 » 0	StartAddress	-1
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	CableName	None
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	Classification	None
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	Comment	
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	EndOfSyncDomain	False
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	EndOfTopologyDiscovery	False
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	IsBuiltIn	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	IsPlugged	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	Label	P2R
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	MediumAttachmentType	Copper
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	Name	Port_2
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	PnSubslotNumber	32770
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	PortActivation	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	PortMonitoring	False
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	PositionNumber	2
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	SharedDeviceAccessConfigured	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	SharedDeviceAccessType	PLC
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	TransmissionRateAndDuplex	Automatic
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	TransmissionRateAutoNegotiation	True
+item	Remote_PN_2 » BA 2xRJ45 » Port_2	HwIdentifier	279
+address	Remote_PN_2 » BA 2xRJ45 » Port_2 » 0	IoType	Diagnosis
+address	Remote_PN_2 » BA 2xRJ45 » Port_2 » 0	Length	0
+address	Remote_PN_2 » BA 2xRJ45 » Port_2 » 0	StartAddress	-1
+item	Remote_PN_2 » Inputs_2	AdditionalInformation	
+item	Remote_PN_2 » Inputs_2	BaseUnit	
+item	Remote_PN_2 » Inputs_2	Classification	None
+item	Remote_PN_2 » Inputs_2	Comment	
+item	Remote_PN_2 » Inputs_2	EnableValueStatus	False
+item	Remote_PN_2 » Inputs_2	FirmwareVersion	V0.0
+item	Remote_PN_2 » Inputs_2	IsBuiltIn	False
+item	Remote_PN_2 » Inputs_2	IsPlugged	True
+item	Remote_PN_2 » Inputs_2	LocationIdentifier	
+item	Remote_PN_2 » Inputs_2	Name	Inputs_2
+item	Remote_PN_2 » Inputs_2	OrderNumber	6ES7 131-6BF01-0BA0
+item	Remote_PN_2 » Inputs_2	PlantDesignation	
+item	Remote_PN_2 » Inputs_2	PositionNumber	1
+item	Remote_PN_2 » Inputs_2	PotentialGroup	1
+item	Remote_PN_2 » Inputs_2	SharedDeviceAccessConfigured	True
+item	Remote_PN_2 » Inputs_2	SharedDeviceAccessType	PLC
+item	Remote_PN_2 » Inputs_2	ShortDesignation	DI 8x24VDC ST
+item	Remote_PN_2 » Inputs_2	StartupComparisonPresetToActualModule	0
+item	Remote_PN_2 » Inputs_2	TypeIdentifier	OrderNumber:6ES7 131-6BF01-0BA0/V0.0
+item	Remote_PN_2 » Inputs_2	TypeIdentifierNormalized	OrderNumber:6ES7131-6BF01-0BA0/V0.0
+item	Remote_PN_2 » Inputs_2	TypeName	DI 8x24VDC ST
+item	Remote_PN_2 » Inputs_2 » Inputs_2	Classification	None
+item	Remote_PN_2 » Inputs_2 » Inputs_2	Comment	
+item	Remote_PN_2 » Inputs_2 » Inputs_2	DiagnosticsNoSupplyVoltage	False
+item	Remote_PN_2 » Inputs_2 » Inputs_2	DiagnosticsShortCircuitToGround	False
+item	Remote_PN_2 » Inputs_2 » Inputs_2	DiagnosticsWireBreak	False
+item	Remote_PN_2 » Inputs_2 » Inputs_2	IsBuiltIn	True
+item	Remote_PN_2 » Inputs_2 » Inputs_2	IsPlugged	True
+item	Remote_PN_2 » Inputs_2 » Inputs_2	Name	Inputs_2
+item	Remote_PN_2 » Inputs_2 » Inputs_2	PnSubslotNumber	1
+item	Remote_PN_2 » Inputs_2 » Inputs_2	PositionNumber	1
+item	Remote_PN_2 » Inputs_2 » Inputs_2	ReactionToError	2
+item	Remote_PN_2 » Inputs_2 » Inputs_2	SharedDeviceAccessConfigured	True
+item	Remote_PN_2 » Inputs_2 » Inputs_2	SharedDeviceAccessType	PLC
+item	Remote_PN_2 » Inputs_2 » Inputs_2	HwIdentifier	280
+address	Remote_PN_2 » Inputs_2 » Inputs_2 » 0	IoType	Input
+address	Remote_PN_2 » Inputs_2 » Inputs_2 » 0	Length	8
+address	Remote_PN_2 » Inputs_2 » Inputs_2 » 0	ProcessImage	0
+address	Remote_PN_2 » Inputs_2 » Inputs_2 » 0	StartAddress	9
+device	Remote_DP	group	
+device	Remote_DP	HwIdentifier	281
+device	Remote_DP	Comment	
+device	Remote_DP	IsGsd	False
+device	Remote_DP	Name	Remote_DP
+device	Remote_DP	TypeIdentifier	System:Device.ET200SP
+device	Remote_DP	TypeIdentifierNormalized	System:Device.ET200SP
+device	Remote_DP	TypeName	ET 200SP-Station
+item	Remote_DP » Rack_0	Classification	None
+item	Remote_DP » Rack_0	Comment	
+item	Remote_DP » Rack_0	IsBuiltIn	False
+item	Remote_DP » Rack_0	IsPlugged	True
+item	Remote_DP » Rack_0	Name	Rack_0
+item	Remote_DP » Rack_0	PositionNumber	0
+item	Remote_DP » Rack_0	TypeIdentifier	System:Rack.ET200SP
+item	Remote_DP » Rack_0	TypeIdentifierNormalized	System:Rack.ET200SP
+item	Remote_DP » Rack_0	TypeName	Rack
+item	Remote_DP » Rack_0	HwIdentifier	282
+item	Remote_DP » Remote_DP	AdditionalInformation	
+item	Remote_DP » Remote_DP	Classification	HM
+item	Remote_DP » Remote_DP	Comment	
+item	Remote_DP » Remote_DP	DpProtocolMode	5
+item	Remote_DP » Remote_DP	DpWatchdog	True
+item	Remote_DP » Remote_DP	FirmwareVersion	V4.2
+item	Remote_DP » Remote_DP	HardwareInterrupt	True
+item	Remote_DP » Remote_DP	InterfaceOperatingMode	IoDevice
+item	Remote_DP » Remote_DP	InterfaceType	Profibus
+item	Remote_DP » Remote_DP	IsBuiltIn	False
+item	Remote_DP » Remote_DP	IsPlugged	True
+item	Remote_DP » Remote_DP	Label	
+item	Remote_DP » Remote_DP	LocationIdentifier	
+item	Remote_DP » Remote_DP	Name	Remote_DP
+item	Remote_DP » Remote_DP	OrderNumber	6ES7 155-6BU01-0CN0
+item	Remote_DP » Remote_DP	PlantDesignation	
+item	Remote_DP » Remote_DP	PositionNumber	0
+item	Remote_DP » Remote_DP	ShortDesignation	IM 155-6 DP HF
+item	Remote_DP » Remote_DP	StartupComparisonPresetToActualModule	0
+item	Remote_DP » Remote_DP	StartupIfPresetConfigurationDoesNotMatchActualConfiguration	False
+item	Remote_DP » Remote_DP	TypeIdentifier	OrderNumber:6ES7 155-6BU01-0CN0/V4.2
+item	Remote_DP » Remote_DP	TypeIdentifierNormalized	OrderNumber:6ES7155-6BU01-0CN0/V4.2
+item	Remote_DP » Remote_DP	TypeName	IM 155-6 DP HF
+item	Remote_DP » Remote_DP	HwIdentifier	283
+address	Remote_DP » Remote_DP » 0	IoType	Diagnosis
+address	Remote_DP » Remote_DP » 0	Length	0
+address	Remote_DP » Remote_DP » 0	StartAddress	-1
+node	Remote_DP » Remote_DP » PB1	Address	3
+node	Remote_DP » Remote_DP » PB1	Name	PB1
+node	Remote_DP » Remote_DP » PB1	NodeId	PB1
+node	Remote_DP » Remote_DP » PB1	NodeType	Profibus
+node	Remote_DP » Remote_DP » PB1	subnet	PROFIBUS_1
+interface	Remote_DP » Remote_DP	connectedTo	Line DP system
+item	Remote_DP » Inputs_DP	AdditionalInformation	
+item	Remote_DP » Inputs_DP	BaseUnit	
+item	Remote_DP » Inputs_DP	Classification	None
+item	Remote_DP » Inputs_DP	Comment	
+item	Remote_DP » Inputs_DP	EnableValueStatus	False
+item	Remote_DP » Inputs_DP	FirmwareVersion	V0.0
+item	Remote_DP » Inputs_DP	IsBuiltIn	False
+item	Remote_DP » Inputs_DP	IsPlugged	True
+item	Remote_DP » Inputs_DP	LocationIdentifier	
+item	Remote_DP » Inputs_DP	Name	Inputs_DP
+item	Remote_DP » Inputs_DP	OrderNumber	6ES7 131-6BF01-0BA0
+item	Remote_DP » Inputs_DP	PlantDesignation	
+item	Remote_DP » Inputs_DP	PositionNumber	1
+item	Remote_DP » Inputs_DP	PotentialGroup	1
+item	Remote_DP » Inputs_DP	ShortDesignation	DI 8x24VDC ST
+item	Remote_DP » Inputs_DP	StartupComparisonPresetToActualModule	0
+item	Remote_DP » Inputs_DP	TypeIdentifier	OrderNumber:6ES7 131-6BF01-0BA0/V0.0
+item	Remote_DP » Inputs_DP	TypeIdentifierNormalized	OrderNumber:6ES7131-6BF01-0BA0/V0.0
+item	Remote_DP » Inputs_DP	TypeName	DI 8x24VDC ST
+item	Remote_DP » Inputs_DP » Inputs_DP	Classification	None
+item	Remote_DP » Inputs_DP » Inputs_DP	Comment	
+item	Remote_DP » Inputs_DP » Inputs_DP	DiagnosticsNoSupplyVoltage	False
+item	Remote_DP » Inputs_DP » Inputs_DP	DiagnosticsShortCircuitToGround	False
+item	Remote_DP » Inputs_DP » Inputs_DP	DiagnosticsWireBreak	False
+item	Remote_DP » Inputs_DP » Inputs_DP	IsBuiltIn	True
+item	Remote_DP » Inputs_DP » Inputs_DP	IsPlugged	True
+item	Remote_DP » Inputs_DP » Inputs_DP	Name	Inputs_DP
+item	Remote_DP » Inputs_DP » Inputs_DP	PnSubslotNumber	1
+item	Remote_DP » Inputs_DP » Inputs_DP	PositionNumber	1
+item	Remote_DP » Inputs_DP » Inputs_DP	ReactionToError	2
+item	Remote_DP » Inputs_DP » Inputs_DP	HwIdentifier	284
+address	Remote_DP » Inputs_DP » Inputs_DP » 0	IoType	Input
+address	Remote_DP » Inputs_DP » Inputs_DP » 0	Length	8
+address	Remote_DP » Inputs_DP » Inputs_DP » 0	ProcessImage	0
+address	Remote_DP » Inputs_DP » Inputs_DP » 0	StartAddress	30
+item	Remote_DP » Outputs_DP	AdditionalInformation	
+item	Remote_DP » Outputs_DP	BaseUnit	
+item	Remote_DP » Outputs_DP	Classification	None
+item	Remote_DP » Outputs_DP	Comment	
+item	Remote_DP » Outputs_DP	EnableValueStatus	False
+item	Remote_DP » Outputs_DP	FirmwareVersion	V0.0
+item	Remote_DP » Outputs_DP	IsBuiltIn	False
+item	Remote_DP » Outputs_DP	IsPlugged	True
+item	Remote_DP » Outputs_DP	LocationIdentifier	
+item	Remote_DP » Outputs_DP	Name	Outputs_DP
+item	Remote_DP » Outputs_DP	OrderNumber	6ES7 132-6BF01-0BA0
+item	Remote_DP » Outputs_DP	PlantDesignation	
+item	Remote_DP » Outputs_DP	PositionNumber	2
+item	Remote_DP » Outputs_DP	PotentialGroup	0
+item	Remote_DP » Outputs_DP	ShortDesignation	DQ 8x24VDC/0.5A ST
+item	Remote_DP » Outputs_DP	StartupComparisonPresetToActualModule	0
+item	Remote_DP » Outputs_DP	TypeIdentifier	OrderNumber:6ES7 132-6BF01-0BA0/V0.0
+item	Remote_DP » Outputs_DP	TypeIdentifierNormalized	OrderNumber:6ES7132-6BF01-0BA0/V0.0
+item	Remote_DP » Outputs_DP	TypeName	DQ 8x24VDC/0.5A ST
+item	Remote_DP » Outputs_DP » Outputs_DP	Classification	None
+item	Remote_DP » Outputs_DP » Outputs_DP	Comment	
+item	Remote_DP » Outputs_DP » Outputs_DP	DiagnosticsNoSupplyVoltage	False
+item	Remote_DP » Outputs_DP » Outputs_DP	DiagnosticsShortCircuitToGround	False
+item	Remote_DP » Outputs_DP » Outputs_DP	DiagnosticsShortCircuitToLplus	False
+item	Remote_DP » Outputs_DP » Outputs_DP	DiagnosticsWireBreak	False
+item	Remote_DP » Outputs_DP » Outputs_DP	IsBuiltIn	True
+item	Remote_DP » Outputs_DP » Outputs_DP	IsPlugged	True
+item	Remote_DP » Outputs_DP » Outputs_DP	Name	Outputs_DP
+item	Remote_DP » Outputs_DP » Outputs_DP	PnSubslotNumber	1
+item	Remote_DP » Outputs_DP » Outputs_DP	PositionNumber	1
+item	Remote_DP » Outputs_DP » Outputs_DP	HwIdentifier	285
+address	Remote_DP » Outputs_DP » Outputs_DP » 0	IoType	Output
+address	Remote_DP » Outputs_DP » Outputs_DP » 0	Length	8
+address	Remote_DP » Outputs_DP » Outputs_DP » 0	ProcessImage	0
+address	Remote_DP » Outputs_DP » Outputs_DP » 0	StartAddress	13
+device	Partner	group	
+device	Partner	HwIdentifier	32
+device	Partner	Comment	
+device	Partner	IsGsd	False
+device	Partner	Name	Partner
+device	Partner	TypeIdentifier	System:Device.S71500
+device	Partner	TypeIdentifierNormalized	System:Device.S71500
+device	Partner	TypeName	S7-1500 station
+item	Partner » Rail_0	Classification	None
+item	Partner » Rail_0	Comment	
+item	Partner » Rail_0	FirmwareVersion	
+item	Partner » Rail_0	IsBuiltIn	False
+item	Partner » Rail_0	IsPlugged	True
+item	Partner » Rail_0	Name	Rail_0
+item	Partner » Rail_0	OrderNumber	6ES7 590-1***0-0AA0
+item	Partner » Rail_0	PositionNumber	0
+item	Partner » Rail_0	TypeIdentifier	OrderNumber:6ES7 590-1***0-0AA0
+item	Partner » Rail_0	TypeIdentifierNormalized	OrderNumber:6ES7590-1***0-0AA0
+item	Partner » Rail_0	TypeName	Rack
+item	Partner » Rail_0	HwIdentifier	256
+item	Partner » Partner	AdditionalInformation	
+item	Partner » Partner	CentralAlarmManagement	True
+item	Partner » Partner	Classification	CPU
+item	Partner » Partner	ClockMemoryByte	False
+item	Partner » Partner	Comment	
+item	Partner » Partner	CommunicationMode	1
+item	Partner » Partner	ConfigurationControl	False
+item	Partner » Partner	CycleCommunicationLoad	50
+item	Partner » Partner	CycleEnableMinimumCycleTime	True
+item	Partner » Partner	CycleMaximumCycleTime	150
+item	Partner » Partner	CycleMinimumCycleTime	1
+item	Partner » Partner	FirmwareVersion	V2.9
+item	Partner » Partner	HostAndDomainnameActive	False
+item	Partner » Partner	IPv4ForwardingActive	False
+item	Partner » Partner	IsBuiltIn	False
+item	Partner » Partner	IsPlugged	True
+item	Partner » Partner	IsochronousMode	False
+item	Partner » Partner	LocationIdentifier	
+item	Partner » Partner	MacRtLicensePurchased	0
+item	Partner » Partner	Name	Partner
+item	Partner » Partner	NetworkFaultsAsMaintenance	False
+item	Partner » Partner	OpcUaPurchasedLicense	0
+item	Partner » Partner	OrderNumber	6ES7 511-1AK02-0AB0
+item	Partner » Partner	PlantDesignation	
+item	Partner » Partner	PnDnsConfigNameResolve	Deactivated
+item	Partner » Partner	PositionNumber	1
+item	Partner » Partner	ProDiagUsedLicenses	0
+item	Partner » Partner	ProtectionIntervalForSummarizeOfSecurityEvents	20
+item	Partner » Partner	ProtectionSummarizeSecurityEventsOnHighLoad	True
+item	Partner » Partner	ProtectionUnitForSummarizeOfSecurityEvents	2
+item	Partner » Partner	SendClock	1
+item	Partner » Partner	ShortDesignation	CPU 1511-1 PN
+item	Partner » Partner	StartupActionAfterPowerOn	3
+item	Partner » Partner	StartupComparisonPresetToActualModule	2
+item	Partner » Partner	StartupConfigurationTimeout	60000
+item	Partner » Partner	SystemMemoryByte	False
+item	Partner » Partner	SystemPowerSupplyExternal	1
+item	Partner » Partner	TimeOfDayActivateDaylightSavingTime	True
+item	Partner » Partner	TimeOfDayDaylightSavingTimeOffset	60
+item	Partner » Partner	TimeOfDayDaylightSavingTimeStartHour	1
+item	Partner » Partner	TimeOfDayDaylightSavingTimeStartMonth	3
+item	Partner » Partner	TimeOfDayDaylightSavingTimeStartWeek	5
+item	Partner » Partner	TimeOfDayDaylightSavingTimeStartWeekday	1
+item	Partner » Partner	TimeOfDayLocalTimeZone	22
+item	Partner » Partner	TimeOfDayStandardTimeStartHour	2
+item	Partner » Partner	TimeOfDayStandardTimeStartMonth	10
+item	Partner » Partner	TimeOfDayStandardTimeStartWeek	5
+item	Partner » Partner	TimeOfDayStandardTimeStartWeekday	1
+item	Partner » Partner	TimeSynchronizationNtpV2	0
+item	Partner » Partner	TypeIdentifier	OrderNumber:6ES7 511-1AK02-0AB0/V2.9
+item	Partner » Partner	TypeIdentifierNormalized	OrderNumber:6ES7511-1AK02-0AB0/V2.9
+item	Partner » Partner	TypeName	CPU 1511-1 PN
+item	Partner » Partner	UseFixedSystemDiagnosticsAlarmIds	True
+item	Partner » Partner	WebserverActivate	False
+item	Partner » Partner	HwIdentifier	48
+item	Partner » Partner	HwIdentifier	50
+item	Partner » Partner	HwIdentifier	52
+item	Partner » Partner	HwIdentifier	49
+item	Partner » Partner	HwIdentifier	135
+item	Partner » Partner	HwIdentifier	136
+item	Partner » Partner	HwIdentifier	42
+item	Partner » Partner » Card reader/writer_1	Classification	None
+item	Partner » Partner » Card reader/writer_1	DiagnosticsAgingSimaticMemoryCard	False
+item	Partner » Partner » Card reader/writer_1	IsBuiltIn	True
+item	Partner » Partner » Card reader/writer_1	IsPlugged	True
+item	Partner » Partner » Card reader/writer_1	Name	Card reader/writer_1
+item	Partner » Partner » Card reader/writer_1	PnSubslotNumber	4
+item	Partner » Partner » Card reader/writer_1	PositionNumber	4
+item	Partner » Partner » Card reader/writer_1	HwIdentifier	51
+item	Partner » Partner » CPU display_1	Classification	None
+item	Partner » Partner » CPU display_1	DisplayDefaultLanguage	0
+item	Partner » Partner » CPU display_1	DisplayProtection	False
+item	Partner » Partner » CPU display_1	DisplayTimeToEnergySavingMode	900
+item	Partner » Partner » CPU display_1	DisplayTimeToStandbyMode	1800
+item	Partner » Partner » CPU display_1	DisplayUpdateInterval	5
+item	Partner » Partner » CPU display_1	DisplayWriteAccess	True
+item	Partner » Partner » CPU display_1	IsBuiltIn	True
+item	Partner » Partner » CPU display_1	IsPlugged	True
+item	Partner » Partner » CPU display_1	Name	CPU display_1
+item	Partner » Partner » CPU display_1	PnSubslotNumber	3
+item	Partner » Partner » CPU display_1	PositionNumber	3
+item	Partner » Partner » CPU display_1	HwIdentifier	54
+item	Partner » Partner » OPC UA_1	Classification	None
+item	Partner » Partner » OPC UA_1	IsBuiltIn	True
+item	Partner » Partner » OPC UA_1	IsPlugged	True
+item	Partner » Partner » OPC UA_1	Name	OPC UA_1
+item	Partner » Partner » OPC UA_1	OpcUaApplicationName	SIMATIC.S7-1500.OPC-UA.Application:Partner
+item	Partner » Partner » OPC UA_1	OpcUaClient	False
+item	Partner » Partner » OPC UA_1	OpcUaExportArrayMembers	True
+item	Partner » Partner » OPC UA_1	OpcUaServer	False
+item	Partner » Partner » OPC UA_1	PnSubslotNumber	254
+item	Partner » Partner » OPC UA_1	PositionNumber	254
+item	Partner » Partner » OPC UA_1	HwIdentifier	117
+item	Partner » Partner » PROFINET interface_1	AlternativeRedundancy	True
+item	Partner » Partner » PROFINET interface_1	CalculatedBandwidthForCyclicIoData	0
+item	Partner » Partner » PROFINET interface_1	Classification	None
+item	Partner » Partner » PROFINET interface_1	Comment	
+item	Partner » Partner » PROFINET interface_1	DeviceReplacementWithoutExchangeableMedium	True
+item	Partner » Partner » PROFINET interface_1	DiagnosticsCommunicationError	False
+item	Partner » Partner » PROFINET interface_1	IECV22LLDPMode	False
+item	Partner » Partner » PROFINET interface_1	InterfaceOperatingMode	IoController
+item	Partner » Partner » PROFINET interface_1	InterfaceType	Ethernet
+item	Partner » Partner » PROFINET interface_1	IsBuiltIn	True
+item	Partner » Partner » PROFINET interface_1	IsIoController	True
+item	Partner » Partner » PROFINET interface_1	IsIoDevice	False
+item	Partner » Partner » PROFINET interface_1	IsPlugged	True
+item	Partner » Partner » PROFINET interface_1	KeepAlivesInterval	30
+item	Partner » Partner » PROFINET interface_1	Label	X1
+item	Partner » Partner » PROFINET interface_1	LoadLimitation	True
+item	Partner » Partner » PROFINET interface_1	MaxBandwidthForCyclicIoData	500000
+item	Partner » Partner » PROFINET interface_1	MediaRedundancyRole	NotInRing
+item	Partner » Partner » PROFINET interface_1	Name	PROFINET interface_1
+item	Partner » Partner » PROFINET interface_1	OverwriteDeviceNames	False
+item	Partner » Partner » PROFINET interface_1	PnSendClock	1000000
+item	Partner » Partner » PROFINET interface_1	PnSubslotNumber	32768
+item	Partner » Partner » PROFINET interface_1	PositionNumber	32768
+item	Partner » Partner » PROFINET interface_1	TimeSynchronizationNtp	False
+item	Partner » Partner » PROFINET interface_1	UseWebServerForInterface	False
+item	Partner » Partner » PROFINET interface_1	HwIdentifier	64
+node	Partner » Partner » PROFINET interface_1 » X1	Address	192.168.0.2
+node	Partner » Partner » PROFINET interface_1 » X1	IpProtocolSelection	Project
+node	Partner » Partner » PROFINET interface_1 » X1	Name	X1
+node	Partner » Partner » PROFINET interface_1 » X1	NodeId	E1
+node	Partner » Partner » PROFINET interface_1 » X1	NodeType	Ethernet
+node	Partner » Partner » PROFINET interface_1 » X1	PnDeviceName	partner
+node	Partner » Partner » PROFINET interface_1 » X1	PnDeviceNameAutoGeneration	False
+node	Partner » Partner » PROFINET interface_1 » X1	PnDeviceNameConverted	partner
+node	Partner » Partner » PROFINET interface_1 » X1	PnDeviceNameSetDirectly	False
+node	Partner » Partner » PROFINET interface_1 » X1	SubnetMask	255.255.255.0
+node	Partner » Partner » PROFINET interface_1 » X1	UseIpProtocol	True
+node	Partner » Partner » PROFINET interface_1 » X1	UseIsoProtocol	False
+node	Partner » Partner » PROFINET interface_1 » X1	UseRouter	False
+node	Partner » Partner » PROFINET interface_1 » X1	subnet	PN/IE_1
+interface	Partner » Partner » PROFINET interface_1	controls	Partner IO system
+item	Partner » Partner » PROFINET interface_1 » Port_1	AlternativePartnerPorts	False
+item	Partner » Partner » PROFINET interface_1 » Port_1	CableName	None
+item	Partner » Partner » PROFINET interface_1 » Port_1	Classification	None
+item	Partner » Partner » PROFINET interface_1 » Port_1	Comment	
+item	Partner » Partner » PROFINET interface_1 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	Partner » Partner » PROFINET interface_1 » Port_1	EndOfSyncDomain	False
+item	Partner » Partner » PROFINET interface_1 » Port_1	EndOfTopologyDiscovery	False
+item	Partner » Partner » PROFINET interface_1 » Port_1	IsBuiltIn	True
+item	Partner » Partner » PROFINET interface_1 » Port_1	IsPlugged	True
+item	Partner » Partner » PROFINET interface_1 » Port_1	Label	P1R
+item	Partner » Partner » PROFINET interface_1 » Port_1	MediumAttachmentType	Copper
+item	Partner » Partner » PROFINET interface_1 » Port_1	Name	Port_1
+item	Partner » Partner » PROFINET interface_1 » Port_1	PnSubslotNumber	32769
+item	Partner » Partner » PROFINET interface_1 » Port_1	PortActivation	True
+item	Partner » Partner » PROFINET interface_1 » Port_1	PortMonitoring	False
+item	Partner » Partner » PROFINET interface_1 » Port_1	PositionNumber	32769
+item	Partner » Partner » PROFINET interface_1 » Port_1	TransmissionRateAndDuplex	Automatic
+item	Partner » Partner » PROFINET interface_1 » Port_1	TransmissionRateAutoNegotiation	True
+item	Partner » Partner » PROFINET interface_1 » Port_1	HwIdentifier	65
+item	Partner » Partner » PROFINET interface_1 » Port_2	AlternativePartnerPorts	False
+item	Partner » Partner » PROFINET interface_1 » Port_2	CableName	None
+item	Partner » Partner » PROFINET interface_1 » Port_2	Classification	None
+item	Partner » Partner » PROFINET interface_1 » Port_2	Comment	
+item	Partner » Partner » PROFINET interface_1 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	Partner » Partner » PROFINET interface_1 » Port_2	EndOfSyncDomain	False
+item	Partner » Partner » PROFINET interface_1 » Port_2	EndOfTopologyDiscovery	False
+item	Partner » Partner » PROFINET interface_1 » Port_2	IsBuiltIn	True
+item	Partner » Partner » PROFINET interface_1 » Port_2	IsPlugged	True
+item	Partner » Partner » PROFINET interface_1 » Port_2	Label	P2R
+item	Partner » Partner » PROFINET interface_1 » Port_2	MediumAttachmentType	Copper
+item	Partner » Partner » PROFINET interface_1 » Port_2	Name	Port_2
+item	Partner » Partner » PROFINET interface_1 » Port_2	PnSubslotNumber	32770
+item	Partner » Partner » PROFINET interface_1 » Port_2	PortActivation	True
+item	Partner » Partner » PROFINET interface_1 » Port_2	PortMonitoring	False
+item	Partner » Partner » PROFINET interface_1 » Port_2	PositionNumber	32770
+item	Partner » Partner » PROFINET interface_1 » Port_2	TransmissionRateAndDuplex	Automatic
+item	Partner » Partner » PROFINET interface_1 » Port_2	TransmissionRateAutoNegotiation	True
+item	Partner » Partner » PROFINET interface_1 » Port_2	HwIdentifier	66
+device	Partner_IO	group	
+device	Partner_IO	HwIdentifier	263
+device	Partner_IO	Comment	
+device	Partner_IO	IsGsd	False
+device	Partner_IO	Name	Partner_IO
+device	Partner_IO	TypeIdentifier	System:Device.ET200SP
+device	Partner_IO	TypeIdentifierNormalized	System:Device.ET200SP
+device	Partner_IO	TypeName	ET 200SP-Station
+item	Partner_IO » Rack_0	Classification	None
+item	Partner_IO » Rack_0	Comment	
+item	Partner_IO » Rack_0	IsBuiltIn	False
+item	Partner_IO » Rack_0	IsPlugged	True
+item	Partner_IO » Rack_0	Name	Rack_0
+item	Partner_IO » Rack_0	PositionNumber	0
+item	Partner_IO » Rack_0	TypeIdentifier	System:Rack.ET200SP
+item	Partner_IO » Rack_0	TypeIdentifierNormalized	System:Rack.ET200SP
+item	Partner_IO » Rack_0	TypeName	Rack
+item	Partner_IO » Rack_0	HwIdentifier	264
+item	Partner_IO » Partner_IO	AdditionalInformation	
+item	Partner_IO » Partner_IO	Classification	HM
+item	Partner_IO » Partner_IO	Comment	
+item	Partner_IO » Partner_IO	FirmwareVersion	V4.2
+item	Partner_IO » Partner_IO	IsBuiltIn	False
+item	Partner_IO » Partner_IO	IsPlugged	True
+item	Partner_IO » Partner_IO	LocationIdentifier	
+item	Partner_IO » Partner_IO	Name	Partner_IO
+item	Partner_IO » Partner_IO	OrderNumber	6ES7 155-6AU01-0BN0
+item	Partner_IO » Partner_IO	PlantDesignation	
+item	Partner_IO » Partner_IO	PositionNumber	0
+item	Partner_IO » Partner_IO	SharedDeviceAccessConfigured	True
+item	Partner_IO » Partner_IO	SharedDeviceAccessType	PLC
+item	Partner_IO » Partner_IO	ShortDesignation	IM 155-6 PN ST
+item	Partner_IO » Partner_IO	TypeIdentifier	OrderNumber:6ES7 155-6AU01-0BN0/V4.2
+item	Partner_IO » Partner_IO	TypeIdentifierNormalized	OrderNumber:6ES7155-6AU01-0BN0/V4.2
+item	Partner_IO » Partner_IO	TypeName	IM 155-6 PN ST
+item	Partner_IO » Partner_IO	HwIdentifier	265
+item	Partner_IO » Partner_IO » Partner_IO	Classification	None
+item	Partner_IO » Partner_IO » Partner_IO	IsBuiltIn	True
+item	Partner_IO » Partner_IO » Partner_IO	IsPlugged	True
+item	Partner_IO » Partner_IO » Partner_IO	Name	Partner_IO
+item	Partner_IO » Partner_IO » Partner_IO	OptionHandling	False
+item	Partner_IO » Partner_IO » Partner_IO	PnSubslotNumber	1
+item	Partner_IO » Partner_IO » Partner_IO	PositionNumber	0
+item	Partner_IO » Partner_IO » Partner_IO	SharedDeviceAccessConfigured	True
+item	Partner_IO » Partner_IO » Partner_IO	SharedDeviceAccessType	PLC
+item	Partner_IO » Partner_IO » Partner_IO	StartupComparisonPresetToActualModule	0
+item	Partner_IO » Partner_IO » Partner_IO	HwIdentifier	258
+address	Partner_IO » Partner_IO » Partner_IO » 0	IoType	Diagnosis
+address	Partner_IO » Partner_IO » Partner_IO » 0	Length	0
+address	Partner_IO » Partner_IO » Partner_IO » 0	StartAddress	-1
+item	Partner_IO » Partner_IO » PROFINET interface	AlternativeRedundancy	True
+item	Partner_IO » Partner_IO » PROFINET interface	Classification	None
+item	Partner_IO » Partner_IO » PROFINET interface	Comment	
+item	Partner_IO » Partner_IO » PROFINET interface	IECV22LLDPMode	False
+item	Partner_IO » Partner_IO » PROFINET interface	InterfaceOperatingMode	IoDevice
+item	Partner_IO » Partner_IO » PROFINET interface	InterfaceType	Ethernet
+item	Partner_IO » Partner_IO » PROFINET interface	IsBuiltIn	True
+item	Partner_IO » Partner_IO » PROFINET interface	IsPlugged	True
+item	Partner_IO » Partner_IO » PROFINET interface	Label	X1
+item	Partner_IO » Partner_IO » PROFINET interface	MediaRedundancyRole	NotInRing
+item	Partner_IO » Partner_IO » PROFINET interface	Name	PROFINET interface
+item	Partner_IO » Partner_IO » PROFINET interface	NumberOfExternalIoControllers	0
+item	Partner_IO » Partner_IO » PROFINET interface	OptionalIoDevice	False
+item	Partner_IO » Partner_IO » PROFINET interface	PnSubslotNumber	32768
+item	Partner_IO » Partner_IO » PROFINET interface	PositionNumber	1
+item	Partner_IO » Partner_IO » PROFINET interface	PrioritizedStartup	False
+item	Partner_IO » Partner_IO » PROFINET interface	SharedDeviceAccessConfigured	True
+item	Partner_IO » Partner_IO » PROFINET interface	SharedDeviceAccessType	PLC
+item	Partner_IO » Partner_IO » PROFINET interface	HwIdentifier	259
+address	Partner_IO » Partner_IO » PROFINET interface » 0	IoType	Diagnosis
+address	Partner_IO » Partner_IO » PROFINET interface » 0	Length	0
+address	Partner_IO » Partner_IO » PROFINET interface » 0	StartAddress	-1
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	Address	192.168.0.20
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	IpProtocolSelection	Project
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	Name	IE1
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	NodeId	IE1
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	NodeType	Ethernet
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	PnDeviceName	partner_io
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	PnDeviceNameAutoGeneration	True
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	PnDeviceNameConverted	partnerxbiof5eb
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	SubnetMask	255.255.255.0
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	SyncRouterSettingsWithIoController	True
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	UseIpProtocol	True
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	UseIsoProtocol	False
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	UseRouter	False
+node	Partner_IO » Partner_IO » PROFINET interface » IE1	subnet	PN/IE_1
+interface	Partner_IO » Partner_IO » PROFINET interface	connectedTo	Partner IO system
+interface	Partner_IO » Partner_IO » PROFINET interface	connectedTo	
+item	Partner_IO » BA 2xRJ45	AdditionalInformation	
+item	Partner_IO » BA 2xRJ45	Classification	None
+item	Partner_IO » BA 2xRJ45	Comment	
+item	Partner_IO » BA 2xRJ45	FirmwareVersion	V0.0
+item	Partner_IO » BA 2xRJ45	IsBuiltIn	False
+item	Partner_IO » BA 2xRJ45	IsPlugged	True
+item	Partner_IO » BA 2xRJ45	LocationIdentifier	
+item	Partner_IO » BA 2xRJ45	Name	BA 2xRJ45
+item	Partner_IO » BA 2xRJ45	OrderNumber	6ES7 193-6AR00-0AA0
+item	Partner_IO » BA 2xRJ45	PlantDesignation	
+item	Partner_IO » BA 2xRJ45	PnSubslotNumber	32895
+item	Partner_IO » BA 2xRJ45	PositionNumber	127
+item	Partner_IO » BA 2xRJ45	ShortDesignation	BA 2xRJ45
+item	Partner_IO » BA 2xRJ45	TypeIdentifier	OrderNumber:6ES7 193-6AR00-0AA0/V0.0
+item	Partner_IO » BA 2xRJ45	TypeIdentifierNormalized	OrderNumber:6ES7193-6AR00-0AA0/V0.0
+item	Partner_IO » BA 2xRJ45	TypeName	BA 2xRJ45
+item	Partner_IO » BA 2xRJ45 » Port_1	CableName	None
+item	Partner_IO » BA 2xRJ45 » Port_1	Classification	None
+item	Partner_IO » BA 2xRJ45 » Port_1	Comment	
+item	Partner_IO » BA 2xRJ45 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	Partner_IO » BA 2xRJ45 » Port_1	EndOfSyncDomain	False
+item	Partner_IO » BA 2xRJ45 » Port_1	EndOfTopologyDiscovery	False
+item	Partner_IO » BA 2xRJ45 » Port_1	IsBuiltIn	True
+item	Partner_IO » BA 2xRJ45 » Port_1	IsPlugged	True
+item	Partner_IO » BA 2xRJ45 » Port_1	Label	P1R
+item	Partner_IO » BA 2xRJ45 » Port_1	MediumAttachmentType	Copper
+item	Partner_IO » BA 2xRJ45 » Port_1	Name	Port_1
+item	Partner_IO » BA 2xRJ45 » Port_1	PnSubslotNumber	32769
+item	Partner_IO » BA 2xRJ45 » Port_1	PortActivation	True
+item	Partner_IO » BA 2xRJ45 » Port_1	PortMonitoring	False
+item	Partner_IO » BA 2xRJ45 » Port_1	PositionNumber	1
+item	Partner_IO » BA 2xRJ45 » Port_1	SharedDeviceAccessConfigured	True
+item	Partner_IO » BA 2xRJ45 » Port_1	SharedDeviceAccessType	PLC
+item	Partner_IO » BA 2xRJ45 » Port_1	TransmissionRateAndDuplex	Automatic
+item	Partner_IO » BA 2xRJ45 » Port_1	TransmissionRateAutoNegotiation	True
+item	Partner_IO » BA 2xRJ45 » Port_1	HwIdentifier	260
+address	Partner_IO » BA 2xRJ45 » Port_1 » 0	IoType	Diagnosis
+address	Partner_IO » BA 2xRJ45 » Port_1 » 0	Length	0
+address	Partner_IO » BA 2xRJ45 » Port_1 » 0	StartAddress	-1
+item	Partner_IO » BA 2xRJ45 » Port_2	CableName	None
+item	Partner_IO » BA 2xRJ45 » Port_2	Classification	None
+item	Partner_IO » BA 2xRJ45 » Port_2	Comment	
+item	Partner_IO » BA 2xRJ45 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	Partner_IO » BA 2xRJ45 » Port_2	EndOfSyncDomain	False
+item	Partner_IO » BA 2xRJ45 » Port_2	EndOfTopologyDiscovery	False
+item	Partner_IO » BA 2xRJ45 » Port_2	IsBuiltIn	True
+item	Partner_IO » BA 2xRJ45 » Port_2	IsPlugged	True
+item	Partner_IO » BA 2xRJ45 » Port_2	Label	P2R
+item	Partner_IO » BA 2xRJ45 » Port_2	MediumAttachmentType	Copper
+item	Partner_IO » BA 2xRJ45 » Port_2	Name	Port_2
+item	Partner_IO » BA 2xRJ45 » Port_2	PnSubslotNumber	32770
+item	Partner_IO » BA 2xRJ45 » Port_2	PortActivation	True
+item	Partner_IO » BA 2xRJ45 » Port_2	PortMonitoring	False
+item	Partner_IO » BA 2xRJ45 » Port_2	PositionNumber	2
+item	Partner_IO » BA 2xRJ45 » Port_2	SharedDeviceAccessConfigured	True
+item	Partner_IO » BA 2xRJ45 » Port_2	SharedDeviceAccessType	PLC
+item	Partner_IO » BA 2xRJ45 » Port_2	TransmissionRateAndDuplex	Automatic
+item	Partner_IO » BA 2xRJ45 » Port_2	TransmissionRateAutoNegotiation	True
+item	Partner_IO » BA 2xRJ45 » Port_2	HwIdentifier	261
+address	Partner_IO » BA 2xRJ45 » Port_2 » 0	IoType	Diagnosis
+address	Partner_IO » BA 2xRJ45 » Port_2 » 0	Length	0
+address	Partner_IO » BA 2xRJ45 » Port_2 » 0	StartAddress	-1
+item	Partner_IO » Outputs_P	AdditionalInformation	
+item	Partner_IO » Outputs_P	BaseUnit	
+item	Partner_IO » Outputs_P	Classification	None
+item	Partner_IO » Outputs_P	Comment	
+item	Partner_IO » Outputs_P	EnableValueStatus	False
+item	Partner_IO » Outputs_P	FirmwareVersion	V0.0
+item	Partner_IO » Outputs_P	IsBuiltIn	False
+item	Partner_IO » Outputs_P	IsPlugged	True
+item	Partner_IO » Outputs_P	LocationIdentifier	
+item	Partner_IO » Outputs_P	Name	Outputs_P
+item	Partner_IO » Outputs_P	OrderNumber	6ES7 132-6BF01-0BA0
+item	Partner_IO » Outputs_P	PlantDesignation	
+item	Partner_IO » Outputs_P	PositionNumber	1
+item	Partner_IO » Outputs_P	PotentialGroup	1
+item	Partner_IO » Outputs_P	SharedDeviceAccessConfigured	True
+item	Partner_IO » Outputs_P	SharedDeviceAccessType	PLC
+item	Partner_IO » Outputs_P	ShortDesignation	DQ 8x24VDC/0.5A ST
+item	Partner_IO » Outputs_P	StartupComparisonPresetToActualModule	0
+item	Partner_IO » Outputs_P	TypeIdentifier	OrderNumber:6ES7 132-6BF01-0BA0/V0.0
+item	Partner_IO » Outputs_P	TypeIdentifierNormalized	OrderNumber:6ES7132-6BF01-0BA0/V0.0
+item	Partner_IO » Outputs_P	TypeName	DQ 8x24VDC/0.5A ST
+item	Partner_IO » Outputs_P » Outputs_P	Classification	None
+item	Partner_IO » Outputs_P » Outputs_P	Comment	
+item	Partner_IO » Outputs_P » Outputs_P	DiagnosticsNoSupplyVoltage	False
+item	Partner_IO » Outputs_P » Outputs_P	DiagnosticsShortCircuitToGround	False
+item	Partner_IO » Outputs_P » Outputs_P	DiagnosticsShortCircuitToLplus	False
+item	Partner_IO » Outputs_P » Outputs_P	DiagnosticsWireBreak	False
+item	Partner_IO » Outputs_P » Outputs_P	IsBuiltIn	True
+item	Partner_IO » Outputs_P » Outputs_P	IsPlugged	True
+item	Partner_IO » Outputs_P » Outputs_P	Name	Outputs_P
+item	Partner_IO » Outputs_P » Outputs_P	PnSubslotNumber	1
+item	Partner_IO » Outputs_P » Outputs_P	PositionNumber	1
+item	Partner_IO » Outputs_P » Outputs_P	SharedDeviceAccessConfigured	True
+item	Partner_IO » Outputs_P » Outputs_P	SharedDeviceAccessType	PLC
+item	Partner_IO » Outputs_P » Outputs_P	HwIdentifier	262
+address	Partner_IO » Outputs_P » Outputs_P » 0	IoType	Output
+address	Partner_IO » Outputs_P » Outputs_P » 0	Length	8
+address	Partner_IO » Outputs_P » Outputs_P » 0	ProcessImage	0
+address	Partner_IO » Outputs_P » Outputs_P » 0	StartAddress	0
+device	Spare_PN	group	Line/Cell
+device	Spare_PN	HwIdentifier	32
+device	Spare_PN	Comment	
+device	Spare_PN	IsGsd	False
+device	Spare_PN	Name	Spare_PN
+device	Spare_PN	TypeIdentifier	System:Device.ET200SP
+device	Spare_PN	TypeIdentifierNormalized	System:Device.ET200SP
+device	Spare_PN	TypeName	ET 200SP-Station
+item	Spare_PN » Rack_0	Classification	None
+item	Spare_PN » Rack_0	Comment	
+item	Spare_PN » Rack_0	IsBuiltIn	False
+item	Spare_PN » Rack_0	IsPlugged	True
+item	Spare_PN » Rack_0	Name	Rack_0
+item	Spare_PN » Rack_0	PositionNumber	0
+item	Spare_PN » Rack_0	TypeIdentifier	System:Rack.ET200SP
+item	Spare_PN » Rack_0	TypeIdentifierNormalized	System:Rack.ET200SP
+item	Spare_PN » Rack_0	TypeName	Rack
+item	Spare_PN » Rack_0	HwIdentifier	256
+item	Spare_PN » Spare_PN	AdditionalInformation	
+item	Spare_PN » Spare_PN	Classification	HM
+item	Spare_PN » Spare_PN	Comment	
+item	Spare_PN » Spare_PN	FirmwareVersion	V4.2
+item	Spare_PN » Spare_PN	IsBuiltIn	False
+item	Spare_PN » Spare_PN	IsPlugged	True
+item	Spare_PN » Spare_PN	LocationIdentifier	
+item	Spare_PN » Spare_PN	Name	Spare_PN
+item	Spare_PN » Spare_PN	OrderNumber	6ES7 155-6AU01-0BN0
+item	Spare_PN » Spare_PN	PlantDesignation	
+item	Spare_PN » Spare_PN	PositionNumber	0
+item	Spare_PN » Spare_PN	SharedDeviceAccessConfigured	True
+item	Spare_PN » Spare_PN	SharedDeviceAccessType	Unknown
+item	Spare_PN » Spare_PN	ShortDesignation	IM 155-6 PN ST
+item	Spare_PN » Spare_PN	TypeIdentifier	OrderNumber:6ES7 155-6AU01-0BN0/V4.2
+item	Spare_PN » Spare_PN	TypeIdentifierNormalized	OrderNumber:6ES7155-6AU01-0BN0/V4.2
+item	Spare_PN » Spare_PN	TypeName	IM 155-6 PN ST
+item	Spare_PN » Spare_PN	HwIdentifier	257
+item	Spare_PN » Spare_PN » Spare_PN	Classification	None
+item	Spare_PN » Spare_PN » Spare_PN	IsBuiltIn	True
+item	Spare_PN » Spare_PN » Spare_PN	IsPlugged	True
+item	Spare_PN » Spare_PN » Spare_PN	Name	Spare_PN
+item	Spare_PN » Spare_PN » Spare_PN	OptionHandling	False
+item	Spare_PN » Spare_PN » Spare_PN	PnSubslotNumber	1
+item	Spare_PN » Spare_PN » Spare_PN	PositionNumber	0
+item	Spare_PN » Spare_PN » Spare_PN	SharedDeviceAccessConfigured	True
+item	Spare_PN » Spare_PN » Spare_PN	SharedDeviceAccessType	Unknown
+item	Spare_PN » Spare_PN » Spare_PN	StartupComparisonPresetToActualModule	0
+item	Spare_PN » Spare_PN » Spare_PN	HwIdentifier	258
+address	Spare_PN » Spare_PN » Spare_PN » 0	IoType	Diagnosis
+address	Spare_PN » Spare_PN » Spare_PN » 0	Length	0
+address	Spare_PN » Spare_PN » Spare_PN » 0	StartAddress	-1
+item	Spare_PN » Spare_PN » PROFINET interface	AlternativeRedundancy	True
+item	Spare_PN » Spare_PN » PROFINET interface	Classification	None
+item	Spare_PN » Spare_PN » PROFINET interface	Comment	
+item	Spare_PN » Spare_PN » PROFINET interface	IECV22LLDPMode	False
+item	Spare_PN » Spare_PN » PROFINET interface	InterfaceOperatingMode	IoDevice
+item	Spare_PN » Spare_PN » PROFINET interface	InterfaceType	Ethernet
+item	Spare_PN » Spare_PN » PROFINET interface	IsBuiltIn	True
+item	Spare_PN » Spare_PN » PROFINET interface	IsPlugged	True
+item	Spare_PN » Spare_PN » PROFINET interface	Label	X1
+item	Spare_PN » Spare_PN » PROFINET interface	MediaRedundancyRole	NotInRing
+item	Spare_PN » Spare_PN » PROFINET interface	Name	PROFINET interface
+item	Spare_PN » Spare_PN » PROFINET interface	PnSubslotNumber	32768
+item	Spare_PN » Spare_PN » PROFINET interface	PositionNumber	1
+item	Spare_PN » Spare_PN » PROFINET interface	SharedDeviceAccessConfigured	True
+item	Spare_PN » Spare_PN » PROFINET interface	SharedDeviceAccessType	Unknown
+item	Spare_PN » Spare_PN » PROFINET interface	HwIdentifier	259
+address	Spare_PN » Spare_PN » PROFINET interface » 0	IoType	Diagnosis
+address	Spare_PN » Spare_PN » PROFINET interface » 0	Length	0
+address	Spare_PN » Spare_PN » PROFINET interface » 0	StartAddress	-1
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	Address	192.168.0.30
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	IpProtocolSelection	Project
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	Name	IE1
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	NodeId	IE1
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	NodeType	Ethernet
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	PnDeviceName	spare
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	PnDeviceNameAutoGeneration	False
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	PnDeviceNameConverted	spare
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	SubnetMask	255.255.255.0
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	SyncRouterSettingsWithIoController	True
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	UseIpProtocol	True
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	UseIsoProtocol	False
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	UseRouter	False
+node	Spare_PN » Spare_PN » PROFINET interface » IE1	subnet	PN/IE_1
+interface	Spare_PN » Spare_PN » PROFINET interface	connectedTo	
+interface	Spare_PN » Spare_PN » PROFINET interface	connectedTo	
+item	Spare_PN » BA 2xRJ45	AdditionalInformation	
+item	Spare_PN » BA 2xRJ45	Classification	None
+item	Spare_PN » BA 2xRJ45	Comment	
+item	Spare_PN » BA 2xRJ45	FirmwareVersion	V0.0
+item	Spare_PN » BA 2xRJ45	IsBuiltIn	False
+item	Spare_PN » BA 2xRJ45	IsPlugged	True
+item	Spare_PN » BA 2xRJ45	LocationIdentifier	
+item	Spare_PN » BA 2xRJ45	Name	BA 2xRJ45
+item	Spare_PN » BA 2xRJ45	OrderNumber	6ES7 193-6AR00-0AA0
+item	Spare_PN » BA 2xRJ45	PlantDesignation	
+item	Spare_PN » BA 2xRJ45	PnSubslotNumber	32895
+item	Spare_PN » BA 2xRJ45	PositionNumber	127
+item	Spare_PN » BA 2xRJ45	ShortDesignation	BA 2xRJ45
+item	Spare_PN » BA 2xRJ45	TypeIdentifier	OrderNumber:6ES7 193-6AR00-0AA0/V0.0
+item	Spare_PN » BA 2xRJ45	TypeIdentifierNormalized	OrderNumber:6ES7193-6AR00-0AA0/V0.0
+item	Spare_PN » BA 2xRJ45	TypeName	BA 2xRJ45
+item	Spare_PN » BA 2xRJ45 » Port_1	CableName	None
+item	Spare_PN » BA 2xRJ45 » Port_1	Classification	None
+item	Spare_PN » BA 2xRJ45 » Port_1	Comment	
+item	Spare_PN » BA 2xRJ45 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	Spare_PN » BA 2xRJ45 » Port_1	EndOfSyncDomain	False
+item	Spare_PN » BA 2xRJ45 » Port_1	EndOfTopologyDiscovery	False
+item	Spare_PN » BA 2xRJ45 » Port_1	IsBuiltIn	True
+item	Spare_PN » BA 2xRJ45 » Port_1	IsPlugged	True
+item	Spare_PN » BA 2xRJ45 » Port_1	Label	P1R
+item	Spare_PN » BA 2xRJ45 » Port_1	MediumAttachmentType	Copper
+item	Spare_PN » BA 2xRJ45 » Port_1	Name	Port_1
+item	Spare_PN » BA 2xRJ45 » Port_1	PnSubslotNumber	32769
+item	Spare_PN » BA 2xRJ45 » Port_1	PortActivation	True
+item	Spare_PN » BA 2xRJ45 » Port_1	PortMonitoring	False
+item	Spare_PN » BA 2xRJ45 » Port_1	PositionNumber	1
+item	Spare_PN » BA 2xRJ45 » Port_1	SharedDeviceAccessConfigured	True
+item	Spare_PN » BA 2xRJ45 » Port_1	SharedDeviceAccessType	Unknown
+item	Spare_PN » BA 2xRJ45 » Port_1	TransmissionRateAndDuplex	Automatic
+item	Spare_PN » BA 2xRJ45 » Port_1	TransmissionRateAutoNegotiation	True
+item	Spare_PN » BA 2xRJ45 » Port_1	HwIdentifier	260
+address	Spare_PN » BA 2xRJ45 » Port_1 » 0	IoType	Diagnosis
+address	Spare_PN » BA 2xRJ45 » Port_1 » 0	Length	0
+address	Spare_PN » BA 2xRJ45 » Port_1 » 0	StartAddress	-1
+item	Spare_PN » BA 2xRJ45 » Port_2	CableName	None
+item	Spare_PN » BA 2xRJ45 » Port_2	Classification	None
+item	Spare_PN » BA 2xRJ45 » Port_2	Comment	
+item	Spare_PN » BA 2xRJ45 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	Spare_PN » BA 2xRJ45 » Port_2	EndOfSyncDomain	False
+item	Spare_PN » BA 2xRJ45 » Port_2	EndOfTopologyDiscovery	False
+item	Spare_PN » BA 2xRJ45 » Port_2	IsBuiltIn	True
+item	Spare_PN » BA 2xRJ45 » Port_2	IsPlugged	True
+item	Spare_PN » BA 2xRJ45 » Port_2	Label	P2R
+item	Spare_PN » BA 2xRJ45 » Port_2	MediumAttachmentType	Copper
+item	Spare_PN » BA 2xRJ45 » Port_2	Name	Port_2
+item	Spare_PN » BA 2xRJ45 » Port_2	PnSubslotNumber	32770
+item	Spare_PN » BA 2xRJ45 » Port_2	PortActivation	True
+item	Spare_PN » BA 2xRJ45 » Port_2	PortMonitoring	False
+item	Spare_PN » BA 2xRJ45 » Port_2	PositionNumber	2
+item	Spare_PN » BA 2xRJ45 » Port_2	SharedDeviceAccessConfigured	True
+item	Spare_PN » BA 2xRJ45 » Port_2	SharedDeviceAccessType	Unknown
+item	Spare_PN » BA 2xRJ45 » Port_2	TransmissionRateAndDuplex	Automatic
+item	Spare_PN » BA 2xRJ45 » Port_2	TransmissionRateAutoNegotiation	True
+item	Spare_PN » BA 2xRJ45 » Port_2	HwIdentifier	261
+address	Spare_PN » BA 2xRJ45 » Port_2 » 0	IoType	Diagnosis
+address	Spare_PN » BA 2xRJ45 » Port_2 » 0	Length	0
+address	Spare_PN » BA 2xRJ45 » Port_2 » 0	StartAddress	-1
+item	Spare_PN » Inputs_S	AdditionalInformation	
+item	Spare_PN » Inputs_S	BaseUnit	
+item	Spare_PN » Inputs_S	Classification	None
+item	Spare_PN » Inputs_S	Comment	
+item	Spare_PN » Inputs_S	EnableValueStatus	False
+item	Spare_PN » Inputs_S	FirmwareVersion	V0.0
+item	Spare_PN » Inputs_S	IsBuiltIn	False
+item	Spare_PN » Inputs_S	IsPlugged	True
+item	Spare_PN » Inputs_S	LocationIdentifier	
+item	Spare_PN » Inputs_S	Name	Inputs_S
+item	Spare_PN » Inputs_S	OrderNumber	6ES7 131-6BF01-0BA0
+item	Spare_PN » Inputs_S	PlantDesignation	
+item	Spare_PN » Inputs_S	PositionNumber	1
+item	Spare_PN » Inputs_S	PotentialGroup	1
+item	Spare_PN » Inputs_S	SharedDeviceAccessConfigured	True
+item	Spare_PN » Inputs_S	SharedDeviceAccessType	Unknown
+item	Spare_PN » Inputs_S	ShortDesignation	DI 8x24VDC ST
+item	Spare_PN » Inputs_S	StartupComparisonPresetToActualModule	0
+item	Spare_PN » Inputs_S	TypeIdentifier	OrderNumber:6ES7 131-6BF01-0BA0/V0.0
+item	Spare_PN » Inputs_S	TypeIdentifierNormalized	OrderNumber:6ES7131-6BF01-0BA0/V0.0
+item	Spare_PN » Inputs_S	TypeName	DI 8x24VDC ST
+item	Spare_PN » Inputs_S » Inputs_S	Classification	None
+item	Spare_PN » Inputs_S » Inputs_S	Comment	
+item	Spare_PN » Inputs_S » Inputs_S	DiagnosticsNoSupplyVoltage	False
+item	Spare_PN » Inputs_S » Inputs_S	DiagnosticsShortCircuitToGround	False
+item	Spare_PN » Inputs_S » Inputs_S	DiagnosticsWireBreak	False
+item	Spare_PN » Inputs_S » Inputs_S	IsBuiltIn	True
+item	Spare_PN » Inputs_S » Inputs_S	IsPlugged	True
+item	Spare_PN » Inputs_S » Inputs_S	Name	Inputs_S
+item	Spare_PN » Inputs_S » Inputs_S	PnSubslotNumber	1
+item	Spare_PN » Inputs_S » Inputs_S	PositionNumber	1
+item	Spare_PN » Inputs_S » Inputs_S	ReactionToError	2
+item	Spare_PN » Inputs_S » Inputs_S	SharedDeviceAccessConfigured	True
+item	Spare_PN » Inputs_S » Inputs_S	SharedDeviceAccessType	Unknown
+item	Spare_PN » Inputs_S » Inputs_S	HwIdentifier	262
+address	Spare_PN » Inputs_S » Inputs_S » 0	IoType	Input
+address	Spare_PN » Inputs_S » Inputs_S » 0	Length	8
+address	Spare_PN » Inputs_S » Inputs_S » 0	StartAddress	-1
+subnet	PN/IE_1	DefaultSubnet	True
+subnet	PN/IE_1	Name	PN/IE_1
+subnet	PN/IE_1	NetType	Ethernet
+subnet	PN/IE_1	SubnetId	B307-1
+subnet	PN/IE_1	TypeIdentifier	System:Subnet.Ethernet
+subnet	PN/IE_1	node	Controller » Controller » PROFINET interface_1 » X1
+subnet	PN/IE_1	node	Remote_PN_1 » Remote_PN_1 » PROFINET interface » IE1
+subnet	PN/IE_1	node	Remote_PN_2 » Remote_PN_2 » PROFINET interface » IE1
+subnet	PN/IE_1	node	Partner » Partner » PROFINET interface_1 » X1
+subnet	PN/IE_1	node	Partner_IO » Partner_IO » PROFINET interface » IE1
+subnet	PN/IE_1	node	Spare_PN » Spare_PN » PROFINET interface » IE1
+iosystem	Line IO system	MultipleUseIoSystem	False
+iosystem	Line IO system	Name	Line IO system
+iosystem	Line IO system	Number	100
+iosystem	Line IO system	UseIoSystemNameAsDeviceNameExtension	False
+iosystem	Line IO system	HwIdentifier	261
+iosystem	Line IO system	subnet	PN/IE_1
+iosystem	Line IO system	iodevice	Remote_PN_1 » Remote_PN_1 » PROFINET interface
+iosystem	Line IO system	iodevice	Remote_PN_2 » Remote_PN_2 » PROFINET interface
+iosystem	Partner IO system	MultipleUseIoSystem	False
+iosystem	Partner IO system	Name	Partner IO system
+iosystem	Partner IO system	Number	101
+iosystem	Partner IO system	UseIoSystemNameAsDeviceNameExtension	False
+iosystem	Partner IO system	HwIdentifier	257
+iosystem	Partner IO system	subnet	PN/IE_1
+iosystem	Partner IO system	iodevice	Partner_IO » Partner_IO » PROFINET interface
+subnet	PN/IE_2	DefaultSubnet	False
+subnet	PN/IE_2	Name	PN/IE_2
+subnet	PN/IE_2	NetType	Ethernet
+subnet	PN/IE_2	SubnetId	B307-2
+subnet	PN/IE_2	TypeIdentifier	System:Subnet.Ethernet
+subnet	PN/IE_2	node	Controller » Controller » PROFINET interface_2 » X2
+subnet	PROFIBUS_1	BusProfile	Dp
+subnet	PROFIBUS_1	HighestAddress	126
+subnet	PROFIBUS_1	IsochronousMode	False
+subnet	PROFIBUS_1	Name	PROFIBUS_1
+subnet	PROFIBUS_1	NetType	Profibus
+subnet	PROFIBUS_1	PbCableConfiguration	False
+subnet	PROFIBUS_1	PbCyclicDistribution	True
+subnet	PROFIBUS_1	PbGapFactor	10
+subnet	PROFIBUS_1	PbMaxTsdr	150
+subnet	PROFIBUS_1	PbMinTsdr	11
+subnet	PROFIBUS_1	PbRetryLimit	1
+subnet	PROFIBUS_1	PbTid1	37
+subnet	PROFIBUS_1	PbTid2	150
+subnet	PROFIBUS_1	PbTqui	0
+subnet	PROFIBUS_1	PbTrdy	11
+subnet	PROFIBUS_1	PbTset	1
+subnet	PROFIBUS_1	PbTslot	300
+subnet	PROFIBUS_1	PbTslotInit	300
+subnet	PROFIBUS_1	PbTtr	14546
+subnet	PROFIBUS_1	PbTtrTypical	441
+subnet	PROFIBUS_1	PbWatchdog	32728
+subnet	PROFIBUS_1	SubnetId	B307-3
+subnet	PROFIBUS_1	TransmissionSpeed	Baud1500000
+subnet	PROFIBUS_1	TypeIdentifier	System:Subnet.Profibus
+subnet	PROFIBUS_1	node	Controller » Controller » DP interface_1 » X3
+subnet	PROFIBUS_1	node	Remote_DP » Remote_DP » PB1
+iosystem	Line DP system	Name	Line DP system
+iosystem	Line DP system	Number	1
+iosystem	Line DP system	HwIdentifier	262
+iosystem	Line DP system	subnet	PROFIBUS_1
+iosystem	Line DP system	iodevice	Remote_DP » Remote_DP

@@ -1,0 +1,2 @@
+# A program of one OB, which reads an input and sets an output of the hardware (spec 0010).
+Program blocks/Main.scl
