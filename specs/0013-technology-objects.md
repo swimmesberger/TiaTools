@@ -50,7 +50,7 @@ Much of what a machine does is not in its blocks but in its technology objects: 
 
 - FR-001: `tiadump list`, the dump, `tiadump show` and the viewer MUST show every technology object of a PLC with its name, kind, version, number and folder, apart from its blocks.
 - FR-002: The reader MUST show each parameter of a technology object under the name TIA's parameter view gives it, with the value TIA shows: the value set on the object, else its default.
-- FR-003: For every kind the reference project holds, the reader MUST show every parameter TIA reports for the object that is a member of its data block, and MAY show the data block's other members: which members TIA reports is a list of its own per kind that nothing stored gives (`docs/FORMAT.md`, section 19).
+- FR-003: For every kind the reference project holds, the reader MUST show every parameter TIA reports for the object that is a member of its data block, and MAY show the data block's other members: which members TIA reports is a list of its own per kind that nothing stored gives (`docs/FORMAT.md`, section 23).
 - FR-004: A technology object of a kind the reader has not been checked on MUST be shown by the same rules, and MUST NOT make reading the archive fail.
 - FR-005: A technology object that TIA marks as protected by Siemens MUST be shown with every name and value stored in clear; a part stored encrypted MUST stay closed and be reported, as for any protected block.
 - FR-006: A reference project MUST hold invented technology objects of every kind the fifth user story lists, each with at least one parameter set away from its default, built and compiled by TIA Portal V21.

@@ -48,7 +48,7 @@ public sealed record TiaMember(string Name, string Type, string Path, string Sec
 
     /// <summary>
     /// The member's local id among its siblings, the interface's <c>LID</c>: what a link from outside the block names it by,
-    /// such as an HMI tag's link to a data block member (format page, section 19).
+    /// such as an HMI tag's link to a data block member (format page, section 24).
     /// </summary>
     public int? Lid { get; init; }
 
