@@ -187,6 +187,51 @@ public static class TiaSourceWriter {
         }
     }
 
+    /// <summary>
+    /// Writes a technology object as text of our own (spec 0013): its kind and version, then each parameter as TIA's
+    /// parameter view names it, <c>DynamicLimits.MaxVelocity : LReal := 2400.0;</c>. Nothing TIA could import.
+    /// </summary>
+    public static void WriteTechnologyObject(TiaProgram program, TiaTechnologyObject technologyObject, PooledByteWriter output) {
+        output.Write("// TO number="u8);
+        output.Write(technologyObject.Number?.ToString(CultureInfo.InvariantCulture) ?? "-");
+        output.Write(" kind="u8);
+        output.Write(technologyObject.Kind);
+        output.Write(" version="u8);
+        output.Write(technologyObject.Version ?? "-");
+        output.Write(" know-how="u8);
+        output.Write(technologyObject.IsKnowHowProtected ? "yes"u8 : "no"u8);
+        output.Write(" plc="u8);
+        output.Write(program.PlcName(technologyObject.Frame) ?? "-");
+        output.Write("\n// folder: "u8);
+        output.Write(program.FolderPath(technologyObject.Frame));
+        output.Write("\nTECHNOLOGY_OBJECT \""u8);
+        output.Write(technologyObject.Name);
+        output.Write("\" : "u8);
+        output.Write(technologyObject.Kind);
+        output.Write("\n{ VERSION := '"u8);
+        output.Write(technologyObject.Version ?? "");
+        output.Write("'; NUMBER := "u8);
+        output.Write(technologyObject.Number?.ToString(CultureInfo.InvariantCulture) ?? "-");
+        output.Write(" }\n"u8);
+        var parameters = program.ReadParameters(technologyObject);
+        if (parameters.Count == 0 && technologyObject.IsKnowHowProtected) {
+            output.Write(ProtectedMarker);
+            output.Write((byte)'\n');
+        }
+        foreach (var parameter in parameters) {
+            output.Write("   "u8);
+            output.Write(parameter.Name);
+            output.Write(" : "u8);
+            output.Write(parameter.Type);
+            if (parameter.Value is { } value) {
+                output.Write(" := "u8);
+                output.Write(value);
+            }
+            output.Write(";\n"u8);
+        }
+        output.Write("END_TECHNOLOGY_OBJECT\n"u8);
+    }
+
     private static string ReturnType(IReadOnlyList<TiaMember> members) {
         foreach (var member in members) {
             if (member.Section == "Return") {
@@ -257,8 +302,25 @@ public static class TiaSourceWriter {
             output.Write(";\n"u8);
         }
         output.Write("\nEND_DATA_BLOCK\n\n"u8);
+        WriteProDiagAssignments(output, program.ReadProDiagAssignments(block));
         if (type is not null) {
             WriteAsComment(output, "// The members of its type, with the start values known:\n"u8, members);
+        }
+    }
+
+    /// <summary>
+    /// Which ProDiag function block a data block or its members are assigned to, as comment lines after the block: TIA's
+    /// generated source does not show it (spec 0016).
+    /// </summary>
+    private static void WriteProDiagAssignments(PooledByteWriter output, IReadOnlyList<TiaProDiagAssignment> assignments) {
+        foreach (var assignment in assignments) {
+            output.Write("// assigned to ProDiag function block "u8);
+            output.Write(assignment.FunctionBlock);
+            if (assignment.Member is not null) {
+                output.Write(": "u8);
+                output.Write(assignment.Member);
+            }
+            output.Write((byte)'\n');
         }
     }
 

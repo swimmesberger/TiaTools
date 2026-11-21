@@ -1,0 +1,6 @@
+screen	number	item	type	left	top	width	height	tag or text
+Overview	1	LevelLabel	Text	20	40	160	30	Tank level
+Overview	1	LevelValue	IOField	200	40	120	30	TankLevel
+Overview	1	TempValue	IOField	200	90	120	30	TankTemp
+Recipe	2	SpeedValue	IOField	200	40	120	30	RecipeSpeed
+Recipe	2	StartButton	Button	20	120	120	40	

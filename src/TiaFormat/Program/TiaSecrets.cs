@@ -14,7 +14,8 @@ internal static class TiaSecrets {
 
     public static bool IsSecretName(string name) => Name.IsMatch(name);
 
-    /// <summary>User management (<c>Umac</c>), certificates and their stores.</summary>
+    /// <summary>User management (<c>Umac</c>), an HMI device's runtime users and their rights (<c>RTSecurity</c>), certificates and their stores.</summary>
     public static bool IsSecretType(string fullName) =>
-        fullName.Contains("Umac", StringComparison.Ordinal) || fullName.Contains("Certificate", StringComparison.Ordinal) || fullName.Contains("Pki", StringComparison.Ordinal);
+        fullName.Contains("Umac", StringComparison.Ordinal) || fullName.Contains(".RTSecurity.", StringComparison.Ordinal)
+        || fullName.Contains("Certificate", StringComparison.Ordinal) || fullName.Contains("Pki", StringComparison.Ordinal);
 }

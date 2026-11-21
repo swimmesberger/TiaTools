@@ -1,0 +1,16 @@
+ORGANIZATION_BLOCK "Main"
+TITLE = "Main Program Sweep (Cycle)"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      Initial_Call : Bool;   // Initial call of this OB
+      Remanence : Bool;   // =True, if remanent data are available
+   END_VAR
+
+
+BEGIN
+	"UseRecipe"();
+	"Sealed"();
+	"LadBoxesData"();
+	"StatusWord" := "StatusWord" OR 16#0001;
+END_ORGANIZATION_BLOCK

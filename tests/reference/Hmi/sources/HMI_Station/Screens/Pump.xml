@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21" />
+  <Hmi.Screen.Screen ID="0">
+    <AttributeList>
+      <Name>Pump</Name>
+      <Number>2</Number>
+    </AttributeList>
+    <ObjectList>
+      <Hmi.Screen.ScreenLayer ID="1" CompositionName="Layers">
+        <AttributeList>
+          <Index>0</Index>
+        </AttributeList>
+        <ObjectList>
+          <Hmi.Screen.TextField ID="2" CompositionName="ScreenItems">
+            <AttributeList>
+              <ObjectName>SpeedLabel</ObjectName>
+              <Left>20</Left>
+              <Top>40</Top>
+              <Width>160</Width>
+              <Height>30</Height>
+            </AttributeList>
+            <ObjectList>
+              <MultilingualText ID="3" CompositionName="Text">
+                <ObjectList>
+                  <MultilingualTextItem ID="4" CompositionName="Items">
+                    <AttributeList>
+                      <Culture>en-US</Culture>
+                      <Text>&lt;body&gt;&lt;p&gt;Pump speed&lt;/p&gt;&lt;/body&gt;</Text>
+                    </AttributeList>
+                  </MultilingualTextItem>
+                </ObjectList>
+              </MultilingualText>
+            </ObjectList>
+          </Hmi.Screen.TextField>
+          <Hmi.Screen.IOField ID="5" CompositionName="ScreenItems">
+            <AttributeList>
+              <ObjectName>SpeedValue</ObjectName>
+              <Left>200</Left>
+              <Top>40</Top>
+              <Width>120</Width>
+              <Height>30</Height>
+            </AttributeList>
+          </Hmi.Screen.IOField>
+        </ObjectList>
+      </Hmi.Screen.ScreenLayer>
+    </ObjectList>
+  </Hmi.Screen.Screen>
+</Document>

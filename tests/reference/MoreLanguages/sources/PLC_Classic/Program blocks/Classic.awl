@@ -1,0 +1,39 @@
+FUNCTION "Classic" : Void
+TITLE = Classic statement list
+VERSION : 0.1
+//An S5 timer, a counter, absolute addresses and a data block opened by number.
+   VAR_INPUT
+      start : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      elapsed : Bool;
+      parts : Word;
+   END_VAR
+
+
+BEGIN
+NETWORK
+TITLE = An on-delay timer
+      A     #start;
+      L     S5T#2S;
+      SD    %T1;
+      A     %T1;
+      =     #elapsed;
+NETWORK
+TITLE = A counter
+      A     %I0.2;
+      CU    %C1;
+      A     %I0.3;
+      R     %C1;
+      L     %C1;
+      T     #parts;
+NETWORK
+TITLE = A data block by number
+      OPN   %DB1;
+      L     %DBW2;
+      T     %MW10;
+      L     %DB1.DBW0;
+      T     %QW0;
+END_FUNCTION
+

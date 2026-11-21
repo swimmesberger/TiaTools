@@ -1,0 +1,6 @@
+type	SSI_Absolute_Encoder
+version	3.1
+Configuration.SSIParam.FrameLength	25
+Configuration.SSIParam.CodeType	true
+Configuration.SSIParam.InvertDirection	true
+Configuration.BehaviorDQ0.PulseDuration	125

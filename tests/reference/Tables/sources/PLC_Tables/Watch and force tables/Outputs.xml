@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21"/>
+  <SW.WatchAndForceTables.PlcWatchTable ID="0">
+    <AttributeList>
+      <Name>Outputs</Name>
+    </AttributeList>
+    <ObjectList>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="1" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>Bool</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue>TRUE</ModifyValue>
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"Motor"</Name>
+        </AttributeList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="2" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>Bool</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue/>
+          <MonitorTrigger>PermanentAtEnd</MonitorTrigger>
+          <Name>"Alarm"</Name>
+        </AttributeList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+    </ObjectList>
+  </SW.WatchAndForceTables.PlcWatchTable>
+</Document>

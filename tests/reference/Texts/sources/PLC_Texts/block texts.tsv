@@ -1,0 +1,3 @@
+# A block's title or comment per project language, set through Openness after the text sources are generated.
+Tank	Title	de-DE=Behälter überwachen	en-US=Watch the tank	fr-FR=Surveiller le réservoir
+Tank	Comment	de-DE=Meldet einen hohen und einen niedrigen Füllstand.	en-US=Reports a high and a low level.	fr-FR=Signale un niveau haut et un niveau bas.

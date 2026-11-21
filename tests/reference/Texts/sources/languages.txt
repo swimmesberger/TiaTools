@@ -1,0 +1,5 @@
+# The project languages (spec 0014): the editing language, the reference language, and any others.
+# German edits, so the reader must follow the project rather than prefer English.
+editing de-DE
+reference en-US
+active fr-FR

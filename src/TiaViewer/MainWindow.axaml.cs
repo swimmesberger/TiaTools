@@ -114,6 +114,9 @@ public sealed partial class MainWindow : Window {
         };
 
         OpcUaPanel.Open += OpenFromOpcUa;
+        DevicesPanel.Open += OpenConstant;
+        SafetyPanel.Open += OpenFromOpcUa;
+        HmiPanel.Open += OpenFromHmi;
         OpcUaPanel.Said += text => {
             Status.Text = text;
             ShowFolderButton.IsVisible = false;
@@ -136,12 +139,15 @@ public sealed partial class MainWindow : Window {
         }
     }
 
-    public async Task OpenAsync(string path) {
+    /// <summary>Opens a file, its texts in <paramref name="language"/>, or in its editing language if none is given (spec 0014).</summary>
+    public async Task OpenAsync(string path, string? language = null) {
         Status.Text = "Opening " + Path.GetFileName(path) + "…";
         Busy.IsVisible = true;
+        // The same file in another language comes back at the item that was shown.
+        var again = language is not null && _project?.Path == path ? _current : null;
         try {
             var project = await Task.Run(() => {
-                var opened = TiaProject.Open(path);
+                var opened = TiaProject.Open(path, language);
                 opened.BuildIndex();
                 return opened;
             });
@@ -158,6 +164,9 @@ public sealed partial class MainWindow : Window {
             HeadingBar.IsVisible = false;
             Editor.IsVisible = false;
             OpcUaPanel.IsVisible = false;
+            DevicesPanel.IsVisible = false;
+            SafetyPanel.IsVisible = false;
+            HmiPanel.IsVisible = false;
             ShowPanels(true);
             Editor.Document = new TextDocument();
             ShowWelcome(project.Root.Name, $"Choose a block on the left.\n{Command} + click a name in the source to follow it.", canOpen: false);
@@ -172,9 +181,16 @@ public sealed partial class MainWindow : Window {
             ResultsList.ItemsSource = null;
             ResultsChip.IsVisible = false;
             UpdateNavigation();
+            ShowLanguages();
             UpdateMenu();
             RememberOpened(path);
-        } catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or TiaFormat.TiaFormatException) {
+            if (project.Program.Language is { } shown) {
+                Status.Text += "  ·  " + shown.Name;
+            }
+            if (again is not null && project.Items.Concat(project.Reports).FirstOrDefault(item => item.Kind == again.Kind && item.Name == again.Name && item.Scope == again.Scope) is { } same) {
+                Navigate(same, 0);
+            }
+        } catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or TiaFormat.TiaFormatException or TiaLanguageException) {
             Status.Text = "Could not open it: " + e.Message;
             // A recent file that is gone or broken would fail again.
             _recent.Remove(path);
@@ -221,6 +237,22 @@ public sealed partial class MainWindow : Window {
         }
     }
 
+    /// <summary>Opens a system constant the devices view names, in its PLC's tag table.</summary>
+    private void OpenConstant(string plc, string name) {
+        if (_project?.Resolve(plc, name) is { } location) {
+            Navigate(location.Item, location.Line);
+        } else {
+            Status.Text = name + " is in no tag table of " + plc + ".";
+        }
+    }
+
+    /// <summary>Opens the PLC tag or data block an HMI tag reads, as following it in the source would.</summary>
+    private void OpenFromHmi(TiaHmiPlcLink link) {
+        if (_project?.Resolve(link) is { } location) {
+            Navigate(location.Item, location.Line);
+        }
+    }
+
     /// <summary>Follows the name at a position in the text, if it leads somewhere.</summary>
     public bool FollowAt(int offset) {
         if (_project is not { } project || _current is not { } current) {
@@ -251,14 +283,27 @@ public sealed partial class MainWindow : Window {
             if (project.OpcUa(item) is { } opcUa) {
                 OpcUaPanel.Show(opcUa, () => project.OpcUaNodes(item)!);
             }
+            if (project.Hardware(item) is { } hardware) {
+                DevicesPanel.Show(hardware);
+            }
+            if (project.Safety(item) is { } safety) {
+                SafetyPanel.Show(safety);
+            }
+            if (project.HmiDevice(item) is { } device) {
+                HmiPanel.Show(device, item.HmiPart, item.Name);
+            }
             if (!keepLists) {
                 ShowPlaces(item);
             }
         }
         Welcome.IsVisible = false;
-        // A PLC's OPC UA configuration has a view of its own; its text stays in the editor for copying.
+        // A PLC's OPC UA configuration and safety program, the project's hardware and an HMI entry have views of their own;
+        // their text stays in the editor for copying.
         Editor.IsVisible = !item.IsReport;
-        OpcUaPanel.IsVisible = item.IsReport;
+        OpcUaPanel.IsVisible = item.Kind == TiaItem.OpcUaReportKind;
+        SafetyPanel.IsVisible = item.Kind == TiaItem.SafetyReportKind;
+        DevicesPanel.IsVisible = item.IsHardware;
+        HmiPanel.IsVisible = item.IsHmi;
         ShowPanels(!item.IsReport);
         ShowHeading(item);
         var clamped = Math.Clamp(line, 0, document.LineCount - 1);
@@ -293,8 +338,14 @@ public sealed partial class MainWindow : Window {
         UsedByCount.Text = usedBy.Count.ToString(CultureInfo.InvariantCulture);
         UsesCount.Text = uses.Count.ToString(CultureInfo.InvariantCulture);
         var closed = item is null || project is null ? 0 : project.ClosedBlocksAround(item);
-        ClosedNote.Text = closed == 0 ? "" : string.Create(CultureInfo.InvariantCulture, $"{closed} blocks on this PLC are closed. What they call or use is not known, so this list may be incomplete.");
-        ClosedNote.IsVisible = closed != 0;
+        // Spec 0015, FR-009: references found in the text say so.
+        var note = project is null || !project.ReferencesFromText ? ""
+            : "These come from the text: the archive holds no cross-reference list of TIA's that belongs to it, so some uses may be missed.";
+        if (closed != 0) {
+            note += string.Create(CultureInfo.InvariantCulture, $" {closed} blocks on this PLC are closed. What they call or use is not known, so this list may be incomplete.");
+        }
+        ClosedNote.Text = note.Trim();
+        ClosedNote.IsVisible = note.Length != 0;
     }
 
     private void ShowHeading(TiaItem item) {
@@ -305,8 +356,8 @@ public sealed partial class MainWindow : Window {
         LanguageText.Text = item.Language;
         LanguageChip.IsVisible = item.Language is not null;
         ClosedChip.IsVisible = item.IsClosed;
-        ExportBlockButton.IsVisible = !item.IsReport;
-        ToolTip.SetTip(CopyButton, item.IsReport ? "Copy this report" : "Copy this block's source");
+        ExportBlockButton.IsVisible = !item.IsReport && !item.IsTable;
+        ToolTip.SetTip(CopyButton, item.IsReport ? "Copy this report" : item.IsTable ? "Copy this table" : "Copy this block's source");
         Breadcrumb.Text = _paths.GetValueOrDefault(item, "");
     }
 
@@ -384,7 +435,12 @@ public sealed partial class MainWindow : Window {
         "DB" => "data blocks",
         "UDT" => "PLC data types",
         "Tags" => "tag tables",
+        "Watch" => "watch tables",
+        "Force" => "force tables",
+        TiaItem.TechnologyObjectKind => "technology objects",
         TiaItem.OpcUaReportKind => "the OPC UA entries",
+        TiaItem.SafetyReportKind => "the safety entries",
+        TiaItem.HmiKind => "the HMI devices' entries",
         _ => kind + " blocks",
     };
 
@@ -561,9 +617,11 @@ public sealed partial class MainWindow : Window {
             var result = await Task.Run(() => new TiaSourceExport(project.Program, target) {
                 Blocks = chosen is null ? null : block => chosen.Contains(block.Frame.Key),
                 TagTables = chosen is null ? null : table => chosen.Contains(table.Frame.Key),
+                WatchTables = chosen is null ? null : table => chosen.Contains(table.Frame.Key),
+                TechnologyObjects = chosen is null ? null : technologyObject => chosen.Contains(technologyObject.Frame.Key),
             }.Run());
             // The status bar has room for the gist; the tip has the rest.
-            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles} files to \"{Path.GetFileName(target)}\"");
+            var text = string.Create(CultureInfo.InvariantCulture, $"Exported {result.BlockFiles + result.TagFiles + result.WatchFiles + result.TechnologyObjectFiles} files to \"{Path.GetFileName(target)}\"");
             if (result.Failures.Count != 0) {
                 text += string.Create(CultureInfo.InvariantCulture, $", {result.Failures.Count} blocks failed");
             }
@@ -591,6 +649,12 @@ public sealed partial class MainWindow : Window {
         }
         if (node.Item?.Table is { } table) {
             chosen.Add(table.Frame.Key);
+        }
+        if (node.Item?.WatchTable is { } watch) {
+            chosen.Add(watch.Frame.Key);
+        }
+        if (node.Item?.TechnologyObject is { } technologyObject) {
+            chosen.Add(technologyObject.Frame.Key);
         }
         foreach (var child in node.Children) {
             Collect(child, chosen);

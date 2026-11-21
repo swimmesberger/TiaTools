@@ -1,0 +1,7 @@
+type	High_Speed_Counter
+version	4.0
+Configuration.Module	@HSC_1
+Configuration.CounterInputs.InvertDirection	true
+Configuration.Values.UpperCountingLimit	50000
+Configuration.Values.Reference1	250
+Configuration.BehaviorDQ0.PulseDuration	250

@@ -1,0 +1,4 @@
+# Compile errors the build accepts: technology object, TIA's message. Only for a hardware connection, which spec 0013 leaves out.
+Wheel	The input address of the encoder telegram is not set.
+Wheel	The output address of the encoder telegram is not set.
+Wheel	The set telegram types of the encoder at the input and output do not match.

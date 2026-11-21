@@ -196,15 +196,15 @@ public static class TiaDocumentBuilder {
                 var line = LineEnd(text, i, end);
                 var close = text.IndexOf('"', i + 1, line - i - 1);
                 i = close < 0 ? line : close + 1;
-                var target = close < 0 || IsMemberName(text, from, i, end) ? null : text[(from + 1)..(i - 1)];
-                tokens.Add(new TiaToken(from, i - from, target is null ? TiaTokenKind.Member : TiaTokenKind.Global, target));
+                var target = close < 0 || (!InStatements(text, from) && IsMemberName(text, from, i, end)) ? null : text[(from + 1)..(i - 1)];
+                tokens.Add(new TiaToken(from, i - from, target is null ? TiaTokenKind.Member : TiaTokenKind.Global, target, target is not null && IsCall(text, from, i, end)));
             } else if (c == '\'') {
                 var close = text.IndexOf('\'', i + 1, end - i - 1);
                 i = close < 0 ? end : close + 1;
                 tokens.Add(new TiaToken(from, i - from, TiaTokenKind.Literal));
             } else if (c == '#') {
                 i = WordStop(text, i + 1, end);
-                tokens.Add(new TiaToken(from, i - from, TiaTokenKind.Local));
+                tokens.Add(new TiaToken(from, i - from, TiaTokenKind.Local, IsCall: InStatements(text, from) && IsCall(text, from, i, end)));
             } else if (char.IsDigit(c) || c == '-' && i + 1 < end && char.IsDigit(text[i + 1])) {
                 i++;
                 while (i < end && (char.IsLetterOrDigit(text[i]) || text[i] == '#' || (text[i] == '.' && i + 1 < end && char.IsDigit(text[i + 1])))) {
@@ -227,6 +227,44 @@ public static class TiaDocumentBuilder {
                 i++;
             }
         }
+    }
+
+    /// <summary>
+    /// In the statement form of a code block, after its <c>BEGIN</c>: there a name at the start of a line is what the
+    /// statement writes, not a member being declared or set as in a data block (spec 0015, FR-010).
+    /// </summary>
+    private static bool InStatements(string text, int at) {
+        var body = text.IndexOf("\nBEGIN\n", StringComparison.Ordinal);
+        if (body < 0 || at <= body) {
+            return false;
+        }
+        // The first line that is no comment says what the text is.
+        var line = 0;
+        while (line < text.Length && text.AsSpan(line).StartsWith("//")) {
+            var next = text.IndexOf('\n', line);
+            line = next < 0 ? text.Length : next + 1;
+        }
+        var head = text.AsSpan(line);
+        return head.StartsWith("FUNCTION") || head.StartsWith("ORGANIZATION_BLOCK");
+    }
+
+    /// <summary>
+    /// What a statement calls: a name followed by its parameters, <c>"Limit"(...)</c>, or by a member and its parameters,
+    /// <c>"LampDelay".TON(...)</c>, or after STL's <c>CALL</c>.
+    /// </summary>
+    private static bool IsCall(string text, int from, int after, int end) {
+        var at = after;
+        if (at < end && text[at] == '.') {
+            at = WordStop(text, at + 1, end);
+        }
+        if (at < end && text[at] == '(') {
+            return true;
+        }
+        var before = from;
+        while (before > 0 && text[before - 1] is ' ' or '\t') {
+            before--;
+        }
+        return before >= 4 && text.AsSpan(before - 4, 4).Equals("CALL", StringComparison.OrdinalIgnoreCase);
     }
 
     private static int WordStop(string text, int at, int end) {

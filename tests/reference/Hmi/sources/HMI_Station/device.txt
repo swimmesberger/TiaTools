@@ -1,0 +1,5 @@
+# An ET 200SP Open Controller with WinCC RT Advanced, a Comfort/Advanced HMI device, on its own software PLC (spec 0011).
+family	Advanced
+type	OrderNumber:6ES7 677-2DBx2-0xx0/V21.9
+device	PC_Station
+plc	PLC_Station

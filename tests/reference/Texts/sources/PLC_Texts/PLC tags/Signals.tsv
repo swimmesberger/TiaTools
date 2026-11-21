@@ -1,0 +1,3 @@
+levelSensor	Int	%IW10	de-DE=Füllstandsensor	en-US=Level sensor	fr-FR=Capteur de niveau
+pumpOn	Bool	%Q4.0	de-DE=Pumpe ein	en-US=Pump on	fr-FR=Pompe en marche
+spare	Bool	%Q4.1	en-US=Spare output

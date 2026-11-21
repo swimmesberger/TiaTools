@@ -12,21 +12,21 @@ internal static class SimaticMlNetworks {
     /// <summary>A compile unit of the export: its language, title, comment and network source.</summary>
     public sealed record Unit(string Language, string Title, string Comment, XElement Source);
 
-    public static List<Unit> Units(string file) {
+    /// <summary>The compile units of an export, each title and comment in the language <paramref name="preference"/> picks (spec 0014, FR-004).</summary>
+    public static List<Unit> Units(string file, IReadOnlyList<string> preference) {
         var document = XDocument.Load(file);
         return [.. document.Descendants().Where(element => element.Name.LocalName == "SW.Blocks.CompileUnit").Select(unit => {
             var attributes = unit.Element("AttributeList")!;
             return new Unit(
                 attributes.Element("ProgrammingLanguage")?.Value ?? "",
-                Text(unit, "Title"),
-                Text(unit, "Comment"),
+                Text(unit, "Title", preference),
+                Text(unit, "Comment", preference),
                 attributes.Element("NetworkSource")?.Elements().FirstOrDefault() ?? new XElement("Empty"));
         })];
     }
 
-    private static string Text(XElement unit, string composition) =>
-        unit.Element("ObjectList")?.Elements("MultilingualText").FirstOrDefault(text => (string?)text.Attribute("CompositionName") == composition)?
-            .Descendants().FirstOrDefault(element => element.Name.LocalName == "Text")?.Value ?? "";
+    private static string Text(XElement unit, string composition, IReadOnlyList<string> preference) =>
+        SimaticMlTexts.Pick(unit.Element("ObjectList")?.Elements("MultilingualText").FirstOrDefault(text => (string?)text.Attribute("CompositionName") == composition), preference);
 
     /// <summary>A SimaticML <c>FlgNet</c> as the graph the statement form is written from.</summary>
     public static TiaFlgNet Read(XElement flgNet) {
@@ -83,7 +83,10 @@ internal static class SimaticMlNetworks {
         }
         var sequence = Children(graphElement, "Sequence").Single();
         foreach (var element in Children(sequence, "Steps").SelectMany(steps => Children(steps, "Step"))) {
-            var step = new TiaGraphStep((int)element.Attribute("Number")!, (string)element.Attribute("Name")!, (string?)element.Attribute("Init") == "true");
+            var step = new TiaGraphStep((int)element.Attribute("Number")!, (string)element.Attribute("Name")!, (string?)element.Attribute("Init") == "true") {
+                MaximumTime = (string?)element.Attribute("MaximumStepTime"),
+                WarningTime = (string?)element.Attribute("WarningTime"),
+            };
             foreach (var action in Children(element, "Actions").SelectMany(actions => Children(actions, "Action"))) {
                 var qualifier = (string?)action.Attribute("Qualifier") ?? "";
                 var text = string.Concat(Children(action, "Token").Select(token => (string)token.Attribute("Text")!)).TrimEnd('\n');

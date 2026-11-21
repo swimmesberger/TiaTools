@@ -63,6 +63,11 @@ try {
         Pump();
         Shot(window, "search-" + suffix);
 
+        // The project's devices and networks.
+        window.Navigate(window.Project!.Reports.First(r => r.IsHardware), 0);
+        Pump();
+        Shot(window, "devices-" + suffix);
+
         window.Close();
         Pump();
     }

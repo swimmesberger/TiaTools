@@ -1,0 +1,159 @@
+﻿FUNCTION_BLOCK "StlForms"
+TITLE = More statement list
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Word logic, shifts, conversions, a jump list, a loop, status bits, edges, constants and calls of function blocks.
+   VAR_INPUT 
+      mode : Int;
+      raw : Word;
+      count : Int;
+      start : Bool;
+   END_VAR
+
+   VAR_OUTPUT 
+      result : DInt;
+      ratio : Real;
+      done : Bool;
+      blinking : Bool;
+   END_VAR
+
+   VAR 
+      rising : Bool;
+      falling : Bool;
+      blinker : "Blink";
+   END_VAR
+
+   VAR_TEMP 
+      w : Word;
+      d : DWord;
+      i : Int;
+      loops : Int;
+      duration : Time;
+      s5 : S5Time;
+      b : Byte;
+      ch : Char;
+   END_VAR
+
+
+BEGIN
+NETWORK
+TITLE = Word logic
+      L #raw;
+      AW W#16#FF00;
+      OW W#16#000F;
+      XOW W#16#0101;
+      INVI;
+      T #w;
+NETWORK
+TITLE = Shifts and rotates
+      L #raw;
+      SLW 2;
+      SRW 1;
+      T #w;
+      L #count;
+      SSI 3;
+      T #i;
+      L DW#16#8000_0001;
+      RLD 1;
+      RRD 2;
+      T #d;
+NETWORK
+TITLE = Conversions
+      L #count;
+      ITD;
+      DTR;
+      T #ratio;
+      RND;
+      T #result;
+      L #ratio;
+      TRUNC;
+      T #result;
+      L #count;
+      ITB;
+      T #w;
+      BTI;
+      T #i;
+NETWORK
+TITLE = A jump list
+      L #mode;
+      JL over;
+      JU zero;
+      JU one;
+over:      JU fin;
+zero:      L 0;
+      JU keep;
+one:      L 1;
+keep:      T #i;
+fin:      NOP 0;
+NETWORK
+TITLE = A loop
+      L 0;
+      T #i;
+      L 5;
+next:      T #loops;
+      L #i;
+      + 1;
+      T #i;
+      L #loops;
+      LOOP next;
+NETWORK
+TITLE = Status bits
+      L #count;
+      L 1000;
+      *I;
+      T #i;
+      A OV;
+      = #done;
+      SET;
+      SAVE;
+      CLR;
+      A BR;
+      NOT;
+      = #done;
+NETWORK
+TITLE = Edges, set and reset
+      A #start;
+      FP #rising;
+      S #done;
+      A #start;
+      FN #falling;
+      R #done;
+NETWORK
+TITLE = Constants
+      L 2#1010_1010;
+      T #b;
+      L B#16#1F;
+      T #b;
+      L W#16#1F2E;
+      T #w;
+      L 1500.0;
+      T #ratio;
+      L T#1S500MS;
+      T #duration;
+      L S5T#2S;
+      T #s5;
+      L 'AB';
+      T #w;
+      L 'A';
+      T #ch;
+      L DINT#100000;
+      T #result;
+      L C#100;
+      T #w;
+NETWORK
+TITLE = Calls of function blocks
+      CALL "Blink", "BlinkDb"
+      (  enable                      := #start
+      );
+      CALL #blinker
+      (  enable                      := #done , 
+         q                           := #blinking
+      );
+NETWORK
+TITLE = A conditional end
+      A #done;
+      BEC;
+      L 0;
+      T #i;
+END_FUNCTION_BLOCK
+

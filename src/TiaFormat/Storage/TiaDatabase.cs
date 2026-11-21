@@ -60,11 +60,50 @@ public sealed class TiaDatabase {
     /// <summary>The current object of each id, in file order.</summary>
     public ReadOnlySpan<TiaFrame> Frames => _frames;
 
+    /// <summary>A frame's body after its 44 byte header, as stored.</summary>
+    public ReadOnlySpan<byte> Body(in TiaFrame frame) => _data.AsSpan(frame.Offset + FrameHeadSize, frame.Size - FrameHeadSize);
+
     /// <summary>Product version, such as 2000 for V20.</summary>
     public int ProductMajor => BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(24));
 
     /// <summary>Opens a <c>.zap*</c> archive, a project or library folder, or a <c>PEData.plf</c> itself.</summary>
-    public static TiaDatabase Open(string path, bool verifyHashes = false) => Parse(ReadPlf(path), verifyHashes);
+    public static TiaDatabase Open(string path, bool verifyHashes = false) {
+        var database = Parse(ReadPlf(path), verifyHashes);
+        database.SourcePath = path;
+        return database;
+    }
+
+    /// <summary>What the database was opened from, an archive, folder, project file or <c>PEData.plf</c>; null when parsed from memory.</summary>
+    public string? SourcePath { get; private set; }
+
+    /// <summary>
+    /// Another file of the project a database is opened from, by its path in the project folder, such as
+    /// <c>XRef/XRef.db</c>, read whole; null if the project has none. The archive or folder is only read.
+    /// </summary>
+    public static byte[]? ReadProjectFile(string path, string relative) {
+        if (Path.GetExtension(path).StartsWith(".zap", StringComparison.OrdinalIgnoreCase) && File.Exists(path)) {
+            using var zip = ZipFile.OpenRead(path);
+            var entry = zip.Entries.FirstOrDefault(e => ("/" + e.FullName.Replace('\\', '/')).EndsWith("/" + relative, StringComparison.OrdinalIgnoreCase));
+            if (entry is null) {
+                return null;
+            }
+            var bytes = new byte[entry.Length];
+            using var stream = entry.Open();
+            stream.ReadExactly(bytes);
+            return bytes;
+        }
+        string? folder;
+        if (Directory.Exists(path)) {
+            folder = path;
+        } else if (Path.GetFileName(path).Equals("PEData.plf", StringComparison.OrdinalIgnoreCase)) {
+            // System/PEData.plf: the project folder is the one above System.
+            folder = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(path)));
+        } else {
+            folder = Path.GetDirectoryName(Path.GetFullPath(path));
+        }
+        var file = folder is null ? null : Path.Combine(folder, relative);
+        return file is not null && File.Exists(file) ? ReadShared(file) : null;
+    }
 
     /// <summary>Reads a database held in memory; the array is kept, not copied.</summary>
     public static TiaDatabase Parse(byte[] data, bool verifyHashes = false) {
@@ -235,12 +274,24 @@ public sealed class TiaDatabase {
         return bytes < 0 || body + bytes > frame.Offset + frame.Size ? null : Encoding.UTF8.GetString(_data, body, bytes);
     }
 
-    /// <summary>The preferred language of a core text attribute: English if present, else the first; null if absent.</summary>
-    public string? ReadCoreText(in TiaFrame frame, TiaAttributeHandle attribute) {
+    /// <summary>
+    /// A core text attribute in one language: the first of <paramref name="preference"/>'s languages (LCIDs) that has text,
+    /// else the first language stored that has any; null if absent. Without a preference English comes first, as it did
+    /// before the reader knew a project's languages.
+    /// </summary>
+    public string? ReadCoreText(in TiaFrame frame, TiaAttributeHandle attribute, IReadOnlyList<int>? preference = null) {
         if (!TryLocate(frame, attribute, out var at, out var segment, out _)) {
             return null;
         }
-        return TryFollow(frame, at, segment, out var value) ? ReadCoreTextAt(value) : null;
+        return TryFollow(frame, at, segment, out var value) ? ReadCoreTextAt(value, preference ?? EnglishFirst) : null;
+    }
+
+    /// <summary>Every language a core text attribute stores text for, empty ones too, in stored order; empty if absent.</summary>
+    public IReadOnlyList<TiaText> ReadCoreTexts(in TiaFrame frame, TiaAttributeHandle attribute) {
+        if (!TryLocate(frame, attribute, out var at, out var segment, out _)) {
+            return [];
+        }
+        return TryFollow(frame, at, segment, out var value) ? ReadCoreTextsAt(value) : [];
     }
 
     /// <summary>A blob or XML attribute, decoded into pooled memory. Empty if absent.</summary>
@@ -273,6 +324,25 @@ public sealed class TiaDatabase {
         TryFindExpandoValue(frame, name, out var value, out var heap, out var key) && key.ValueTypeId is BlobType or XmlType && value != uint.MaxValue
             ? DecodeBlob(heap + (int)value)
             : default;
+
+    /// <summary>
+    /// A structure value of a dictionary expando interface, by the name of its key: its bytes from the u32 size on, the
+    /// elements inline in schema order after it (section 7.4 of the format page); empty if the object has none, the value
+    /// is no structure, or it does not fit in its frame.
+    /// </summary>
+    public ReadOnlySpan<byte> ReadExpandoStructure(in TiaFrame frame, string name) {
+        if (!TryFindExpandoValue(frame, name, out var value, out var heap, out var key) || value == uint.MaxValue
+            || Schema.FindValueType(key.ValueTypeId)?.Kind != TiaValueKind.Structure) {
+            return default;
+        }
+        var start = heap + (int)value;
+        var end = frame.Offset + frame.Size;
+        if (start < 0 || start + 4 > end) {
+            return default;
+        }
+        var size = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(start));
+        return size < 4 || start + size > end ? default : _data.AsSpan(start, size);
+    }
 
     /// <summary>A boolean value of a dictionary expando interface, by the name of its key; null if the object has none.</summary>
     public bool? ReadExpandoBoolean(in TiaFrame frame, string name) =>
@@ -319,6 +389,23 @@ public sealed class TiaDatabase {
         var length = ReadVarInt(_data, start, out var body);
         var bytes = length - (body - start);
         return bytes < 0 || body + bytes > frame.Offset + frame.Size ? null : Encoding.UTF8.GetString(_data, body, bytes);
+    }
+
+    /// <summary>
+    /// The bytes of a structure or array value of a dictionary expando interface, by the name of its key, from its u32
+    /// size on (section 7.4 of the format page: refs inside count from its start); empty if the object has none, or the
+    /// value is not of such a type or does not fit in the frame.
+    /// </summary>
+    public ReadOnlySpan<byte> ReadExpandoValueBytes(in TiaFrame frame, string name) {
+        if (!TryFindExpandoValue(frame, name, out var value, out var heap, out var key) || value == uint.MaxValue || key.ValueTypeId >= 0x80000000) {
+            return default;
+        }
+        var start = heap + (int)value;
+        if (start + 4 > frame.Offset + frame.Size) {
+            return default;
+        }
+        var size = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(start));
+        return size < 4 || start + size > frame.Offset + frame.Size ? default : _data.AsSpan(start, size);
     }
 
     /// <summary>
@@ -408,23 +495,35 @@ public sealed class TiaDatabase {
         return result;
     }
 
-    /// <summary>The comment texts of a simple expando interface, by their key.</summary>
-    public Dictionary<string, string> ReadSimpleExpandoTexts(in TiaFrame frame) {
+    /// <summary>The comment texts of a simple expando interface, by their key, in one language as <see cref="ReadCoreText"/> picks it.</summary>
+    public Dictionary<string, string> ReadSimpleExpandoTexts(in TiaFrame frame, IReadOnlyList<int>? preference = null) {
         var result = new Dictionary<string, string>();
+        var order = preference ?? EnglishFirst;
+        VisitSimpleExpandoTexts(frame, (key, at) => result[key] = ReadCoreTextAt(at, order) ?? "");
+        return result;
+    }
+
+    /// <summary>The comment texts of a simple expando interface, by their key, in every language stored.</summary>
+    public Dictionary<string, IReadOnlyList<TiaText>> ReadSimpleExpandoAllTexts(in TiaFrame frame) {
+        var result = new Dictionary<string, IReadOnlyList<TiaText>>();
+        VisitSimpleExpandoTexts(frame, (key, at) => result[key] = ReadCoreTextsAt(at));
+        return result;
+    }
+
+    private void VisitSimpleExpandoTexts(in TiaFrame frame, Action<string, int> visit) {
         var type = Schema.FindObjectType(frame.TypeId);
         if (type is null) {
-            return result;
+            return;
         }
         for (var i = 0; i < type.Interfaces.Length; i++) {
             if (type.Interfaces[i].Set.Expando != TiaExpandoMode.Simple || !TryGetSegment(frame, i, out var segment, out _)) {
                 continue;
             }
-            ReadSimpleExpando(frame, segment, result);
+            VisitSimpleExpando(frame, segment, visit);
         }
-        return result;
     }
 
-    private void ReadSimpleExpando(in TiaFrame frame, int segment, Dictionary<string, string> result) {
+    private void VisitSimpleExpando(in TiaFrame frame, int segment, Action<string, int> visit) {
         const uint CoreTextTypeId = 0x8000001f;
         var count = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(segment + 8));
         if (count <= 0) {
@@ -451,14 +550,44 @@ public sealed class TiaDatabase {
                 if (type != CoreTextTypeId || value == uint.MaxValue || valueBase + value >= frame.Offset + frame.Size) {
                     continue;
                 }
-                result[Encoding.Unicode.GetString(_data, names[i].Start, names[i].Length)] = ReadCoreTextAt(valueBase + (int)value) ?? "";
+                visit(Encoding.Unicode.GetString(_data, names[i].Start, names[i].Length), valueBase + (int)value);
             }
         } finally {
             ArrayPool<(int, int)>.Shared.Return(names);
         }
     }
 
-    private string? ReadCoreTextAt(int at) {
+    private static readonly int[] EnglishFirst = [1033];
+
+    private string? ReadCoreTextAt(int at, IReadOnlyList<int> preference) {
+        // An empty text says nothing, so a language without text gives way to the next one that has some.
+        var first = -1;
+        var best = -1;
+        var bestRank = int.MaxValue;
+        var entries = ReadCoreTextEntries(at);
+        for (var i = 0; i < entries.Count; i++) {
+            if (entries[i].Length == 0) {
+                continue;
+            }
+            if (first < 0) {
+                first = i;
+            }
+            for (var rank = 0; rank < preference.Count && rank < bestRank; rank++) {
+                if (preference[rank] == entries[i].Lcid) {
+                    best = i;
+                    bestRank = rank;
+                }
+            }
+        }
+        var chosen = best >= 0 ? best : first;
+        return chosen < 0 ? null : Encoding.UTF8.GetString(_data, entries[chosen].Start, entries[chosen].Length);
+    }
+
+    private TiaText[] ReadCoreTextsAt(int at) =>
+        [.. ReadCoreTextEntries(at).Select(entry => new TiaText(entry.Lcid, Encoding.UTF8.GetString(_data, entry.Start, entry.Length)))];
+
+    /// <summary>The string table of a core text (section 7.6 of the format page): each present language with where its UTF-8 bytes are.</summary>
+    private List<(int Lcid, int Start, int Length)> ReadCoreTextEntries(int at) {
         ReadVarInt(_data, at, out var p);
         // size, unknown, default index, then the string table.
         p += 12;
@@ -467,24 +596,17 @@ public sealed class TiaDatabase {
         var ids = p;
         var present = ids + (2 * count);
         p = present + (4 * count);
-        string? first = null;
+        var entries = new List<(int, int, int)>(count);
         for (var i = 0; i < count; i++) {
             if (BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(present + (4 * i))) == 0) {
                 continue;
             }
             var length = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(p));
             p += 4;
-            var language = BinaryPrimitives.ReadUInt16LittleEndian(_data.AsSpan(ids + (2 * i)));
-            // An empty English text beside a German one is common: it says nothing, so the other language stands.
-            if (language == 1033 && length != 0) {
-                return Encoding.UTF8.GetString(_data, p, length);
-            }
-            if (length != 0) {
-                first ??= Encoding.UTF8.GetString(_data, p, length);
-            }
+            entries.Add((BinaryPrimitives.ReadUInt16LittleEndian(_data.AsSpan(ids + (2 * i))), p, length));
             p += length;
         }
-        return first;
+        return entries;
     }
 
     private PooledBytes DecodeBlob(int at) {

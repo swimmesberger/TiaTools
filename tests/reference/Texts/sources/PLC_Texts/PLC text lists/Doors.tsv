@@ -1,0 +1,5 @@
+# A bit list no alarm uses, with one text missing in German.
+ListRange	Bit
+Comment	en-US=Door contact
+0	0	de-DE=Tür zu	en-US=Door closed	fr-FR=Porte fermée
+1	1	en-US=Door open	fr-FR=Porte ouverte

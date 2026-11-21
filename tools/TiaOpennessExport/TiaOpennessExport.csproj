@@ -11,12 +11,26 @@
         <TiaPublicApi Condition="'$(TiaPublicApi)' == ''">C:\Program Files\Siemens\Automation\Portal V21\PublicAPI\V21\net48</TiaPublicApi>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="System.IO.Compression" />
+        <Reference Include="System.IO.Compression.FileSystem" />
         <Reference Include="Siemens.Engineering.Base">
             <HintPath>$(TiaPublicApi)\Siemens.Engineering.Base.dll</HintPath>
             <Private>false</Private>
         </Reference>
+        <Reference Include="Siemens.Engineering.Safety">
+            <HintPath>$(TiaPublicApi)\Siemens.Engineering.Safety.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
         <Reference Include="Siemens.Engineering.Step7">
             <HintPath>$(TiaPublicApi)\Siemens.Engineering.Step7.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Siemens.Engineering.WinCC">
+            <HintPath>$(TiaPublicApi)\Siemens.Engineering.WinCC.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Siemens.Engineering.WinCCUnified">
+            <HintPath>$(TiaPublicApi)\Siemens.Engineering.WinCCUnified.dll</HintPath>
             <Private>false</Private>
         </Reference>
     </ItemGroup>

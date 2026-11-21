@@ -1,0 +1,10 @@
+# One technology object of each kind Openness creates on this CPU, each with parameters set away from their defaults
+# (spec 0013), then a block that reads two of them, so a name in code leads to a technology object.
+Technology objects/Axes/Spindle.to
+Technology objects/Axes/Feed.to
+Technology objects/Axes/Follower.to
+Technology objects/Axes/Wheel.to
+Technology objects/Control/Level.to
+Technology objects/Control/Valve.to
+Technology objects/Control/Oven.to
+Program blocks/Watch.scl

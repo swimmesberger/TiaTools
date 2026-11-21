@@ -1,0 +1,927 @@
+kind	path	attribute	value
+device	PLC_Safety	group	
+device	PLC_Safety	HwIdentifier	32
+device	PLC_Safety	Comment	
+device	PLC_Safety	IsGsd	False
+device	PLC_Safety	Name	PLC_Safety
+device	PLC_Safety	TypeIdentifier	System:Device.S71500
+device	PLC_Safety	TypeIdentifierNormalized	System:Device.S71500
+device	PLC_Safety	TypeName	S7-1500 station
+item	PLC_Safety » Rail_0	Classification	None
+item	PLC_Safety » Rail_0	Comment	
+item	PLC_Safety » Rail_0	FirmwareVersion	
+item	PLC_Safety » Rail_0	IsBuiltIn	False
+item	PLC_Safety » Rail_0	IsPlugged	True
+item	PLC_Safety » Rail_0	Name	Rail_0
+item	PLC_Safety » Rail_0	OrderNumber	6ES7 590-1***0-0AA0
+item	PLC_Safety » Rail_0	PositionNumber	0
+item	PLC_Safety » Rail_0	TypeIdentifier	OrderNumber:6ES7 590-1***0-0AA0
+item	PLC_Safety » Rail_0	TypeIdentifierNormalized	OrderNumber:6ES7590-1***0-0AA0
+item	PLC_Safety » Rail_0	TypeName	Rack
+item	PLC_Safety » Rail_0	HwIdentifier	256
+item	PLC_Safety » PLC_Safety	AdditionalInformation	
+item	PLC_Safety » PLC_Safety	CentralAlarmManagement	True
+item	PLC_Safety » PLC_Safety	Classification	CPU
+item	PLC_Safety » PLC_Safety	ClockMemoryByte	False
+item	PLC_Safety » PLC_Safety	Comment	
+item	PLC_Safety » PLC_Safety	CommunicationMode	1
+item	PLC_Safety » PLC_Safety	ConfigurationControl	False
+item	PLC_Safety » PLC_Safety	CycleCommunicationLoad	50
+item	PLC_Safety » PLC_Safety	CycleEnableMinimumCycleTime	True
+item	PLC_Safety » PLC_Safety	CycleMaximumCycleTime	150
+item	PLC_Safety » PLC_Safety	CycleMinimumCycleTime	1
+item	PLC_Safety » PLC_Safety	Failsafe_CentralFSourceAddress	7
+item	PLC_Safety » PLC_Safety	Failsafe_DefaultFmonitoringTimeCentral	200
+item	PLC_Safety » PLC_Safety	Failsafe_FCapabilityActivated	True
+item	PLC_Safety » PLC_Safety	Failsafe_LowerBoundForFDestinationAddresses	100
+item	PLC_Safety » PLC_Safety	Failsafe_UpperBoundForFDestinationAddresses	400
+item	PLC_Safety » PLC_Safety	FirmwareVersion	V2.9
+item	PLC_Safety » PLC_Safety	HostAndDomainnameActive	False
+item	PLC_Safety » PLC_Safety	IPv4ForwardingActive	False
+item	PLC_Safety » PLC_Safety	IsBuiltIn	False
+item	PLC_Safety » PLC_Safety	IsPlugged	True
+item	PLC_Safety » PLC_Safety	IsochronousMode	False
+item	PLC_Safety » PLC_Safety	LocationIdentifier	
+item	PLC_Safety » PLC_Safety	MacRtLicensePurchased	0
+item	PLC_Safety » PLC_Safety	Name	PLC_Safety
+item	PLC_Safety » PLC_Safety	NetworkFaultsAsMaintenance	False
+item	PLC_Safety » PLC_Safety	OpcUaPurchasedLicense	0
+item	PLC_Safety » PLC_Safety	OrderNumber	6ES7 516-3FN02-0AB0
+item	PLC_Safety » PLC_Safety	PlantDesignation	
+item	PLC_Safety » PLC_Safety	PnDnsConfigNameResolve	Deactivated
+item	PLC_Safety » PLC_Safety	PositionNumber	1
+item	PLC_Safety » PLC_Safety	ProDiagUsedLicenses	0
+item	PLC_Safety » PLC_Safety	ProtectionIntervalForSummarizeOfSecurityEvents	20
+item	PLC_Safety » PLC_Safety	ProtectionSummarizeSecurityEventsOnHighLoad	True
+item	PLC_Safety » PLC_Safety	ProtectionUnitForSummarizeOfSecurityEvents	2
+item	PLC_Safety » PLC_Safety	SendClock	1
+item	PLC_Safety » PLC_Safety	ShortDesignation	CPU 1516F-3 PN/DP
+item	PLC_Safety » PLC_Safety	StartupActionAfterPowerOn	3
+item	PLC_Safety » PLC_Safety	StartupComparisonPresetToActualModule	2
+item	PLC_Safety » PLC_Safety	StartupConfigurationTimeout	60000
+item	PLC_Safety » PLC_Safety	SystemMemoryByte	False
+item	PLC_Safety » PLC_Safety	SystemPowerSupplyExternal	1
+item	PLC_Safety » PLC_Safety	TimeOfDayActivateDaylightSavingTime	True
+item	PLC_Safety » PLC_Safety	TimeOfDayDaylightSavingTimeOffset	60
+item	PLC_Safety » PLC_Safety	TimeOfDayDaylightSavingTimeStartHour	1
+item	PLC_Safety » PLC_Safety	TimeOfDayDaylightSavingTimeStartMonth	3
+item	PLC_Safety » PLC_Safety	TimeOfDayDaylightSavingTimeStartWeek	5
+item	PLC_Safety » PLC_Safety	TimeOfDayDaylightSavingTimeStartWeekday	1
+item	PLC_Safety » PLC_Safety	TimeOfDayLocalTimeZone	22
+item	PLC_Safety » PLC_Safety	TimeOfDayStandardTimeStartHour	2
+item	PLC_Safety » PLC_Safety	TimeOfDayStandardTimeStartMonth	10
+item	PLC_Safety » PLC_Safety	TimeOfDayStandardTimeStartWeek	5
+item	PLC_Safety » PLC_Safety	TimeOfDayStandardTimeStartWeekday	1
+item	PLC_Safety » PLC_Safety	TimeSynchronizationNtpV2	0
+item	PLC_Safety » PLC_Safety	TypeIdentifier	OrderNumber:6ES7 516-3FN02-0AB0/V2.9
+item	PLC_Safety » PLC_Safety	TypeIdentifierNormalized	OrderNumber:6ES7516-3FN02-0AB0/V2.9
+item	PLC_Safety » PLC_Safety	TypeName	CPU 1516F-3 PN/DP
+item	PLC_Safety » PLC_Safety	UseFixedSystemDiagnosticsAlarmIds	True
+item	PLC_Safety » PLC_Safety	WebserverActivate	False
+item	PLC_Safety » PLC_Safety	HwIdentifier	48
+item	PLC_Safety » PLC_Safety	HwIdentifier	50
+item	PLC_Safety » PLC_Safety	HwIdentifier	52
+item	PLC_Safety » PLC_Safety	HwIdentifier	49
+item	PLC_Safety » PLC_Safety	HwIdentifier	55
+item	PLC_Safety » PLC_Safety	HwIdentifier	135
+item	PLC_Safety » PLC_Safety	HwIdentifier	136
+item	PLC_Safety » PLC_Safety	HwIdentifier	42
+item	PLC_Safety » PLC_Safety » Card reader/writer_1	Classification	None
+item	PLC_Safety » PLC_Safety » Card reader/writer_1	DiagnosticsAgingSimaticMemoryCard	False
+item	PLC_Safety » PLC_Safety » Card reader/writer_1	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » Card reader/writer_1	IsPlugged	True
+item	PLC_Safety » PLC_Safety » Card reader/writer_1	Name	Card reader/writer_1
+item	PLC_Safety » PLC_Safety » Card reader/writer_1	PnSubslotNumber	4
+item	PLC_Safety » PLC_Safety » Card reader/writer_1	PositionNumber	4
+item	PLC_Safety » PLC_Safety » Card reader/writer_1	HwIdentifier	51
+item	PLC_Safety » PLC_Safety » CPU display_1	Classification	None
+item	PLC_Safety » PLC_Safety » CPU display_1	DisplayDefaultLanguage	0
+item	PLC_Safety » PLC_Safety » CPU display_1	DisplayProtection	False
+item	PLC_Safety » PLC_Safety » CPU display_1	DisplayTimeToEnergySavingMode	900
+item	PLC_Safety » PLC_Safety » CPU display_1	DisplayTimeToStandbyMode	1800
+item	PLC_Safety » PLC_Safety » CPU display_1	DisplayUpdateInterval	5
+item	PLC_Safety » PLC_Safety » CPU display_1	DisplayWriteAccess	True
+item	PLC_Safety » PLC_Safety » CPU display_1	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » CPU display_1	IsPlugged	True
+item	PLC_Safety » PLC_Safety » CPU display_1	Name	CPU display_1
+item	PLC_Safety » PLC_Safety » CPU display_1	PnSubslotNumber	3
+item	PLC_Safety » PLC_Safety » CPU display_1	PositionNumber	3
+item	PLC_Safety » PLC_Safety » CPU display_1	HwIdentifier	54
+item	PLC_Safety » PLC_Safety » OPC UA_1	Classification	None
+item	PLC_Safety » PLC_Safety » OPC UA_1	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » OPC UA_1	IsPlugged	True
+item	PLC_Safety » PLC_Safety » OPC UA_1	Name	OPC UA_1
+item	PLC_Safety » PLC_Safety » OPC UA_1	OpcUaApplicationName	SIMATIC.S7-1500.OPC-UA.Application:PLC_Safety
+item	PLC_Safety » PLC_Safety » OPC UA_1	OpcUaClient	False
+item	PLC_Safety » PLC_Safety » OPC UA_1	OpcUaExportArrayMembers	True
+item	PLC_Safety » PLC_Safety » OPC UA_1	OpcUaServer	False
+item	PLC_Safety » PLC_Safety » OPC UA_1	PnSubslotNumber	254
+item	PLC_Safety » PLC_Safety » OPC UA_1	PositionNumber	254
+item	PLC_Safety » PLC_Safety » OPC UA_1	HwIdentifier	117
+item	PLC_Safety » PLC_Safety » DP interface_1	Classification	None
+item	PLC_Safety » PLC_Safety » DP interface_1	Comment	
+item	PLC_Safety » PLC_Safety » DP interface_1	Failsafe_DefaultFmonitoringTimeDecentral	150
+item	PLC_Safety » PLC_Safety » DP interface_1	InterfaceOperatingMode	IoController
+item	PLC_Safety » PLC_Safety » DP interface_1	InterfaceType	Profibus
+item	PLC_Safety » PLC_Safety » DP interface_1	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » DP interface_1	IsPlugged	True
+item	PLC_Safety » PLC_Safety » DP interface_1	Label	X3
+item	PLC_Safety » PLC_Safety » DP interface_1	Name	DP interface_1
+item	PLC_Safety » PLC_Safety » DP interface_1	PnSubslotNumber	33280
+item	PLC_Safety » PLC_Safety » DP interface_1	PositionNumber	33280
+item	PLC_Safety » PLC_Safety » DP interface_1	TimeOfDayTypeOfSynchronizationOnDp	0
+item	PLC_Safety » PLC_Safety » DP interface_1	HwIdentifier	60
+node	PLC_Safety » PLC_Safety » DP interface_1 » X3	Address	2
+node	PLC_Safety » PLC_Safety » DP interface_1 » X3	Name	X3
+node	PLC_Safety » PLC_Safety » DP interface_1 » X3	NodeId	P1
+node	PLC_Safety » PLC_Safety » DP interface_1 » X3	NodeType	Profibus
+node	PLC_Safety » PLC_Safety » DP interface_1 » X3	subnet	
+interface	PLC_Safety » PLC_Safety » DP interface_1	controls	
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	AlternativeRedundancy	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	CalculatedBandwidthForCyclicIoData	0
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	Classification	None
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	Comment	
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	DeviceReplacementWithoutExchangeableMedium	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	DiagnosticsCommunicationError	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	Failsafe_DefaultFmonitoringTimeDecentral	150
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	IECV22LLDPMode	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	InterfaceOperatingMode	IoController
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	InterfaceType	Ethernet
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	IsIoController	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	IsIoDevice	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	IsPlugged	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	KeepAlivesInterval	30
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	Label	X1
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	LoadLimitation	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	MaxBandwidthForCyclicIoData	500000
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	MediaRedundancyRole	NotInRing
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	Name	PROFINET interface_1
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	OverwriteDeviceNames	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	PnSendClock	1000000
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	PnSubslotNumber	32768
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	PositionNumber	32768
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	TimeSynchronizationNtp	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	UseWebServerForInterface	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1	HwIdentifier	64
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	Address	192.168.0.1
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	IpProtocolSelection	Project
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	Name	X1
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	NodeId	E1
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	NodeType	Ethernet
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	PnDeviceName	plc-safety
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	PnDeviceNameAutoGeneration	False
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	PnDeviceNameConverted	plc-safety
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	PnDeviceNameSetDirectly	False
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	SubnetMask	255.255.255.0
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	UseIpProtocol	True
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	UseIsoProtocol	False
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	UseRouter	False
+node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1	subnet	PN/IE_1
+interface	PLC_Safety » PLC_Safety » PROFINET interface_1	controls	Safety IO system
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	AlternativePartnerPorts	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	CableName	None
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	Classification	None
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	Comment	
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	EndOfSyncDomain	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	EndOfTopologyDiscovery	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	IsPlugged	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	Label	P1R
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	MediumAttachmentType	Copper
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	Name	Port_1
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	PnSubslotNumber	32769
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	PortActivation	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	PortMonitoring	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	PositionNumber	32769
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	TransmissionRateAndDuplex	Automatic
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	TransmissionRateAutoNegotiation	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_1	HwIdentifier	65
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	AlternativePartnerPorts	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	CableName	None
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	Classification	None
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	Comment	
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	EndOfSyncDomain	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	EndOfTopologyDiscovery	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	IsPlugged	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	Label	P2R
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	MediumAttachmentType	Copper
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	Name	Port_2
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	PnSubslotNumber	32770
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	PortActivation	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	PortMonitoring	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	PositionNumber	32770
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	TransmissionRateAndDuplex	Automatic
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	TransmissionRateAutoNegotiation	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_1 » Port_2	HwIdentifier	66
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	CalculatedBandwidthForCyclicIoData	0
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	Classification	None
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	Comment	
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	DeviceReplacementWithoutExchangeableMedium	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	DiagnosticsCommunicationError	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	Failsafe_DefaultFmonitoringTimeDecentral	150
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	IECV22LLDPMode	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	InterfaceOperatingMode	IoController
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	InterfaceType	Ethernet
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	IsIoController	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	IsIoDevice	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	IsPlugged	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	KeepAlivesInterval	30
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	Label	X2
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	MaxBandwidthForCyclicIoData	0
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	Name	PROFINET interface_2
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	OverwriteDeviceNames	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	PnSendClock	1000000
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	PnSubslotNumber	33024
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	PositionNumber	33024
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	UseWebServerForInterface	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2	HwIdentifier	72
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	Address	192.168.1.1
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	IpProtocolSelection	Project
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	Name	X2
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	NodeId	E1
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	NodeType	Ethernet
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	PnDeviceName	plc_safety.profinet interface_2
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	PnDeviceNameAutoGeneration	True
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	PnDeviceNameConverted	plcxbsafety.profinetxainterfacexb23df2
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	PnDeviceNameSetDirectly	False
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	SubnetMask	255.255.255.0
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	UseIpProtocol	True
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	UseIsoProtocol	False
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	UseRouter	False
+node	PLC_Safety » PLC_Safety » PROFINET interface_2 » X2	subnet	
+interface	PLC_Safety » PLC_Safety » PROFINET interface_2	controls	
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	AlternativePartnerPorts	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	CableName	None
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	Classification	None
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	Comment	
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	EndOfTopologyDiscovery	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	IsBuiltIn	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	IsPlugged	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	Label	P1
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	MediumAttachmentType	Copper
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	Name	Port_1
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	PnSubslotNumber	33025
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	PortActivation	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	PortMonitoring	False
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	PositionNumber	33025
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	TransmissionRateAndDuplex	Automatic
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	TransmissionRateAutoNegotiation	True
+item	PLC_Safety » PLC_Safety » PROFINET interface_2 » Port_1	HwIdentifier	73
+item	PLC_Safety » F-DI_Main	AdditionalInformation	
+item	PLC_Safety » F-DI_Main	Classification	None
+item	PLC_Safety » F-DI_Main	Comment	
+item	PLC_Safety » F-DI_Main	FirmwareVersion	V1.0
+item	PLC_Safety » F-DI_Main	IsBuiltIn	False
+item	PLC_Safety » F-DI_Main	IsPlugged	True
+item	PLC_Safety » F-DI_Main	LocationIdentifier	
+item	PLC_Safety » F-DI_Main	Name	F-DI_Main
+item	PLC_Safety » F-DI_Main	OrderNumber	6ES7 526-1BH00-0AB0
+item	PLC_Safety » F-DI_Main	PlantDesignation	
+item	PLC_Safety » F-DI_Main	PositionNumber	2
+item	PLC_Safety » F-DI_Main	ShortDesignation	F-DI 16x24V DC
+item	PLC_Safety » F-DI_Main	StartupComparisonPresetToActualModule	0
+item	PLC_Safety » F-DI_Main	TypeIdentifier	OrderNumber:6ES7 526-1BH00-0AB0/V1.0
+item	PLC_Safety » F-DI_Main	TypeIdentifierNormalized	OrderNumber:6ES7526-1BH00-0AB0/V1.0
+item	PLC_Safety » F-DI_Main	TypeName	F-DI 16x24V DC
+item	PLC_Safety » F-DI_Main » F-DI_Main	Classification	None
+item	PLC_Safety » F-DI_Main » F-DI_Main	Comment	
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_BehaviorAfterChannelFault	1
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_DIPSwitchSetting	1111111110
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FBlockID	1
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FCRCSeed	1
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FCheckSeqNr	0
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FCheckiPar	0
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FDestinationAddress	65534
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FIODBName	F00000_F-DI_Main
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FIODBNumber	40002
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FMonitoringtime	200
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FParVersion	1
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FParameterSignatureIndividualParameters	784920115
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FParameterSignatureWithAddresses	40784
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FParameterSignatureWithoutAddresses	47397
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FPassivation	1
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FSIL	2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_FSourceAddress	7
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_F_CRC_Length	2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_ManualAssignmentFIODBNumber	0
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_ManualAssignmentFMonitoringtime	0
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_ReintegrationAfterChannelFault	2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_ShortCircuitTest_0	True
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_ShortCircuitTest_1	True
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_ShortCircuitTest_2	True
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_ShortCircuitTest_3	True
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_0	4.2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_1	4.2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_2	4.2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_3	4.2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_SuppliedChannels_0	0
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_SuppliedChannels_1	0
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_SuppliedChannels_2	0
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_SuppliedChannels_3	0
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_TimeForShortCircuitTest_0	4.2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_TimeForShortCircuitTest_1	4.2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_TimeForShortCircuitTest_2	4.2
+item	PLC_Safety » F-DI_Main » F-DI_Main	Failsafe_TimeForShortCircuitTest_3	4.2
+item	PLC_Safety » F-DI_Main » F-DI_Main	IsBuiltIn	True
+item	PLC_Safety » F-DI_Main » F-DI_Main	IsPlugged	True
+item	PLC_Safety » F-DI_Main » F-DI_Main	Name	F-DI_Main
+item	PLC_Safety » F-DI_Main » F-DI_Main	PnSubslotNumber	1
+item	PLC_Safety » F-DI_Main » F-DI_Main	PositionNumber	1
+item	PLC_Safety » F-DI_Main » F-DI_Main	TypeName	F-DI 16x24V DC
+item	PLC_Safety » F-DI_Main » F-DI_Main	HwIdentifier	257
+address	PLC_Safety » F-DI_Main » F-DI_Main » 0	IoType	Input
+address	PLC_Safety » F-DI_Main » F-DI_Main » 0	Length	72
+address	PLC_Safety » F-DI_Main » F-DI_Main » 0	ProcessImage	33024
+address	PLC_Safety » F-DI_Main » F-DI_Main » 0	StartAddress	0
+address	PLC_Safety » F-DI_Main » F-DI_Main » 1	IoType	Output
+address	PLC_Safety » F-DI_Main » F-DI_Main » 1	Length	40
+address	PLC_Safety » F-DI_Main » F-DI_Main » 1	ProcessImage	33024
+address	PLC_Safety » F-DI_Main » F-DI_Main » 1	StartAddress	0
+item	PLC_Safety » F-DQ_Main	AdditionalInformation	
+item	PLC_Safety » F-DQ_Main	Classification	None
+item	PLC_Safety » F-DQ_Main	Comment	
+item	PLC_Safety » F-DQ_Main	FirmwareVersion	V1.0
+item	PLC_Safety » F-DQ_Main	IsBuiltIn	False
+item	PLC_Safety » F-DQ_Main	IsPlugged	True
+item	PLC_Safety » F-DQ_Main	LocationIdentifier	
+item	PLC_Safety » F-DQ_Main	Name	F-DQ_Main
+item	PLC_Safety » F-DQ_Main	OrderNumber	6ES7 526-2BF00-0AB0
+item	PLC_Safety » F-DQ_Main	PlantDesignation	
+item	PLC_Safety » F-DQ_Main	PositionNumber	3
+item	PLC_Safety » F-DQ_Main	ShortDesignation	F-DQ 8x24V DC/2A PPM
+item	PLC_Safety » F-DQ_Main	StartupComparisonPresetToActualModule	0
+item	PLC_Safety » F-DQ_Main	TypeIdentifier	OrderNumber:6ES7 526-2BF00-0AB0/V1.0
+item	PLC_Safety » F-DQ_Main	TypeIdentifierNormalized	OrderNumber:6ES7526-2BF00-0AB0/V1.0
+item	PLC_Safety » F-DQ_Main	TypeName	F-DQ 8x24V DC/2A PPM
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Classification	None
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Comment	
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_BehaviorAfterChannelFault	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_DIPSwitchSetting	1111111101
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FBlockID	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FCRCSeed	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FCheckSeqNr	0
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FCheckiPar	0
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FDestinationAddress	65533
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FIODBName	F00010_F-DQ_Main
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FIODBNumber	40003
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FMonitoringtime	250
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FParVersion	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FParameterSignatureIndividualParameters	1123389683
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FParameterSignatureWithAddresses	32680
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FParameterSignatureWithoutAddresses	6387
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FPassivation	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FSIL	2
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_FSourceAddress	7
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_F_CRC_Length	2
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_ManualAssignmentFIODBNumber	0
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_ManualAssignmentFMonitoringtime	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_MaximumTestPeriod	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_OutputType	0
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Failsafe_ReintegrationAfterChannelFault	2
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	IsBuiltIn	True
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	IsPlugged	True
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	Name	F-DQ_Main
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	PnSubslotNumber	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	PositionNumber	1
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	TypeName	F-DQ 8x24V DC/2A PPM
+item	PLC_Safety » F-DQ_Main » F-DQ_Main	HwIdentifier	258
+address	PLC_Safety » F-DQ_Main » F-DQ_Main » 0	IoType	Input
+address	PLC_Safety » F-DQ_Main » F-DQ_Main » 0	Length	48
+address	PLC_Safety » F-DQ_Main » F-DQ_Main » 0	ProcessImage	33024
+address	PLC_Safety » F-DQ_Main » F-DQ_Main » 0	StartAddress	10
+address	PLC_Safety » F-DQ_Main » F-DQ_Main » 1	IoType	Output
+address	PLC_Safety » F-DQ_Main » F-DQ_Main » 1	Length	48
+address	PLC_Safety » F-DQ_Main » F-DQ_Main » 1	ProcessImage	33024
+address	PLC_Safety » F-DQ_Main » F-DQ_Main » 1	StartAddress	10
+device	Remote_F	group	
+device	Remote_F	HwIdentifier	263
+device	Remote_F	Comment	
+device	Remote_F	IsGsd	False
+device	Remote_F	Name	Remote_F
+device	Remote_F	TypeIdentifier	System:Device.ET200SP
+device	Remote_F	TypeIdentifierNormalized	System:Device.ET200SP
+device	Remote_F	TypeName	ET 200SP-Station
+item	Remote_F » Rack_0	Classification	None
+item	Remote_F » Rack_0	Comment	
+item	Remote_F » Rack_0	IsBuiltIn	False
+item	Remote_F » Rack_0	IsPlugged	True
+item	Remote_F » Rack_0	Name	Rack_0
+item	Remote_F » Rack_0	PositionNumber	0
+item	Remote_F » Rack_0	TypeIdentifier	System:Rack.ET200SP
+item	Remote_F » Rack_0	TypeIdentifierNormalized	System:Rack.ET200SP
+item	Remote_F » Rack_0	TypeName	Rack
+item	Remote_F » Rack_0	HwIdentifier	264
+item	Remote_F » Remote_F	AdditionalInformation	
+item	Remote_F » Remote_F	Classification	HM
+item	Remote_F » Remote_F	Comment	
+item	Remote_F » Remote_F	FirmwareVersion	V4.2
+item	Remote_F » Remote_F	IsBuiltIn	False
+item	Remote_F » Remote_F	IsPlugged	True
+item	Remote_F » Remote_F	LocationIdentifier	
+item	Remote_F » Remote_F	Name	Remote_F
+item	Remote_F » Remote_F	OrderNumber	6ES7 155-6AU01-0CN0
+item	Remote_F » Remote_F	PlantDesignation	
+item	Remote_F » Remote_F	PositionNumber	0
+item	Remote_F » Remote_F	SharedDeviceAccessConfigured	True
+item	Remote_F » Remote_F	SharedDeviceAccessType	PLC
+item	Remote_F » Remote_F	ShortDesignation	IM 155-6 PN/2 HF
+item	Remote_F » Remote_F	TypeIdentifier	OrderNumber:6ES7 155-6AU01-0CN0/V4.2
+item	Remote_F » Remote_F	TypeIdentifierNormalized	OrderNumber:6ES7155-6AU01-0CN0/V4.2
+item	Remote_F » Remote_F	TypeName	IM 155-6 PN/2 HF
+item	Remote_F » Remote_F	HwIdentifier	265
+item	Remote_F » Remote_F » Remote_F	Classification	None
+item	Remote_F » Remote_F » Remote_F	DiagnosticsUnderflowVoltage	False
+item	Remote_F » Remote_F » Remote_F	IsBuiltIn	True
+item	Remote_F » Remote_F » Remote_F	IsPlugged	True
+item	Remote_F » Remote_F » Remote_F	Name	Remote_F
+item	Remote_F » Remote_F » Remote_F	OptionHandling	False
+item	Remote_F » Remote_F » Remote_F	PnSubslotNumber	1
+item	Remote_F » Remote_F » Remote_F	PositionNumber	0
+item	Remote_F » Remote_F » Remote_F	SharedDeviceAccessConfigured	True
+item	Remote_F » Remote_F » Remote_F	SharedDeviceAccessType	PLC
+item	Remote_F » Remote_F » Remote_F	StartupComparisonPresetToActualModule	0
+item	Remote_F » Remote_F » Remote_F	HwIdentifier	266
+address	Remote_F » Remote_F » Remote_F » 0	IoType	Diagnosis
+address	Remote_F » Remote_F » Remote_F » 0	Length	0
+address	Remote_F » Remote_F » Remote_F » 0	StartAddress	-1
+item	Remote_F » Remote_F » PROFINET interface	AlternativeRedundancy	True
+item	Remote_F » Remote_F » PROFINET interface	Classification	None
+item	Remote_F » Remote_F » PROFINET interface	Comment	
+item	Remote_F » Remote_F » PROFINET interface	IECV22LLDPMode	False
+item	Remote_F » Remote_F » PROFINET interface	InterfaceOperatingMode	IoDevice
+item	Remote_F » Remote_F » PROFINET interface	InterfaceType	Ethernet
+item	Remote_F » Remote_F » PROFINET interface	IsBuiltIn	True
+item	Remote_F » Remote_F » PROFINET interface	IsPlugged	True
+item	Remote_F » Remote_F » PROFINET interface	IsochronousMode	False
+item	Remote_F » Remote_F » PROFINET interface	Label	X1
+item	Remote_F » Remote_F » PROFINET interface	MediaRedundancyRole	NotInRing
+item	Remote_F » Remote_F » PROFINET interface	Name	PROFINET interface
+item	Remote_F » Remote_F » PROFINET interface	NumberOfExternalIoControllers	0
+item	Remote_F » Remote_F » PROFINET interface	OptionalIoDevice	False
+item	Remote_F » Remote_F » PROFINET interface	PnSubslotNumber	32768
+item	Remote_F » Remote_F » PROFINET interface	PositionNumber	1
+item	Remote_F » Remote_F » PROFINET interface	PrioritizedStartup	False
+item	Remote_F » Remote_F » PROFINET interface	RedundancyMode	S1
+item	Remote_F » Remote_F » PROFINET interface	SharedDeviceAccessConfigured	True
+item	Remote_F » Remote_F » PROFINET interface	SharedDeviceAccessType	PLC
+item	Remote_F » Remote_F » PROFINET interface	HwIdentifier	267
+address	Remote_F » Remote_F » PROFINET interface » 0	IoType	Diagnosis
+address	Remote_F » Remote_F » PROFINET interface » 0	Length	0
+address	Remote_F » Remote_F » PROFINET interface » 0	StartAddress	-1
+node	Remote_F » Remote_F » PROFINET interface » IE1	Address	192.168.0.10
+node	Remote_F » Remote_F » PROFINET interface » IE1	IpProtocolSelection	Project
+node	Remote_F » Remote_F » PROFINET interface » IE1	Name	IE1
+node	Remote_F » Remote_F » PROFINET interface » IE1	NodeId	IE1
+node	Remote_F » Remote_F » PROFINET interface » IE1	NodeType	Ethernet
+node	Remote_F » Remote_F » PROFINET interface » IE1	PnDeviceName	remote-f
+node	Remote_F » Remote_F » PROFINET interface » IE1	PnDeviceNameAutoGeneration	False
+node	Remote_F » Remote_F » PROFINET interface » IE1	PnDeviceNameConverted	remote-f
+node	Remote_F » Remote_F » PROFINET interface » IE1	SubnetMask	255.255.255.0
+node	Remote_F » Remote_F » PROFINET interface » IE1	SyncRouterSettingsWithIoController	True
+node	Remote_F » Remote_F » PROFINET interface » IE1	UseIpProtocol	True
+node	Remote_F » Remote_F » PROFINET interface » IE1	UseIsoProtocol	False
+node	Remote_F » Remote_F » PROFINET interface » IE1	UseRouter	False
+node	Remote_F » Remote_F » PROFINET interface » IE1	subnet	PN/IE_1
+interface	Remote_F » Remote_F » PROFINET interface	connectedTo	Safety IO system
+interface	Remote_F » Remote_F » PROFINET interface	connectedTo	
+interface	Remote_F » Remote_F » PROFINET interface	connectedTo	
+interface	Remote_F » Remote_F » PROFINET interface	connectedTo	
+item	Remote_F » BA 2xRJ45	AdditionalInformation	
+item	Remote_F » BA 2xRJ45	Classification	None
+item	Remote_F » BA 2xRJ45	Comment	
+item	Remote_F » BA 2xRJ45	FirmwareVersion	V0.0
+item	Remote_F » BA 2xRJ45	IsBuiltIn	False
+item	Remote_F » BA 2xRJ45	IsPlugged	True
+item	Remote_F » BA 2xRJ45	LocationIdentifier	
+item	Remote_F » BA 2xRJ45	Name	BA 2xRJ45
+item	Remote_F » BA 2xRJ45	OrderNumber	6ES7 193-6AR00-0AA0
+item	Remote_F » BA 2xRJ45	PlantDesignation	
+item	Remote_F » BA 2xRJ45	PnSubslotNumber	32895
+item	Remote_F » BA 2xRJ45	PositionNumber	127
+item	Remote_F » BA 2xRJ45	ShortDesignation	BA 2xRJ45
+item	Remote_F » BA 2xRJ45	TypeIdentifier	OrderNumber:6ES7 193-6AR00-0AA0/V0.0
+item	Remote_F » BA 2xRJ45	TypeIdentifierNormalized	OrderNumber:6ES7193-6AR00-0AA0/V0.0
+item	Remote_F » BA 2xRJ45	TypeName	BA 2xRJ45
+item	Remote_F » BA 2xRJ45 » Port_1	AlternativePartnerPorts	False
+item	Remote_F » BA 2xRJ45 » Port_1	CableName	None
+item	Remote_F » BA 2xRJ45 » Port_1	Classification	None
+item	Remote_F » BA 2xRJ45 » Port_1	Comment	
+item	Remote_F » BA 2xRJ45 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	Remote_F » BA 2xRJ45 » Port_1	EndOfSyncDomain	False
+item	Remote_F » BA 2xRJ45 » Port_1	EndOfTopologyDiscovery	False
+item	Remote_F » BA 2xRJ45 » Port_1	IsBuiltIn	True
+item	Remote_F » BA 2xRJ45 » Port_1	IsPlugged	True
+item	Remote_F » BA 2xRJ45 » Port_1	Label	P1R
+item	Remote_F » BA 2xRJ45 » Port_1	MediumAttachmentType	Copper
+item	Remote_F » BA 2xRJ45 » Port_1	Name	Port_1
+item	Remote_F » BA 2xRJ45 » Port_1	PnSubslotNumber	32769
+item	Remote_F » BA 2xRJ45 » Port_1	PortActivation	True
+item	Remote_F » BA 2xRJ45 » Port_1	PortMonitoring	False
+item	Remote_F » BA 2xRJ45 » Port_1	PositionNumber	1
+item	Remote_F » BA 2xRJ45 » Port_1	SharedDeviceAccessConfigured	True
+item	Remote_F » BA 2xRJ45 » Port_1	SharedDeviceAccessType	PLC
+item	Remote_F » BA 2xRJ45 » Port_1	TransmissionRateAndDuplex	Automatic
+item	Remote_F » BA 2xRJ45 » Port_1	TransmissionRateAutoNegotiation	True
+item	Remote_F » BA 2xRJ45 » Port_1	HwIdentifier	260
+address	Remote_F » BA 2xRJ45 » Port_1 » 0	IoType	Diagnosis
+address	Remote_F » BA 2xRJ45 » Port_1 » 0	Length	0
+address	Remote_F » BA 2xRJ45 » Port_1 » 0	StartAddress	-1
+item	Remote_F » BA 2xRJ45 » Port_2	AlternativePartnerPorts	False
+item	Remote_F » BA 2xRJ45 » Port_2	CableName	None
+item	Remote_F » BA 2xRJ45 » Port_2	Classification	None
+item	Remote_F » BA 2xRJ45 » Port_2	Comment	
+item	Remote_F » BA 2xRJ45 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	Remote_F » BA 2xRJ45 » Port_2	EndOfSyncDomain	False
+item	Remote_F » BA 2xRJ45 » Port_2	EndOfTopologyDiscovery	False
+item	Remote_F » BA 2xRJ45 » Port_2	IsBuiltIn	True
+item	Remote_F » BA 2xRJ45 » Port_2	IsPlugged	True
+item	Remote_F » BA 2xRJ45 » Port_2	Label	P2R
+item	Remote_F » BA 2xRJ45 » Port_2	MediumAttachmentType	Copper
+item	Remote_F » BA 2xRJ45 » Port_2	Name	Port_2
+item	Remote_F » BA 2xRJ45 » Port_2	PnSubslotNumber	32770
+item	Remote_F » BA 2xRJ45 » Port_2	PortActivation	True
+item	Remote_F » BA 2xRJ45 » Port_2	PortMonitoring	False
+item	Remote_F » BA 2xRJ45 » Port_2	PositionNumber	2
+item	Remote_F » BA 2xRJ45 » Port_2	SharedDeviceAccessConfigured	True
+item	Remote_F » BA 2xRJ45 » Port_2	SharedDeviceAccessType	PLC
+item	Remote_F » BA 2xRJ45 » Port_2	TransmissionRateAndDuplex	Automatic
+item	Remote_F » BA 2xRJ45 » Port_2	TransmissionRateAutoNegotiation	True
+item	Remote_F » BA 2xRJ45 » Port_2	HwIdentifier	261
+address	Remote_F » BA 2xRJ45 » Port_2 » 0	IoType	Diagnosis
+address	Remote_F » BA 2xRJ45 » Port_2 » 0	Length	0
+address	Remote_F » BA 2xRJ45 » Port_2 » 0	StartAddress	-1
+item	Remote_F » F-DI_Remote	AdditionalInformation	
+item	Remote_F » F-DI_Remote	BaseUnit	
+item	Remote_F » F-DI_Remote	Classification	None
+item	Remote_F » F-DI_Remote	Comment	
+item	Remote_F » F-DI_Remote	FirmwareVersion	V2.0
+item	Remote_F » F-DI_Remote	IsBuiltIn	False
+item	Remote_F » F-DI_Remote	IsPlugged	True
+item	Remote_F » F-DI_Remote	LocationIdentifier	
+item	Remote_F » F-DI_Remote	Name	F-DI_Remote
+item	Remote_F » F-DI_Remote	OrderNumber	6ES7 136-6BA01-0CA0
+item	Remote_F » F-DI_Remote	PlantDesignation	
+item	Remote_F » F-DI_Remote	PositionNumber	1
+item	Remote_F » F-DI_Remote	PotentialGroup	1
+item	Remote_F » F-DI_Remote	SharedDeviceAccessConfigured	True
+item	Remote_F » F-DI_Remote	SharedDeviceAccessType	PLC
+item	Remote_F » F-DI_Remote	ShortDesignation	F-DI 8x24VDC HF
+item	Remote_F » F-DI_Remote	StartupComparisonPresetToActualModule	0
+item	Remote_F » F-DI_Remote	TypeIdentifier	OrderNumber:6ES7 136-6BA01-0CA0/V2.0
+item	Remote_F » F-DI_Remote	TypeIdentifierNormalized	OrderNumber:6ES7136-6BA01-0CA0/V2.0
+item	Remote_F » F-DI_Remote	TypeName	F-DI 8x24VDC HF
+item	Remote_F » F-DI_Remote » F-DI_Remote	Classification	None
+item	Remote_F » F-DI_Remote » F-DI_Remote	Comment	
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_BehaviorAfterChannelFault	1
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_DIPSwitchSetting	0010010110
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FBlockID	1
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FCRCSeed	1
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FCheckSeqNr	0
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FCheckiPar	0
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FDestinationAddress	150
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FIODBName	F00020_F-DI_Remote
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FIODBNumber	40004
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FMonitoringtime	150
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FParVersion	1
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FParameterSignatureIndividualParameters	340412978
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FParameterSignatureWithAddresses	15561
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FParameterSignatureWithoutAddresses	62
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FPassivation	1
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FSIL	2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_FSourceAddress	7
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_F_CRC_Length	2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ManualAssignmentFIODBNumber	0
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ManualAssignmentFMonitoringtime	0
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ReintegrationAfterChannelFault	2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ShortCircuitTest_0	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ShortCircuitTest_1	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ShortCircuitTest_2	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ShortCircuitTest_3	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ShortCircuitTest_4	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ShortCircuitTest_5	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ShortCircuitTest_6	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_ShortCircuitTest_7	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_0	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_1	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_2	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_3	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_4	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_5	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_6	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_StartupTimeOfSensorAfterShortCircuitTest_7	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_TimeForShortCircuitTest_0	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_TimeForShortCircuitTest_1	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_TimeForShortCircuitTest_2	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_TimeForShortCircuitTest_3	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_TimeForShortCircuitTest_4	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_TimeForShortCircuitTest_5	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_TimeForShortCircuitTest_6	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	Failsafe_TimeForShortCircuitTest_7	4.2
+item	Remote_F » F-DI_Remote » F-DI_Remote	IsBuiltIn	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	IsPlugged	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	Name	F-DI_Remote
+item	Remote_F » F-DI_Remote » F-DI_Remote	PnSubslotNumber	1
+item	Remote_F » F-DI_Remote » F-DI_Remote	PositionNumber	1
+item	Remote_F » F-DI_Remote » F-DI_Remote	SharedDeviceAccessConfigured	True
+item	Remote_F » F-DI_Remote » F-DI_Remote	SharedDeviceAccessType	PLC
+item	Remote_F » F-DI_Remote » F-DI_Remote	HwIdentifier	262
+address	Remote_F » F-DI_Remote » F-DI_Remote » 0	IoType	Input
+address	Remote_F » F-DI_Remote » F-DI_Remote » 0	Length	56
+address	Remote_F » F-DI_Remote » F-DI_Remote » 0	ProcessImage	33024
+address	Remote_F » F-DI_Remote » F-DI_Remote » 0	StartAddress	20
+address	Remote_F » F-DI_Remote » F-DI_Remote » 1	IoType	Output
+address	Remote_F » F-DI_Remote » F-DI_Remote » 1	Length	40
+address	Remote_F » F-DI_Remote » F-DI_Remote » 1	ProcessImage	33024
+address	Remote_F » F-DI_Remote » F-DI_Remote » 1	StartAddress	20
+device	PLC_Locked	group	
+device	PLC_Locked	HwIdentifier	32
+device	PLC_Locked	Comment	
+device	PLC_Locked	IsGsd	False
+device	PLC_Locked	Name	PLC_Locked
+device	PLC_Locked	TypeIdentifier	System:Device.S71500
+device	PLC_Locked	TypeIdentifierNormalized	System:Device.S71500
+device	PLC_Locked	TypeName	S7-1500 station
+item	PLC_Locked » Rail_0	Classification	None
+item	PLC_Locked » Rail_0	Comment	
+item	PLC_Locked » Rail_0	FirmwareVersion	
+item	PLC_Locked » Rail_0	IsBuiltIn	False
+item	PLC_Locked » Rail_0	IsPlugged	True
+item	PLC_Locked » Rail_0	Name	Rail_0
+item	PLC_Locked » Rail_0	OrderNumber	6ES7 590-1***0-0AA0
+item	PLC_Locked » Rail_0	PositionNumber	0
+item	PLC_Locked » Rail_0	TypeIdentifier	OrderNumber:6ES7 590-1***0-0AA0
+item	PLC_Locked » Rail_0	TypeIdentifierNormalized	OrderNumber:6ES7590-1***0-0AA0
+item	PLC_Locked » Rail_0	TypeName	Rack
+item	PLC_Locked » Rail_0	HwIdentifier	256
+item	PLC_Locked » PLC_Locked	AdditionalInformation	
+item	PLC_Locked » PLC_Locked	CentralAlarmManagement	True
+item	PLC_Locked » PLC_Locked	Classification	CPU
+item	PLC_Locked » PLC_Locked	ClockMemoryByte	False
+item	PLC_Locked » PLC_Locked	Comment	
+item	PLC_Locked » PLC_Locked	CommunicationMode	1
+item	PLC_Locked » PLC_Locked	ConfigurationControl	False
+item	PLC_Locked » PLC_Locked	CycleCommunicationLoad	50
+item	PLC_Locked » PLC_Locked	CycleEnableMinimumCycleTime	True
+item	PLC_Locked » PLC_Locked	CycleMaximumCycleTime	150
+item	PLC_Locked » PLC_Locked	CycleMinimumCycleTime	1
+item	PLC_Locked » PLC_Locked	Failsafe_CentralFSourceAddress	100
+item	PLC_Locked » PLC_Locked	Failsafe_DefaultFmonitoringTimeCentral	150
+item	PLC_Locked » PLC_Locked	Failsafe_FCapabilityActivated	True
+item	PLC_Locked » PLC_Locked	Failsafe_LowerBoundForFDestinationAddresses	100
+item	PLC_Locked » PLC_Locked	Failsafe_UpperBoundForFDestinationAddresses	199
+item	PLC_Locked » PLC_Locked	FirmwareVersion	V2.9
+item	PLC_Locked » PLC_Locked	HostAndDomainnameActive	False
+item	PLC_Locked » PLC_Locked	IPv4ForwardingActive	False
+item	PLC_Locked » PLC_Locked	IsBuiltIn	False
+item	PLC_Locked » PLC_Locked	IsPlugged	True
+item	PLC_Locked » PLC_Locked	IsochronousMode	False
+item	PLC_Locked » PLC_Locked	LocationIdentifier	
+item	PLC_Locked » PLC_Locked	MacRtLicensePurchased	0
+item	PLC_Locked » PLC_Locked	Name	PLC_Locked
+item	PLC_Locked » PLC_Locked	NetworkFaultsAsMaintenance	False
+item	PLC_Locked » PLC_Locked	OpcUaPurchasedLicense	0
+item	PLC_Locked » PLC_Locked	OrderNumber	6ES7 516-3FN02-0AB0
+item	PLC_Locked » PLC_Locked	PlantDesignation	
+item	PLC_Locked » PLC_Locked	PnDnsConfigNameResolve	Deactivated
+item	PLC_Locked » PLC_Locked	PositionNumber	1
+item	PLC_Locked » PLC_Locked	ProDiagUsedLicenses	0
+item	PLC_Locked » PLC_Locked	ProtectionIntervalForSummarizeOfSecurityEvents	20
+item	PLC_Locked » PLC_Locked	ProtectionSummarizeSecurityEventsOnHighLoad	True
+item	PLC_Locked » PLC_Locked	ProtectionUnitForSummarizeOfSecurityEvents	2
+item	PLC_Locked » PLC_Locked	SendClock	1
+item	PLC_Locked » PLC_Locked	ShortDesignation	CPU 1516F-3 PN/DP
+item	PLC_Locked » PLC_Locked	StartupActionAfterPowerOn	3
+item	PLC_Locked » PLC_Locked	StartupComparisonPresetToActualModule	2
+item	PLC_Locked » PLC_Locked	StartupConfigurationTimeout	60000
+item	PLC_Locked » PLC_Locked	SystemMemoryByte	False
+item	PLC_Locked » PLC_Locked	SystemPowerSupplyExternal	1
+item	PLC_Locked » PLC_Locked	TimeOfDayActivateDaylightSavingTime	True
+item	PLC_Locked » PLC_Locked	TimeOfDayDaylightSavingTimeOffset	60
+item	PLC_Locked » PLC_Locked	TimeOfDayDaylightSavingTimeStartHour	1
+item	PLC_Locked » PLC_Locked	TimeOfDayDaylightSavingTimeStartMonth	3
+item	PLC_Locked » PLC_Locked	TimeOfDayDaylightSavingTimeStartWeek	5
+item	PLC_Locked » PLC_Locked	TimeOfDayDaylightSavingTimeStartWeekday	1
+item	PLC_Locked » PLC_Locked	TimeOfDayLocalTimeZone	22
+item	PLC_Locked » PLC_Locked	TimeOfDayStandardTimeStartHour	2
+item	PLC_Locked » PLC_Locked	TimeOfDayStandardTimeStartMonth	10
+item	PLC_Locked » PLC_Locked	TimeOfDayStandardTimeStartWeek	5
+item	PLC_Locked » PLC_Locked	TimeOfDayStandardTimeStartWeekday	1
+item	PLC_Locked » PLC_Locked	TimeSynchronizationNtpV2	0
+item	PLC_Locked » PLC_Locked	TypeIdentifier	OrderNumber:6ES7 516-3FN02-0AB0/V2.9
+item	PLC_Locked » PLC_Locked	TypeIdentifierNormalized	OrderNumber:6ES7516-3FN02-0AB0/V2.9
+item	PLC_Locked » PLC_Locked	TypeName	CPU 1516F-3 PN/DP
+item	PLC_Locked » PLC_Locked	UseFixedSystemDiagnosticsAlarmIds	True
+item	PLC_Locked » PLC_Locked	WebserverActivate	False
+item	PLC_Locked » PLC_Locked	HwIdentifier	48
+item	PLC_Locked » PLC_Locked	HwIdentifier	50
+item	PLC_Locked » PLC_Locked	HwIdentifier	52
+item	PLC_Locked » PLC_Locked	HwIdentifier	49
+item	PLC_Locked » PLC_Locked	HwIdentifier	55
+item	PLC_Locked » PLC_Locked	HwIdentifier	135
+item	PLC_Locked » PLC_Locked	HwIdentifier	136
+item	PLC_Locked » PLC_Locked	HwIdentifier	42
+item	PLC_Locked » PLC_Locked » Card reader/writer_1	Classification	None
+item	PLC_Locked » PLC_Locked » Card reader/writer_1	DiagnosticsAgingSimaticMemoryCard	False
+item	PLC_Locked » PLC_Locked » Card reader/writer_1	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » Card reader/writer_1	IsPlugged	True
+item	PLC_Locked » PLC_Locked » Card reader/writer_1	Name	Card reader/writer_1
+item	PLC_Locked » PLC_Locked » Card reader/writer_1	PnSubslotNumber	4
+item	PLC_Locked » PLC_Locked » Card reader/writer_1	PositionNumber	4
+item	PLC_Locked » PLC_Locked » Card reader/writer_1	HwIdentifier	51
+item	PLC_Locked » PLC_Locked » CPU display_1	Classification	None
+item	PLC_Locked » PLC_Locked » CPU display_1	DisplayDefaultLanguage	0
+item	PLC_Locked » PLC_Locked » CPU display_1	DisplayProtection	False
+item	PLC_Locked » PLC_Locked » CPU display_1	DisplayTimeToEnergySavingMode	900
+item	PLC_Locked » PLC_Locked » CPU display_1	DisplayTimeToStandbyMode	1800
+item	PLC_Locked » PLC_Locked » CPU display_1	DisplayUpdateInterval	5
+item	PLC_Locked » PLC_Locked » CPU display_1	DisplayWriteAccess	True
+item	PLC_Locked » PLC_Locked » CPU display_1	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » CPU display_1	IsPlugged	True
+item	PLC_Locked » PLC_Locked » CPU display_1	Name	CPU display_1
+item	PLC_Locked » PLC_Locked » CPU display_1	PnSubslotNumber	3
+item	PLC_Locked » PLC_Locked » CPU display_1	PositionNumber	3
+item	PLC_Locked » PLC_Locked » CPU display_1	HwIdentifier	54
+item	PLC_Locked » PLC_Locked » OPC UA_1	Classification	None
+item	PLC_Locked » PLC_Locked » OPC UA_1	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » OPC UA_1	IsPlugged	True
+item	PLC_Locked » PLC_Locked » OPC UA_1	Name	OPC UA_1
+item	PLC_Locked » PLC_Locked » OPC UA_1	OpcUaApplicationName	SIMATIC.S7-1500.OPC-UA.Application:PLC_Locked
+item	PLC_Locked » PLC_Locked » OPC UA_1	OpcUaClient	False
+item	PLC_Locked » PLC_Locked » OPC UA_1	OpcUaExportArrayMembers	True
+item	PLC_Locked » PLC_Locked » OPC UA_1	OpcUaServer	False
+item	PLC_Locked » PLC_Locked » OPC UA_1	PnSubslotNumber	254
+item	PLC_Locked » PLC_Locked » OPC UA_1	PositionNumber	254
+item	PLC_Locked » PLC_Locked » OPC UA_1	HwIdentifier	117
+item	PLC_Locked » PLC_Locked » DP interface_1	Classification	None
+item	PLC_Locked » PLC_Locked » DP interface_1	Comment	
+item	PLC_Locked » PLC_Locked » DP interface_1	Failsafe_DefaultFmonitoringTimeDecentral	150
+item	PLC_Locked » PLC_Locked » DP interface_1	InterfaceOperatingMode	IoController
+item	PLC_Locked » PLC_Locked » DP interface_1	InterfaceType	Profibus
+item	PLC_Locked » PLC_Locked » DP interface_1	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » DP interface_1	IsPlugged	True
+item	PLC_Locked » PLC_Locked » DP interface_1	Label	X3
+item	PLC_Locked » PLC_Locked » DP interface_1	Name	DP interface_1
+item	PLC_Locked » PLC_Locked » DP interface_1	PnSubslotNumber	33280
+item	PLC_Locked » PLC_Locked » DP interface_1	PositionNumber	33280
+item	PLC_Locked » PLC_Locked » DP interface_1	TimeOfDayTypeOfSynchronizationOnDp	0
+item	PLC_Locked » PLC_Locked » DP interface_1	HwIdentifier	60
+node	PLC_Locked » PLC_Locked » DP interface_1 » X3	Address	2
+node	PLC_Locked » PLC_Locked » DP interface_1 » X3	Name	X3
+node	PLC_Locked » PLC_Locked » DP interface_1 » X3	NodeId	P1
+node	PLC_Locked » PLC_Locked » DP interface_1 » X3	NodeType	Profibus
+node	PLC_Locked » PLC_Locked » DP interface_1 » X3	subnet	
+interface	PLC_Locked » PLC_Locked » DP interface_1	controls	
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	CalculatedBandwidthForCyclicIoData	0
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	Classification	None
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	Comment	
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	DeviceReplacementWithoutExchangeableMedium	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	DiagnosticsCommunicationError	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	Failsafe_DefaultFmonitoringTimeDecentral	150
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	IECV22LLDPMode	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	InterfaceOperatingMode	IoController
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	InterfaceType	Ethernet
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	IsIoController	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	IsIoDevice	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	IsPlugged	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	KeepAlivesInterval	30
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	Label	X1
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	LoadLimitation	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	MaxBandwidthForCyclicIoData	0
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	Name	PROFINET interface_1
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	OverwriteDeviceNames	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	PnSendClock	1000000
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	PnSubslotNumber	32768
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	PositionNumber	32768
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	TimeSynchronizationNtp	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	UseWebServerForInterface	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1	HwIdentifier	64
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	Address	192.168.0.1
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	IpProtocolSelection	Project
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	Name	X1
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	NodeId	E1
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	NodeType	Ethernet
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	PnDeviceName	plc_locked.profinet interface_1
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	PnDeviceNameAutoGeneration	True
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	PnDeviceNameConverted	plcxblocked.profinetxainterfacexb10e33
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	PnDeviceNameSetDirectly	False
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	SubnetMask	255.255.255.0
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	UseIpProtocol	True
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	UseIsoProtocol	False
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	UseRouter	False
+node	PLC_Locked » PLC_Locked » PROFINET interface_1 » X1	subnet	
+interface	PLC_Locked » PLC_Locked » PROFINET interface_1	controls	
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	AlternativePartnerPorts	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	CableName	None
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	Classification	None
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	Comment	
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	EndOfSyncDomain	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	EndOfTopologyDiscovery	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	IsPlugged	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	Label	P1R
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	MediumAttachmentType	Copper
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	Name	Port_1
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	PnSubslotNumber	32769
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	PortActivation	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	PortMonitoring	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	PositionNumber	32769
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	TransmissionRateAndDuplex	Automatic
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	TransmissionRateAutoNegotiation	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_1	HwIdentifier	65
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	AlternativePartnerPorts	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	CableName	None
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	Classification	None
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	Comment	
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	EndOfDetectionOfAccessibleDevices	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	EndOfSyncDomain	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	EndOfTopologyDiscovery	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	IsPlugged	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	Label	P2R
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	MediumAttachmentType	Copper
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	Name	Port_2
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	PnSubslotNumber	32770
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	PortActivation	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	PortMonitoring	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	PositionNumber	32770
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	TransmissionRateAndDuplex	Automatic
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	TransmissionRateAutoNegotiation	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_1 » Port_2	HwIdentifier	66
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	CalculatedBandwidthForCyclicIoData	0
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	Classification	None
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	Comment	
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	DeviceReplacementWithoutExchangeableMedium	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	DiagnosticsCommunicationError	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	Failsafe_DefaultFmonitoringTimeDecentral	150
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	IECV22LLDPMode	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	InterfaceOperatingMode	IoController
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	InterfaceType	Ethernet
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	IsIoController	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	IsIoDevice	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	IsPlugged	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	KeepAlivesInterval	30
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	Label	X2
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	MaxBandwidthForCyclicIoData	0
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	Name	PROFINET interface_2
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	OverwriteDeviceNames	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	PnSendClock	1000000
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	PnSubslotNumber	33024
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	PositionNumber	33024
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	UseWebServerForInterface	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2	HwIdentifier	72
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	Address	192.168.1.1
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	IpProtocolSelection	Project
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	Name	X2
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	NodeId	E1
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	NodeType	Ethernet
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	PnDeviceName	plc_locked.profinet interface_2
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	PnDeviceNameAutoGeneration	True
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	PnDeviceNameConverted	plcxblocked.profinetxainterfacexb20f73
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	PnDeviceNameSetDirectly	False
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	SubnetMask	255.255.255.0
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	UseIpProtocol	True
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	UseIsoProtocol	False
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	UseRouter	False
+node	PLC_Locked » PLC_Locked » PROFINET interface_2 » X2	subnet	
+interface	PLC_Locked » PLC_Locked » PROFINET interface_2	controls	
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	AlternativePartnerPorts	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	CableName	None
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	Classification	None
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	Comment	
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	EndOfDetectionOfAccessibleDevices	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	EndOfTopologyDiscovery	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	IsBuiltIn	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	IsPlugged	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	Label	P1
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	MediumAttachmentType	Copper
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	Name	Port_1
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	PnSubslotNumber	33025
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	PortActivation	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	PortMonitoring	False
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	PositionNumber	33025
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	TransmissionRateAndDuplex	Automatic
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	TransmissionRateAutoNegotiation	True
+item	PLC_Locked » PLC_Locked » PROFINET interface_2 » Port_1	HwIdentifier	73
+subnet	PN/IE_1	DefaultSubnet	True
+subnet	PN/IE_1	Name	PN/IE_1
+subnet	PN/IE_1	NetType	Ethernet
+subnet	PN/IE_1	SubnetId	2363-1
+subnet	PN/IE_1	TypeIdentifier	System:Subnet.Ethernet
+subnet	PN/IE_1	node	PLC_Safety » PLC_Safety » PROFINET interface_1 » X1
+subnet	PN/IE_1	node	Remote_F » Remote_F » PROFINET interface » IE1
+iosystem	Safety IO system	MultipleUseIoSystem	False
+iosystem	Safety IO system	Name	Safety IO system
+iosystem	Safety IO system	Number	100
+iosystem	Safety IO system	UseIoSystemNameAsDeviceNameExtension	False
+iosystem	Safety IO system	HwIdentifier	259
+iosystem	Safety IO system	subnet	PN/IE_1
+iosystem	Safety IO system	iodevice	Remote_F » Remote_F » PROFINET interface

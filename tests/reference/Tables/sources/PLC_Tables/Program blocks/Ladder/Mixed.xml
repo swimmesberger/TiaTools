@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21"/>
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Interface>
+        <Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+          <Section Name="Input">
+            <Member Name="start" Datatype="Bool"/>
+            <Member Name="stop" Datatype="Bool"/>
+            <Member Name="door" Datatype="Bool"/>
+          </Section>
+          <Section Name="Output">
+            <Member Name="motor" Datatype="Bool"/>
+            <Member Name="lamp" Datatype="Bool"/>
+            <Member Name="fault" Datatype="Bool"/>
+          </Section>
+          <Section Name="InOut"/>
+          <Section Name="Static">
+            <Member Name="latched" Datatype="Bool"/>
+            <Member Name="edgeMemory" Datatype="Bool"/>
+          </Section>
+          <Section Name="Temp"/>
+          <Section Name="Constant"/>
+        </Sections>
+      </Interface>
+      <MemoryLayout>Optimized</MemoryLayout>
+      <Name>Mixed</Name>
+      <Namespace/>
+      <Number>12</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="11" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="12" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>A ladder block with an SCL and an STL network.</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="2" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource>
+            <FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+              <Parts>
+                <Access Scope="LocalVariable" UId="21">
+                  <Symbol>
+                    <Component Name="start"/>
+                  </Symbol>
+                </Access>
+                <Access Scope="LocalVariable" UId="22">
+                  <Symbol>
+                    <Component Name="lamp"/>
+                  </Symbol>
+                </Access>
+                <Part Name="Contact" UId="23"/>
+                <Part Name="Coil" UId="24"/>
+              </Parts>
+              <Wires>
+                <Wire UId="25">
+                  <Powerrail/>
+                  <NameCon UId="23" Name="in"/>
+                </Wire>
+                <Wire UId="26">
+                  <IdentCon UId="21"/>
+                  <NameCon UId="23" Name="operand"/>
+                </Wire>
+                <Wire UId="27">
+                  <NameCon UId="23" Name="out"/>
+                  <NameCon UId="24" Name="in"/>
+                </Wire>
+                <Wire UId="28">
+                  <IdentCon UId="22"/>
+                  <NameCon UId="24" Name="operand"/>
+                </Wire>
+              </Wires>
+            </FlgNet>
+          </NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="3" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="4" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>A ladder network first.</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="5" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="6" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Ladder</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="7" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource>
+            <StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+              <Access Scope="LocalVariable" UId="21">
+                <Symbol UId="121">
+                  <Component Name="motor" UId="221"/>
+                </Symbol>
+              </Access>
+              <Blank UId="40"/>
+              <Token Text=":=" UId="22"/>
+              <Blank UId="41"/>
+              <Access Scope="LocalVariable" UId="23">
+                <Symbol UId="123">
+                  <Component Name="start" UId="223"/>
+                </Symbol>
+              </Access>
+              <Blank UId="42"/>
+              <Token Text="AND" UId="24"/>
+              <Blank UId="43"/>
+              <Token Text="NOT" UId="25"/>
+              <Blank UId="44"/>
+              <Access Scope="LocalVariable" UId="26">
+                <Symbol UId="126">
+                  <Component Name="stop" UId="226"/>
+                </Symbol>
+              </Access>
+              <Token Text=";" UId="27"/>
+            </StructuredText>
+          </NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="8" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>An SCL network inside a ladder block.</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Structured text</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="C" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource>
+            <StatementList xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StatementList/v5">
+              <StlStatement>
+                <StlToken Text="A"/>
+                <Access Scope="LocalVariable">
+                  <Symbol>
+                    <Component Name="door"/>
+                  </Symbol>
+                </Access>
+              </StlStatement>
+              <StlStatement>
+                <StlToken Text="AN"/>
+                <Access Scope="LocalVariable">
+                  <Symbol>
+                    <Component Name="stop"/>
+                  </Symbol>
+                </Access>
+              </StlStatement>
+              <StlStatement>
+                <StlToken Text="Assign"/>
+                <Access Scope="LocalVariable">
+                  <Symbol>
+                    <Component Name="fault"/>
+                  </Symbol>
+                </Access>
+              </StlStatement>
+            </StatementList>
+          </NetworkSource>
+          <ProgrammingLanguage>STL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="D" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>An STL network inside a ladder block.</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="F" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Statement list</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="13" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="14" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>Mixed languages</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

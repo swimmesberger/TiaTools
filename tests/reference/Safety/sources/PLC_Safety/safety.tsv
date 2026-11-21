@@ -1,0 +1,22 @@
+# F-runtime groups, then settings TIA's defaults would hide (spec 0012). Rows: group <name> <main safety FB> <its instance DB>,
+# or set <object> <Openness attribute> <value>, object one of group:<name>, settings, blocknumbers, cpu, item:<device>/<item>.
+group	Line	LineSafety	LineSafety_DB
+group	Guard	GuardSafety	GuardSafety_DB
+set	group:Line	FOBCycleTime	50000
+set	group:Line	MaximumCycleTime	200000
+set	group:Line	WarnCycleTime	150000
+set	group:Guard	FOBCycleTime	30000
+set	group:Guard	MaximumCycleTime	300000
+set	group:Guard	WarnCycleTime	250000
+set	settings	ActivationOfFChangeHistory	True
+set	settings	SafetyModeCanBeDisabled	True
+set	blocknumbers	ManagementMode	FixedRange
+set	blocknumbers	FromDB	40000
+set	blocknumbers	ToDB	40999
+set	cpu	Failsafe_CentralFSourceAddress	7
+set	cpu	Failsafe_LowerBoundForFDestinationAddresses	100
+set	cpu	Failsafe_UpperBoundForFDestinationAddresses	400
+set	cpu	Failsafe_DefaultFmonitoringTimeCentral	200
+set	item:PLC_Safety/F-DQ_Main	Failsafe_ManualAssignmentFMonitoringtime	1
+set	item:PLC_Safety/F-DQ_Main	Failsafe_FMonitoringtime	250
+set	item:Remote_F/F-DI_Remote	Failsafe_FDestinationAddress	150

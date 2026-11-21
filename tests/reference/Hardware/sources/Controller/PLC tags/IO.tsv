@@ -1,0 +1,2 @@
+Start_Line	Bool	%I10.0	First input of DI_Main
+Lamp_Line	Bool	%Q0.0	First output of DQ_Main

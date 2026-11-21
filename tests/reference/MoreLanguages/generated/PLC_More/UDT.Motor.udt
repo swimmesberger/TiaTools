@@ -1,0 +1,12 @@
+﻿TYPE "Motor"
+VERSION : 0.1
+//A motor, assigned to a ProDiag function block where it is used.
+   STRUCT
+      running : Bool;
+      tripped : Bool;
+      ready : Bool;
+      speed : Int;
+   END_STRUCT;
+
+END_TYPE
+

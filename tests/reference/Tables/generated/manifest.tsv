@@ -1,0 +1,43 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Tables	OB	1	SCL	ok	PLC_Tables/OB.Main.scl		Main	
+PLC_Tables	FC	1	SCL	ok	PLC_Tables/FC.Limit.scl		Limit	
+PLC_Tables	FB	1	SCL	ok	PLC_Tables/FB.Pulse.scl		Pulse	
+PLC_Tables	FC	2	SCL	ok	PLC_Tables/FC.Tick.scl		Tick	
+PLC_Tables	InstanceDB	1	DB	ok	PLC_Tables/InstanceDB.LampDelay.db		LampDelay	
+PLC_Tables	FB	2	STL	ok	PLC_Tables/FB.StlBasics.awl		StlBasics	
+PLC_Tables	FB	10	LAD	ok		PLC_Tables/FB.LadLogic.xml	LadLogic	
+PLC_Tables	FB	11	LAD	ok		PLC_Tables/FB.LadBoxes.xml	LadBoxes	
+PLC_Tables	FB	12	LAD	ok		PLC_Tables/FB.Mixed.xml	Mixed	
+PLC_Tables	FB	13	FBD	ok		PLC_Tables/FB.FbdLogic.xml	FbdLogic	
+PLC_Tables	FB	14	FBD	ok		PLC_Tables/FB.FbdBoxes.xml	FbdBoxes	
+PLC_Tables	FB	20	GRAPH	ok		PLC_Tables/FB.Batch.xml	Batch	
+PLC_Tables	GlobalDB	2	DB	ok	PLC_Tables/GlobalDB.Recipe.db		Recipe	
+PLC_Tables	FC	3	SCL	ok	PLC_Tables/FC.UseRecipe.scl		UseRecipe	
+PLC_Tables	InstanceDB	3	DB	ok	PLC_Tables/InstanceDB.LadBoxesData.db		LadBoxesData	
+PLC_Tables	FC	4	SCL	closed			Sealed	
+PLC_Tables	FB	701	SCL	closed			Diag_Alarm	
+PLC_Tables	FC	310	SCL	closed			G7_RT_Plus_1_V6	
+PLC_Tables	FC	311	SCL	closed			G7_RT_Plus_2_V6	
+PLC_Tables	FC	316	SCL	closed			G7_RT_Plus_SUB_1_V6	
+PLC_Tables	FC	317	SCL	closed			G7_RT_Plus_SUB_2_V6	
+PLC_Tables	FC	312	SCL	closed			G7_RT_Plus_3_V6	
+PLC_Tables	FC	313	SCL	closed			G7_RT_Plus_4_V6	
+PLC_Tables	FC	314	SCL	closed			G7_RT_Plus_5_V6	
+PLC_Tables	FC	318	SCL	closed			G7_RT_Plus_SUB_3_V6	
+PLC_Tables	FC	315	SCL	closed			G7_RT_Plus_6_V6	
+PLC_Tables	UDT		UDT	ok	PLC_Tables/UDT.RecipeStep.udt		RecipeStep	
+PLC_Tables	UDT		UDT	closed			G7_StepPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_TransitionPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_RTDataPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_MOPPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_SQFlagsPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_OffsetsPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_GCFlagsPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_IfParPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_InParPlus_V6	
+PLC_Tables	UDT		UDT	closed			G7_OutParPlus_V6	
+PLC_Tables	TAGS			ok		PLC_Tables/TAGS.Default tag table.xml	Default tag table	
+PLC_Tables	TAGS			ok		PLC_Tables/TAGS.IO.xml	IO	
+PLC_Tables	WATCH			ok		PLC_Tables/WATCH.Outputs.xml	Outputs	
+PLC_Tables	FORCE			ok		PLC_Tables/FORCE.Force table.xml	Force table	
+PLC_Tables	WATCH			ok		PLC_Tables/WATCH.Tank.xml	Tank	

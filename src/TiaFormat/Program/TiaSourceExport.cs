@@ -7,7 +7,19 @@ using Microsoft.Win32.SafeHandles;
 namespace TiaFormat.Program;
 
 /// <summary>What an export wrote. A block that failed is named in <see cref="Failures"/>; the rest were still written.</summary>
-public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures);
+public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures) {
+    /// <summary>Watch and force table files.</summary>
+    public int WatchFiles { get; init; }
+
+    /// <summary>The technology objects written, one <c>.to</c> file each (spec 0013).</summary>
+    public int TechnologyObjectFiles { get; init; }
+
+    /// <summary>The files written for HMI devices (spec 0011).</summary>
+    public int HmiFiles { get; init; }
+
+    /// <summary>The texts tables, alarm tables and text list tables written, one of each per PLC that has any (spec 0014).</summary>
+    public int TextFiles { get; init; }
+}
 
 /// <summary>Writes a program as readable files in a tree, environment / PLC / folder path / block, with an index.tsv of every block. Used by the command line and the viewer alike, so both write the same files.</summary>
 public sealed class TiaSourceExport(TiaProgram program, string root) {
@@ -23,6 +35,18 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
 
     /// <summary>Which tag tables to write, all if null.</summary>
     public Func<TiaTagTable, bool>? TagTables { get; init; }
+
+    /// <summary>Which watch and force tables to write, all if null.</summary>
+    public Func<TiaWatchTable, bool>? WatchTables { get; init; }
+
+    /// <summary>Which technology objects to write, all if null.</summary>
+    public Func<TiaTechnologyObject, bool>? TechnologyObjects { get; init; }
+
+    /// <summary>Also write each HMI device's connections, tag tables, alarms and screens, in a folder of the device beside the PLCs.</summary>
+    public bool HmiDevices { get; init; } = true;
+
+    /// <summary>Write each PLC's texts table and its tables of alarms and text lists (spec 0014).</summary>
+    public bool Texts { get; init; } = true;
 
     /// <summary>Also write each network as stored, next to its block. Never an encrypted part.</summary>
     public bool Raw { get; init; }
@@ -66,8 +90,50 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             output => output.Dispose());
 
         var tagFiles = WriteTagTables();
+        var watchFiles = WriteWatchTables(index);
+        var technologyObjectFiles = WriteTechnologyObjects(index);
+        var hmiFiles = HmiDevices ? WriteHmiDevices() : 0;
+        var textFiles = Texts ? WriteTexts() : 0;
         File.WriteAllText(Path.Combine(root, "index.tsv"), index.ToString(), new UTF8Encoding(false));
-        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]);
+        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]) {
+            TechnologyObjectFiles = technologyObjectFiles,
+            HmiFiles = hmiFiles,
+            TextFiles = textFiles,
+        };
+    }
+
+    /// <summary>
+    /// Per PLC of the project: texts.tsv, every title and comment in every project language, and alarms.tsv and
+    /// textlists.tsv where it has program alarms or text lists (spec 0014). Written next to the PLC's folders.
+    /// </summary>
+    private int WriteTexts() {
+        var alarms = new TiaAlarms(program);
+        var rows = TiaTexts.Rows(program, alarms);
+        var alarmList = alarms.Alarms();
+        var lists = alarms.TextLists();
+        var count = 0;
+        var plcs = rows.Select(row => row.Plc).Concat(alarmList.Select(alarm => alarm.Plc)).Concat(lists.Select(list => list.Plc))
+            .Where(plc => plc.Length != 0).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
+        foreach (var plc in plcs) {
+            var folder = Path.Combine(root, "Project", Safe(plc));
+            count += Table("texts.tsv", output => TiaTexts.WriteTexts(rows, plc, program.Languages, output));
+            var plcAlarms = alarmList.Where(alarm => alarm.Plc == plc).ToList();
+            if (plcAlarms.Count != 0) {
+                count += Table("alarms.tsv", output => TiaTexts.WriteAlarms(plcAlarms, program.Languages, output));
+            }
+            var plcLists = lists.Where(list => list.Plc == plc).ToList();
+            if (plcLists.Count != 0) {
+                count += Table("textlists.tsv", output => TiaTexts.WriteTextLists(plcLists, program.Languages, output));
+            }
+
+            int Table(string name, Action<TextWriter> write) {
+                using var text = new StringWriter(CultureInfo.InvariantCulture) { NewLine = "\n" };
+                write(text);
+                WriteFile(_paths.Reserve(Path.Combine(folder, name), 0), Encoding.UTF8.GetBytes(text.ToString()));
+                return 1;
+            }
+        }
+        return count;
     }
 
     private void WriteBlock(TiaBlock block, string path, PooledByteWriter output) {
@@ -107,6 +173,69 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             var folder = ProgramFolder(table.Frame);
             WriteFile(_paths.Reserve(Path.Combine(folder, Safe(table.Name) + ".tags"), table.Frame.ObjectId), output.WrittenSpan);
             count++;
+        }
+        return count;
+    }
+
+    /// <summary>Each watch and force table with entries as a .watch or .force file, listed in the index (spec 0015, FR-003).</summary>
+    private int WriteWatchTables(StringBuilder index) {
+        var count = 0;
+        foreach (var table in TiaWatchTables.Read(program)) {
+            if (table.Entries.Count == 0 || (WatchTables is { } include && !include(table))) {
+                continue;
+            }
+            var extension = table.Kind == TiaWatchTableKind.Force ? ".force" : ".watch";
+            var path = _paths.Reserve(Path.Combine(ProgramFolder(table.Frame), Safe(table.Name) + extension), table.Frame.ObjectId);
+            WriteFile(path, Encoding.UTF8.GetBytes(TiaWatchTables.Text(table)));
+            var environment = program.Environment(table.Frame);
+            index.Append(CultureInfo.InvariantCulture,
+                $"{table.Frame.ObjectId}\t{environment.Kind}\t{program.PlcName(table.Frame)}\t{table.Kind}\t\t\tno\t{Path.GetRelativePath(root, path).Replace('\\', '/')}\t{table.Name}\n");
+            count++;
+        }
+        return count;
+    }
+
+    /// <summary>Each technology object as a <c>.to</c> file in its folder, with a row of kind TO in the index, its type as the language.</summary>
+    private int WriteTechnologyObjects(StringBuilder index) {
+        var count = 0;
+        using var output = new PooledByteWriter();
+        foreach (var technologyObject in program.TechnologyObjects) {
+            if (TechnologyObjects is { } include && !include(technologyObject)) {
+                continue;
+            }
+            var path = _paths.Reserve(Path.Combine(ProgramFolder(technologyObject.Frame), Safe(technologyObject.Name) + ".to"), technologyObject.Frame.ObjectId);
+            try {
+                output.Clear();
+                TiaSourceWriter.WriteTechnologyObject(program, technologyObject, output);
+                WriteFile(path, output.WrittenSpan);
+                count++;
+            } catch (Exception e) when (e is TiaFormatException or ArgumentOutOfRangeException or IndexOutOfRangeException or InvalidDataException or IOException) {
+                _failures.Enqueue($"TO {technologyObject.Name} (object {technologyObject.Frame.ObjectId}): {e.Message}");
+                continue;
+            }
+            var environment = program.Environment(technologyObject.Frame);
+            index.Append(CultureInfo.InvariantCulture,
+                $"{technologyObject.Frame.ObjectId}\t{environment.Kind}\t{program.PlcName(technologyObject.Frame)}\tTO\t{technologyObject.Number}\t{technologyObject.Kind}\t{(technologyObject.IsKnowHowProtected ? "yes" : "no")}\t{Path.GetRelativePath(root, path).Replace('\\', '/')}\t{technologyObject.Name}\n");
+        }
+        return count;
+    }
+
+    /// <summary>Each HMI device of the project in <c>Project/&lt;HMI device&gt;/</c>, its files as <see cref="TiaHmiWriter.DumpFiles"/> names them.</summary>
+    private int WriteHmiDevices() {
+        var count = 0;
+        TiaHmiReport report;
+        try {
+            report = TiaHmi.Read(program);
+        } catch (Exception e) when (e is TiaFormatException or ArgumentOutOfRangeException or IndexOutOfRangeException or InvalidDataException) {
+            _failures.Enqueue($"HMI devices: {e.Message}");
+            return 0;
+        }
+        foreach (var device in report.Devices) {
+            var folder = Path.Combine(root, "Project", Safe(device.Name));
+            foreach (var (path, text) in TiaHmiWriter.DumpFiles(device)) {
+                WriteFile(_paths.Reserve(Path.Combine(folder, path), 0), Encoding.UTF8.GetBytes(text));
+                count++;
+            }
         }
         return count;
     }

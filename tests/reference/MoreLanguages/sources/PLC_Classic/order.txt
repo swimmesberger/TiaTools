@@ -1,0 +1,8 @@
+# An S7-300 CPU (cpu.txt): its blocks in each language TIA has for it (spec 0016).
+PLC data types/Recipe.udt
+Program blocks/Store.db
+Program blocks/Scale.scl
+Program blocks/ScaleDb.db
+Program blocks/Classic.awl
+Program blocks/ClassicLad.xml
+Program blocks/ClassicFbd.xml

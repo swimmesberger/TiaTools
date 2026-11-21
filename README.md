@@ -17,6 +17,7 @@
 A PLC program lives in a TIA Portal project, and reading one usually takes TIA Portal: Windows, a licence and a large install. TiaTools reads the project's own file instead, so you can read the program on a Mac, review it on a laptop that has no TIA, or let a coding agent search it.
 
 - **The program as written.** Blocks, data types and tag tables in their folders, SCL source with its comments and layout.
+- **Technology objects.** Axes, PID controllers and counters with their kind, version and every value of their data block, checked against TIA Portal.
 - **Follow the code.** Ctrl or Cmd + click a name to go to it, and see who calls a block and what it uses.
 - **Search** across all source of every PLC in the project.
 - **Export** everything, a folder or one block as plain text files, for grep, diff or review.
@@ -33,6 +34,10 @@ It reads project archives (`.zap*`), projects (`.ap*`) and global libraries (`.a
 |---|---|
 | <picture><source media="(prefers-color-scheme: dark)" srcset=".github/images/references-dark.png"><img src=".github/images/references-light.png" alt="The Motor block, with the two places that call it listed below the source"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset=".github/images/search-dark.png"><img src=".github/images/search-light.png" alt="Search results for fault across all blocks, one of them open"></picture> |
 
+| Devices and networks |
+|---|
+| <picture><source media="(prefers-color-scheme: dark)" srcset=".github/images/devices-dark.png"><img src=".github/images/devices-light.png" alt="The demo project's CPU with its rack, interfaces, IP addresses and the system constants of each part"></picture> |
+
 On Windows, download `TIA-Viewer-<version>-win-x64.zip` from the [latest release](https://github.com/swimmesberger/TiaTools/releases/latest), unpack it and run `TiaViewer.exe`. It needs nothing else installed. It is not signed yet, so Windows SmartScreen may warn the first time; *More info › Run anyway* starts it.
 
 On a Mac, download `TIA-Viewer-<version>-macos-universal.zip` from the same release, for Apple silicon and Intel from macOS 13, unpack it and move `TIA Viewer.app` to *Applications*. It needs nothing else installed. It is not signed with a Developer ID or notarized yet, so macOS blocks it the first time: open it once, then choose *Open Anyway* in System Settings › Privacy & Security. Or, in Terminal: `xattr -dr com.apple.quarantine "/Applications/TIA Viewer.app"`.
@@ -45,18 +50,24 @@ dotnet run --project src/TiaViewer -c Release -- Project.zap21
 
 - **Open:** the button, *File › Open…* or Ctrl or Cmd + O, drag and drop, or an argument. *File › Open Recent* and the start screen list the last ten archives, projects and libraries opened.
 - **Follow a name:** Ctrl or Cmd + click it in the source. Back and forward are on Alt+Left and Alt+Right.
-- **Who uses this:** the tabs below the source. Walking through a list keeps the list.
+- **Who uses this:** the tabs below the source, each use with how it is used (read, write, call, watch, ...); for a tag table, each with the tag it uses. Walking through a list keeps the list.
+- **Watch and force tables:** under their PLC in the tree, as text: each entry with its name or address, display format, triggers, value and comment.
 - **Search:** the box at the top for all source (Ctrl or Cmd + Shift + F), Ctrl or Cmd + F within a block, the box on the left for block names. Both are in the *Edit* menu too.
 - **Kinds:** the badges below the name box show only blocks of the kinds turned on, such as only the OBs, or the data blocks and tag tables; with none on, the tree shows everything. They work together with the name box.
 - **Where it starts:** a green triangle marks the program cycle OB, OB 1 `Main` in most programs, by the event class TIA stores for it.
 - **Export:** *Export all…* in the toolbar, *Export…* above a block, or right-click a PLC or folder in the tree. It writes the same files as `tiadump dump`, with an `index.tsv` of what it wrote, into a new folder inside the one you choose, so nothing there is overwritten.
+- **HMI:** each HMI device of the project is a node at the top of the tree, with its connections, alarms, tag tables and screens as tables. Double-click a row to open the PLC tag or data block its HMI tag reads. *Copy* copies the text `tiadump hmi` writes for it. Like OPC UA, it is not searched and is left out of an export from the tree; `tiadump dump` writes it.
 - **OPC UA:** the first entry under each PLC of the project shows its OPC UA configuration the way TIA Portal lays it out: the server's General, Options and Security settings, its server interfaces and roles, its data blocks and tags with TIA's access columns, and the nodes an OPC UA client can browse, with their node ids, to copy or export as a node set file. Double-click a data block, tag or node to open it. What is not confirmed against TIA says so. *Copy* copies the text `tiadump opcua --plc <PLC>` writes. It is read when first shown, is not searched, and is left out of an export.
+- **Devices & networks:** the first entry under the project lists its devices with their racks, modules and interfaces, as `tiadump devices` does, then its subnets and IO systems. Click a system constant to open it in its PLC's tag table. *Copy* copies the text `tiadump devices` writes. It is read when first shown, is not searched, and is left out of an export.
+- **Safety:** under each PLC with a safety program, the entry after *OPC UA* shows what TIA's safety administration shows: the safety system version and settings, whether a safety password is set (never more of it), the collective F-signatures and when the program was compiled, the F-runtime groups with their F-OBs and cycle times, every F-block with its F-signature, and the F-parameters of the F-CPU and each F-I/O. Double-click a row to open its block. *Copy* copies the text `tiadump safety --plc <PLC>` writes. It is read when first shown, is not searched, and is left out of an export.
+- **Languages:** titles and comments are shown in the project's editing language; *View › Language* shows them in another project language. Where a text is empty in that language, the reference language's stands in, then the first that has one.
+- **Alarms and text lists:** under each PLC that has them, *Alarms* lists its program alarms, with their class, associated values and texts, and *Text lists* its text lists, as tables in the language chosen. Both are searched; an alarm of a protected FB is listed as closed.
 - **Copy:** *Copy* above a block puts its source on the clipboard; so does right-clicking it in the tree, or *Edit › Copy* while the tree has the focus.
 - **Menus:** on a Mac in the menu bar, with *About TIA Viewer* in the app menu; on Windows in the window, with *About* under *Help*.
 
 The recent files are kept in `~/Library/Application Support/TIA Viewer` on a Mac and `%LOCALAPPDATA%\TIA Viewer` on Windows; on a Mac they also go to the system's recent documents. *Clear Menu* forgets them.
 
-References come from source, so a closed block's calls are not among them. The viewer says how many blocks that affects, and a short list may be incomplete. It sees direct calls, calls through instance data blocks and multi-instances, and other uses by name; it does not yet tell a read from a write.
+References come from TIA's own cross-reference list, which the archive holds beside the program, so they tell a read from a write and include what a closed block calls, reads and writes, though nothing of how it does so. A watch or force table counts as a user of what its entries name. When the archive holds no list that belongs to it, references come from the source instead: a closed block's uses are then unknown, the viewer says so and how many blocks that affects, and a short list may be incomplete.
 
 Colours and links come from the tokens stored in the project, not from a grammar. Declarations and the statement form of LAD, FBD and GRAPH, which have no stored tokens, go through a small scanner.
 
@@ -97,11 +108,19 @@ The tool is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on 
 
 | Command | What it does | Options |
 |---|---|---|
-| `tiadump list <archive>` | One line per block: PLC, environment, kind, number, `KHP` if protected, `STUB` if held elsewhere, language, name and folder. The block count goes to stderr | `--grep <regex>` on the name, `--stubs` to include references to blocks held elsewhere |
-| `tiadump show <archive> <name>` | Prints every block of exactly that name as source. Exits with 1 if there is none | `--plc <name>` for one PLC only |
+| `tiadump list <archive>` | One line per block: PLC, environment, kind, number, `KHP` if protected, `STUB` if held elsewhere, language, name and folder; then one per technology object, of kind `TO`, with its own kind and version as the language. The counts go to stderr | `--grep <regex>` on the name, `--stubs` to include references to blocks held elsewhere |
+| `tiadump show <archive> <name>` | Prints every block, watch table, force table or technology object of exactly that name as text, a block's titles and comments in the project's editing language. Exits with 1 if there is none | `--plc <name>` for one PLC only, `--language <culture>` for another project language, such as `fr-FR` |
+| `tiadump xref <archive> [name]` | Lists cross references, one use per line: PLC, user, its kind, what it uses, the access, the network and the line. With a name, only uses of or by that block, tag, table or data block member. The first line says whether they come from TIA's cross-reference list or, without one, from the source | `--plc <name>` for one PLC only |
+| `tiadump languages <archive>` | Lists the project languages, marking the editing and the reference language | |
+| `tiadump texts <archive>` | Every title, comment, tag comment, alarm text and text list entry of each PLC, as tab-separated text with a column per project language, as stored | `--plc <name>` for one PLC only |
+| `tiadump alarms <archive>` | Each PLC's program alarms: each alarm type with the FB and member that declare it, each instance with its data block and alarm id, the class, the operand wired to each associated value, the text lists its texts use, and its texts in every project language. The alarms of a protected FB are listed as closed | `--plc <name>` for one PLC only |
+| `tiadump textlists <archive>` | Each PLC's text lists: the range type, each entry in every project language, and the alarms that use the list | `--plc <name>` for one PLC only |
 | `tiadump inspect <archive> <name or id>` | Prints what is stored for a block or object: attributes, dictionary expando values (marked `~`) and relations, for finding where a fact lives. Encrypted values stay closed, and values named like a password, key, hash or certificate are not shown | `--plc <name>` for one PLC, `--full` to print long values whole |
-| `tiadump dump <archive> <folder>` | Writes all blocks and tag tables as files, and creates the folder if needed. Takes about a second for a 60 MB archive. Exits with 1 if a block failed; the rest are still written | `--grep <regex>` on the name (no tag tables then), `--raw` to add each network as stored, `--verify` to check every frame's hash |
+| `tiadump dump <archive> <folder>` | Writes all blocks, tag tables and technology objects as files, and per PLC its texts, alarms and text lists as tables, and creates the folder if needed. Takes about a second for a 60 MB archive. Exits with 1 if a block failed; the rest are still written | `--grep <regex>` on the name (no tag tables or text tables then), `--raw` to add each network as stored, `--verify` to check every frame's hash, `--language <culture>` for titles and comments in another project language |
 | `tiadump opcua <archive>` | Reports each PLC's OPC UA server as Markdown: whether it is on, its application name, security policies and other settings, its roles and server interfaces, and which data blocks, members and tags an OPC UA client could read or write. Never shows passwords, keys, hashes or certificates. Some readings are not yet confirmed against TIA, and the report says which | `--json` for every data block and tag as JSON, `--plc <name>` for one PLC only, `--nodes` for the nodes of the standard server interface as tab-separated text, `--nodeset` for one PLC's node set file, as TIA's *OPC UA › Server › Export* writes it |
+| `tiadump devices <archive>` | Lists the project's devices with their racks and modules by slot, each with its order number, firmware, I/O addresses (`I 10..13`) and the system constants that hold its hardware identifiers, each interface with its subnet, IP address, subnet mask, PROFINET device name or PROFIBUS address, then the subnets and the IO systems with their IO controller and IO devices. Never shows passwords or protection settings | `--json` for the same as JSON |
+| `tiadump safety <archive>` | Reports each PLC's safety program as Markdown: its settings, whether a safety password is set, its collective F-signatures, F-runtime groups with their F-OBs and cycle times, every F-block with its F-signature, and the F-source address, F-destination address and F-monitoring time of the F-CPU and each F-I/O. Never shows a password or anything derived from one | `--json` for the same as JSON, `--plc <name>` for one PLC only |
+| `tiadump hmi <archive>` | Reports each HMI device as Markdown, Comfort/Advanced and Unified alike: its connections and the PLCs they lead to, its HMI tags with the PLC tag or data block member each reads, its discrete and analog HMI alarms with trigger and text, and its screens with their items and bound tags. Never shows runtime users or passwords | `--json` for the same as JSON, `--device <name>` for one HMI device only |
 | `tiadump compare <dump> <export>` | Compares a dump with what TIA generated, block by block: counts per block kind, then each block's first differing line. Exits with 1 if any text differs. See [comparing with TIA Portal](docs/comparing-with-tia.md) | |
 
 ### What a dump holds
@@ -109,12 +128,16 @@ The tool is then at `src/TiaDump/bin/Release/net10.0/tiadump` (`tiadump.exe` on 
 ```text
 index.tsv
 Project/<PLC>/<folder path>/<block>.<kind>
+Project/<PLC>/texts.tsv, alarms.tsv, textlists.tsv
 <master copy>--<id>/<PLC>/<folder path>/<block>.<kind>
 ```
 
 | File | Holds |
 |---|---|
 | `index.tsv` | Every block, also the ones with no file. Columns: `object`, `environment`, `plc`, `kind`, `number`, `language`, `know-how` (`yes` or `no`), `file`, `name`. `file` is empty when nothing is stored for the block |
+| `texts.tsv` | Every title, comment, member and tag comment, text list entry, program alarm text and alarm class name of the PLC: `object`, `place`, then a column per project language with the text stored in it, empty where it has none. A tab, line break or backslash in a text is written `\t`, `\n`, `\r`, `\\` |
+| `alarms.tsv` | The PLC's program alarms, as `tiadump alarms` prints them |
+| `textlists.tsv` | The PLC's text lists, as `tiadump textlists` prints them |
 | `.scl` | SCL source with comments and layout as written. After the leading comment lines it matches what TIA's *Generate source from blocks* writes. A protected block has at most its interface, and its body says it is closed |
 | `.awl` | An STL block, as TIA's *Generate source from blocks* writes it |
 | `.lad`, `.fbd`, `.f_fbd` | Interface, then each LAD or FBD network with its title and comment and its logic in statement form: contacts and gates as AND, OR and NOT, coils as assignments, boxes, timers and calls as calls ([ADR 0013](docs/adr/0013-networks-are-shown-as-statements.md)). **This form is ours**, as TIA has no text for these languages. A network in SCL or STL inside such a block is written in its own language |
@@ -122,6 +145,7 @@ Project/<PLC>/<folder path>/<block>.<kind>
 | `.udt` | A user data type, with the start values its members are declared with |
 | `.db` | A data block. One of a UDT or FB names its type and lists the values set in it, as TIA does; the type's members follow as comments, with start values where they are known. A shared one declares its members and lists its values |
 | `.tags` | A tag table |
+| `.watch`, `.force` | A watch table or the force table with entries, one entry per line: name and address, display format, triggers that are not the default, value and comment. Listed in `index.tsv` with the kind `Watch` or `Force` |
 
 Each block file starts with comment lines giving kind, number, language, know-how flag, PLC and folder. The same name can occur several times: on several PLCs, and as a project block and a library master copy; the `environment` and `plc` columns tell them apart, and `ProjectData` is the project itself.
 

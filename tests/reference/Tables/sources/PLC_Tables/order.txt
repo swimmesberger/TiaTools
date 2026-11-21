@@ -1,0 +1,18 @@
+# The Languages program, copied, then a recipe DB, a closed block and Main that use it. Main comes last: it calls them all.
+PLC data types/RecipeStep.udt
+Program blocks/Common/Limit.scl
+Program blocks/Common/Pulse.scl
+Program blocks/Common/Tick.scl
+Program blocks/Common/LampDelay.db
+Program blocks/Statement/StlBasics.awl
+Program blocks/Ladder/LadLogic.xml
+Program blocks/Ladder/LadBoxes.xml
+Program blocks/Function/FbdLogic.xml
+Program blocks/Function/FbdBoxes.xml
+Program blocks/Ladder/Mixed.xml
+Program blocks/Sequence/Batch.xml
+Program blocks/Data/Recipe.db
+Program blocks/Data/UseRecipe.scl
+Program blocks/Data/LadBoxesData.db
+Program blocks/Vault/Sealed.scl
+Program blocks/Main.scl

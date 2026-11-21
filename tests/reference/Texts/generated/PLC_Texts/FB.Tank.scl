@@ -1,0 +1,25 @@
+﻿FUNCTION_BLOCK "Tank"
+TITLE = Behälter überwachen
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//Meldet einen hohen und einen niedrigen Füllstand.
+   VAR_INPUT 
+      level : Int;   // Füllstand in mm
+      high : Bool;   // Grenzwert oben erreicht
+      low : Bool;
+      state : Int;   // Zustand, Index in die Textliste States
+   END_VAR
+
+   VAR 
+      highAlarm {InstructionName := 'Program_Alarm'; LibVersion := '1.0'} : Program_Alarm;
+      lowAlarm {InstructionName := 'Program_Alarm'; LibVersion := '1.0'} : Program_Alarm;
+   END_VAR
+
+
+BEGIN
+	
+	 #highAlarm(SIG := #high, SD_1 := #level);
+	 #lowAlarm(SIG := #low, SD_1 := #level, SD_2 := #state);
+	
+END_FUNCTION_BLOCK
+

@@ -81,4 +81,85 @@ public sealed class TiaSourceRenderingTest {
         Encoding.UTF8.GetString(output.WrittenSpan).Should().Be(
             "      A #count ;// counted\n      CALL \"Limit\"\n      (  value                       := 7 , \n         Ret_Val                     := #count\n      );\ndone:      NOP 0;");
     }
+
+    private static string Stl(string statements, string idents = "<IdentXmlPart />") {
+        var table = new TiaIdentTable();
+        table.Add(Encoding.UTF8.GetBytes(idents));
+        table.Complete();
+        using var output = new PooledByteWriter();
+        StlRenderer.Render(Encoding.UTF8.GetBytes("<Statements Version=\"14.0.0.0\">" + statements + "</Statements>"), table, output);
+        return Encoding.UTF8.GetString(output.WrittenSpan);
+    }
+
+    private const string Place = """<IdentXmlPart><InterfaceAccess><ID N="" S="Local" RID="1" /><SSD><AOS><AO N="place"><TD /></AO></AOS></SSD></InterfaceAccess><LiteralConstant><ID N="" S="Constant" RID="2" /><CD><CB SV="P_x0023_2.0" V="16" /></CD></LiteralConstant></IdentXmlPart>""";
+
+    /// <summary>Spec 0016, FR-003.</summary>
+    [Test]
+    public void AnIndirectAddressIsWrittenWithItsAreaBracketsAndRegisterAsTiaWritesIt() {
+        Stl("""
+            <Statement UId="1"><Token Kw="16" DispName="L" /><Token Type="PartialKeyword" DispName="MW" /><Token Kw="[" /><OpdAccess RefId="1" UId="2" /><Token Kw="]" /></Statement>
+            <Statement UId="3"><Token Kw="16" DispName="L" /><Token Type="PartialKeyword" DispName="DBW" /><Token Kw="[" /><Token Type="PartialKeyword" DispName="AR1" /><Token Kw="," /><OpdAccess RefId="2" UId="4" /><Token Kw="]" /></Statement>
+            """, Place).Should().Be("      L MW[ #place];\n      L DBW[ AR1, P#2.0];");
+    }
+
+    /// <summary>Spec 0016, FR-003.</summary>
+    [Test]
+    public void AnAddressAcrossAreasFollowsItsMnemonicWithoutABlank() {
+        Stl("""<Statement UId="1"><Token Kw="1" DispName="A" /><Token Kw="[" /><Token Type="PartialKeyword" DispName="AR2" /><Token Kw="," /><OpdAccess RefId="2" UId="2" /><Token Kw="]" /></Statement>""", Place)
+            .Should().Be("      A[ AR2, P#2.0];");
+    }
+
+    /// <summary>Spec 0016, FR-003: a status bit or a data block's number is a keyword in place of an operand.</summary>
+    [Test]
+    public void AStatusBitIsWrittenAsItsOperand() {
+        Stl("""<Statement UId="1"><Token Kw="1" DispName="A" /><Token Type="PartialKeyword" DispName="OV" /></Statement>""").Should().Be("      A OV;");
+    }
+
+    /// <summary>Spec 0016, FR-004.</summary>
+    [Test]
+    public void AnStlStatementWithFormsTheReaderDoesNotKnowIsShownWithItsTokensInOrder() {
+        Stl("""<Statement UId="1"><Token Kw="999" DispName="XYZ" /><Token Type="Unheard" DispName="QQ" /><Token Kw="," /><UserToken Type="Constant" DispName="7" /></Statement>""")
+            .Should().Be("      XYZ QQ, 7;");
+    }
+
+    /// <summary>Spec 0016, FR-003: CALL "Blink", "BlinkDb" names the block and its instance data block.</summary>
+    [Test]
+    public void AnStlCallWithAnInstanceDataBlockNamesBoth() {
+        Stl("""<Statement UId="1"><Token Kw="64" DispName="CALL" /><OpdAccess RefId="1" UId="2" /><Token Kw="," /><OpdAccess RefId="2" UId="3" /></Statement>""",
+            """<IdentXmlPart><FBBlock><ID N="Blink" S="Global" RID="1" /></FBBlock><AufDBBlock><ID N="BlinkDb" S="Global" RID="2" /></AufDBBlock></IdentXmlPart>""")
+            .Should().Be("      CALL \"Blink\", \"BlinkDb\";");
+    }
+
+    private static string Named(string idents, int id) {
+        var table = new TiaIdentTable();
+        foreach (var part in idents.Split('|')) {
+            table.Add(Encoding.UTF8.GetBytes(part));
+        }
+        table.Complete();
+        return table.Name(id);
+    }
+
+    /// <summary>Spec 0016, FR-009: an absolute address no tag stands for, as after OPN on a classic CPU.</summary>
+    [Test]
+    public void AnAbsoluteAddressWithoutATagIsWrittenAsTiaWritesIt() {
+        const string Word = """<IdentXmlPart><SimpleAccess><ID N="" S="Global" RID="1" /><OD S="16"><TD /></OD><SSD S="U" AO="16" /><SAD R="Data" /></SimpleAccess></IdentXmlPart>""";
+        const string Bit = """<IdentXmlPart><SimpleAccess><ID N="" S="Global" RID="1" /><OD S="1"><TD /></OD><SSD S="U" AO="9" /><SAD R="Input" /></SimpleAccess></IdentXmlPart>""";
+
+        Named(Word, 1).Should().Be("%DBW2");
+        Named(Bit, 1).Should().Be("%I1.1");
+    }
+
+    /// <summary>Spec 0016, FR-003: P##local, the address of a local variable.</summary>
+    [Test]
+    public void AnAddressOfNamesTheVariableItPointsTo() {
+        Named("""<IdentXmlPart><Address><ID N="&quot;Address_2" S="Local" RID="2" /><AD SSRID="1" /></Address></IdentXmlPart>|<IdentXmlPart><InterfaceAccess><ID N="" S="Local" RID="1" /><SSD><AOS><AO N="local"><TD /></AO></AOS></SSD></InterfaceAccess></IdentXmlPart>""", 2)
+            .Should().Be("P##local");
+    }
+
+    /// <summary>Spec 0016, FR-005: an element of an array of a PLC data type, as a ProDiag assignment names it.</summary>
+    [Test]
+    public void AnArrayElementNamesItsIndexFromTheIdentifierThatHoldsIt() {
+        Named("""<IdentXmlPart><GlobalAccess><ID N="" S="Global" RID="5" /><SSD S="S" AO="80"><AOS><AO N="Plant" RIDI=""><TD /></AO><AO N="fans" RIDI="4"><TD /></AO></AOS></SSD></GlobalAccess></IdentXmlPart>|<IdentXmlPart><LiteralConstant><ID N="" S="Constant" RID="4" /><CD><CB SV="_x0031_" V="1" /></CD></LiteralConstant></IdentXmlPart>""", 5)
+            .Should().Be("\"Plant\".fans[1]");
+    }
 }

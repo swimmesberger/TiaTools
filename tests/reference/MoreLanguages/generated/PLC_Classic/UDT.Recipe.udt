@@ -1,0 +1,10 @@
+﻿TYPE "Recipe"
+VERSION : 0.1
+   STRUCT
+      amount : Int := 10;   // Units per batch
+      heat : Bool;   // Whether the batch is heated
+      dwell : Time := T#5S;   // Time in the heater
+   END_STRUCT;
+
+END_TYPE
+

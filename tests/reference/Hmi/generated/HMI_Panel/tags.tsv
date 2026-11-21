@@ -1,0 +1,10 @@
+table	name	connection	plc tag	data type	acquisition cycle
+Tank	TankLevel	HMI_Connection_1	Tank_Level	Int	T1s
+Tank	TankTemp	HMI_Connection_1	Tank_Temp	Real	T1s
+Tank	AgitatorOn	HMI_Connection_1	Agitator_On	Bool	T1s
+Tank	AlarmWord	HMI_Connection_1	Alarm_Word	Word	T1s
+Recipe	RecipeSpeed	HMI_Connection_1	Mixer.Recipe.Speed	Int	T1s
+Recipe	MixerRunning	HMI_Connection_1	Mixer.Running	Bool	T1s
+Recipe	LevelThree	HMI_Connection_1	Mixer.Levels[3]	Int	T1s
+Local	SetpointLevel	<Internal tag>		Int	T1s
+Local	OperatorNote	<Internal tag>		WString	T1s

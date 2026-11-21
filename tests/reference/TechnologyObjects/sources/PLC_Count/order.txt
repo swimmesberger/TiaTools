@@ -1,0 +1,3 @@
+# A high-speed counter and an SSI absolute encoder on the CPU's onboard counter channels (spec 0013).
+Technology objects/Count.to
+Technology objects/Angle.to

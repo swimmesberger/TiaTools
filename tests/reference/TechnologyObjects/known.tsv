@@ -1,0 +1,7 @@
+plc	kind	name	reason
+PLC_Motion	TO	Wheel	not compiled: TIA compiles no external encoder without its telegram, so the archive holds no image and no defaults
+PLC_Count	TO	Angle	not compiled: no hardware assigned, which a CPU 1511C cannot give an SSI encoder, so the archive holds no image and no defaults
+PLC_Count	TO	Count/Configuration.BehaviorDQ0.PulseDuration	Openness gives milliseconds, the data block holds tenths of a millisecond
+PLC_Count	TO	Count/Configuration.BehaviorDQ1.PulseDuration	Openness gives milliseconds, the data block holds tenths of a millisecond
+PLC_Count	TO	Count/Configuration.Measuring.UpdateTime	Openness gives milliseconds, the data block holds microseconds
+PLC_Count	TO	Angle/Configuration.BehaviorDQ0.PulseDuration	Openness gives milliseconds, the data block holds tenths of a millisecond

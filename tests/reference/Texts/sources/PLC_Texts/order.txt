@@ -1,0 +1,11 @@
+# Texts in three project languages, program alarms and text lists (spec 0014).
+# Tank raises two program alarms; block texts.tsv gives its title and comment in every language, alarms.tsv the texts of its instances.
+Program blocks/Tank.scl
+Program blocks/TankA.db
+Program blocks/TankB.db
+# Network titles and comments and member comments in several languages, some left empty, need SimaticML.
+Program blocks/Valve.xml
+Program blocks/Recipe.xml
+# Protected after the build: its alarm must stay closed, though its instance has texts.
+Program blocks/Closed/Sealed.scl
+Program blocks/Closed/SealedA.db

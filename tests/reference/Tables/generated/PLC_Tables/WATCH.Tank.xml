@@ -1,0 +1,244 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21" />
+  <DocumentInfo>
+    <Created>2026-11-21T13:00:31.875841Z</Created>
+    <ExportSetting>WithDefaults</ExportSetting>
+    <InstalledProducts>
+      <Product>
+        <DisplayName>Totally Integrated Automation Portal</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </Product>
+      <Product>
+        <DisplayName>STEP 7 Professional</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </Product>
+      <OptionPackage>
+        <DisplayName>STEP 7 Safety</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </OptionPackage>
+      <OptionPackage>
+        <DisplayName>Tech WebApplication</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </OptionPackage>
+      <Product>
+        <DisplayName>WinCC Basic/Comfort/Advanced</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </Product>
+      <Product>
+        <DisplayName>WinCC Unified</DisplayName>
+        <DisplayVersion>V21</DisplayVersion>
+      </Product>
+    </InstalledProducts>
+  </DocumentInfo>
+  <SW.WatchAndForceTables.PlcWatchTable ID="0">
+    <AttributeList>
+      <Name>Tank</Name>
+    </AttributeList>
+    <ObjectList>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="1" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>Bool</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue />
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"Start"</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="2" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="3" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="4" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>DEC_signed</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue>50</ModifyValue>
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"Setpoint"</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="5" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="6" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Half full</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="7" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>Float</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue>1.5</ModifyValue>
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"Speed"</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="8" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="A" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>Hex</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue />
+          <MonitorTrigger>OnceOnlyAtStart</MonitorTrigger>
+          <Name>"StatusWord"</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="B" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcTableCommentEntry ID="D" CompositionName="Entries">
+        <ObjectList>
+          <MultilingualText ID="E" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>The recipe</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcTableCommentEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="10" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>DEC_signed</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue />
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"Recipe".count</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="11" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="13" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>DEC_signed</DisplayFormat>
+          <ModifyTrigger>OnceOnlyAtStart</ModifyTrigger>
+          <ModifyValue>85</ModifyValue>
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"Recipe".limits.high</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="14" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="16" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>Float</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue />
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"Recipe".steps[1].target</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="17" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="18" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="19" CompositionName="Entries">
+        <AttributeList>
+          <Address>%MW40</Address>
+          <DisplayFormat>Bin</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue />
+          <MonitorTrigger>Permanent</MonitorTrigger>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="1A" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>No tag at this address</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+      <SW.WatchAndForceTables.PlcWatchTableEntry ID="1C" CompositionName="Entries">
+        <AttributeList>
+          <DisplayFormat>DEC_signed</DisplayFormat>
+          <ModifyTrigger>Permanent</ModifyTrigger>
+          <ModifyValue />
+          <MonitorTrigger>Permanent</MonitorTrigger>
+          <Name>"LadBoxesData".sum</Name>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="1D" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.WatchAndForceTables.PlcWatchTableEntry>
+    </ObjectList>
+  </SW.WatchAndForceTables.PlcWatchTable>
+</Document>

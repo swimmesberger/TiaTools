@@ -5,7 +5,8 @@ namespace TiaFormat.Program;
 /// <summary>
 /// Writes one STL network as TIA's generated source writes it: one statement per line, six blanks in, the operand after
 /// one blank, a line comment after <c> ;//</c>, a label before its statement, and a call's parameters one per line, their
-/// names padded so that <c>:=</c> stands in one column (docs/FORMAT.md, section 13).
+/// names padded so that <c>:=</c> stands in one column. An operand is the statement's tokens after the mnemonic in their
+/// order, an indirect address among them (docs/FORMAT.md, section 13).
 /// </summary>
 public static class StlRenderer {
     private const string Indent = "      ";
@@ -42,6 +43,7 @@ public static class StlRenderer {
         var depth = 1;
         var context = "";
         var parameter = 0;
+        var operand = new System.Text.StringBuilder();
         while (depth > 0 && reader.Read()) {
             if (reader.IsEnd) {
                 depth--;
@@ -58,12 +60,17 @@ public static class StlRenderer {
                 } else if (name.SequenceEqual("CallInfo"u8)) {
                     context = "call";
                     statement.CallInfo = reader.GetInt32("RefId"u8);
-                } else if (name.SequenceEqual("Token"u8)) {
+                } else if (name.SequenceEqual("Token"u8) && statement.Mnemonic.Length == 0) {
                     statement.Mnemonic = reader.GetString("DispName"u8) ?? "";
+                } else if (name.SequenceEqual("Token"u8)) {
+                    // After the mnemonic, tokens are parts of the operand: an area or register (MW, AR1), a status bit
+                    // (OV), and the brackets and comma of an indirect address, which TIA writes as MW[ AR1, P#2.0].
+                    var token = reader.GetString("DispName"u8) ?? reader.GetString("Kw"u8) ?? "";
+                    operand.Append(token switch { "[" => "[ ", "," => ", ", _ => token });
                 } else if (name.SequenceEqual("OpdAccess"u8)) {
-                    statement.Operand = idents.Name(reader.GetInt32("RefId"u8));
+                    operand.Append(idents.Name(reader.GetInt32("RefId"u8)));
                 } else if (name.SequenceEqual("UserToken"u8)) {
-                    statement.Operand = reader.GetString("DispName"u8);
+                    operand.Append(reader.GetString("DispName"u8));
                 } else if (name.SequenceEqual("LC"u8)) {
                     statement.LineComment = reader.GetString("DispName"u8);
                 }
@@ -82,6 +89,7 @@ public static class StlRenderer {
                 depth++;
             }
         }
+        statement.Operand = operand.Length == 0 ? null : operand.ToString();
         if (statement.CallInfo is { } call) {
             var names = idents.Parameters(call);
             statement.Parameters.Sort((a, b) => a.Number.CompareTo(b.Number));
@@ -94,7 +102,10 @@ public static class StlRenderer {
         output.Write(statement.Label is null ? Indent : statement.Label + ":" + Indent);
         output.Write(statement.Mnemonic);
         if (statement.Operand is not null) {
-            output.Write((byte)' ');
+            // An address in brackets alone follows the mnemonic without a blank: A[ AR2, P#0.1].
+            if (statement.Operand[0] != '[') {
+                output.Write((byte)' ');
+            }
             output.Write(statement.Operand);
         }
         if (statement.Parameters.Count != 0) {

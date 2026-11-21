@@ -1,0 +1,15 @@
+FUNCTION "Watch" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_OUTPUT
+      speed : LReal;
+      level : Real;
+   END_VAR
+
+
+BEGIN
+	// Reads two technology objects, so their names occur in code.
+	#speed := "Spindle".ActualSpeed;
+	#level := "Level".Output;
+END_FUNCTION
+

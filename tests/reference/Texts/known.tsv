@@ -1,0 +1,2 @@
+plc	kind	name	reason
+PLC_Texts	GlobalDB	Recipe	The comment of hysteresis is English only. TIA's source, in German, the editing language, leaves it out; the reader falls back to English on purpose (spec 0014, FR-004). Its texts in every language are compared through its SimaticML.

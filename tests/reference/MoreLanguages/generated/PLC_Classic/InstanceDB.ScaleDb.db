@@ -1,0 +1,9 @@
+﻿DATA_BLOCK "ScaleDb"
+{ S7_Optimized_Access := 'FALSE' }
+VERSION : 0.1
+"Scale"
+
+BEGIN
+
+END_DATA_BLOCK
+

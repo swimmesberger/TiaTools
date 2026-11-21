@@ -1,0 +1,1 @@
+# The station PLC holds only tags; its HMI device reads them by address.

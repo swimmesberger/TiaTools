@@ -1,0 +1,18 @@
+﻿DATA_BLOCK "Mixer"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+NON_RETAIN
+   VAR 
+      Running : Bool;
+      Recipe : Struct
+         Speed : Int;
+         Duration : Time;
+      END_STRUCT;
+      Levels : Array[1..5] of Int;
+   END_VAR
+
+
+BEGIN
+
+END_DATA_BLOCK
+

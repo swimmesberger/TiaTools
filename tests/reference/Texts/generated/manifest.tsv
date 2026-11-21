@@ -1,0 +1,11 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Texts	FB	1	SCL	ok	PLC_Texts/FB.Tank.scl	PLC_Texts/FB.Tank.xml	Tank	
+PLC_Texts	InstanceDB	1	DB	ok	PLC_Texts/InstanceDB.TankA.db	PLC_Texts/InstanceDB.TankA.xml	TankA	
+PLC_Texts	InstanceDB	2	DB	ok	PLC_Texts/InstanceDB.TankB.db	PLC_Texts/InstanceDB.TankB.xml	TankB	
+PLC_Texts	FB	20	LAD	ok		PLC_Texts/FB.Valve.xml	Valve	
+PLC_Texts	GlobalDB	30	DB	ok	PLC_Texts/GlobalDB.Recipe.db	PLC_Texts/GlobalDB.Recipe.xml	Recipe	
+PLC_Texts	FB	2	SCL	closed			Sealed	
+PLC_Texts	InstanceDB	3	DB	partial	PLC_Texts/InstanceDB.SealedA.db		SealedA	xml: Error when calling method 'Export' of type 'Siemens.Engineering.SW.Blocks.InstanceDB'.    Inconsistent blocks and PLC data types (UDT) cannot be exported.
+PLC_Texts	FB	700	STL	closed			Program_Alarm	
+PLC_Texts	TAGS			ok		PLC_Texts/TAGS.Default tag table.xml	Default tag table	
+PLC_Texts	TAGS			ok		PLC_Texts/TAGS.Signals.xml	Signals	

@@ -27,6 +27,12 @@ public readonly record struct TiaBlockHeader(string? Author, string? Family, str
 /// <summary>A data block's settings: whether it is non-retain as a whole, and who may access it.</summary>
 public readonly record struct TiaDataBlockSettings(bool IsNonRetain, bool AccessibleFromOpcUa, bool AccessibleFromWebserver);
 
+/// <summary>
+/// A ProDiag assignment (spec 0016): the ProDiag function block that evaluates a member of a global data block, such as
+/// <c>"Plant".fans[0]</c>, or a whole instance data block, when <see cref="Member"/> is null.
+/// </summary>
+public sealed record TiaProDiagAssignment(string? Member, string FunctionBlock);
+
 /// <summary>A start value set in a data block itself. Name is the stored path when no member explains it.</summary>
 public readonly record struct TiaSetValue(string Name, string Value, bool IsResolved);
 
@@ -39,6 +45,12 @@ public sealed record TiaMember(string Name, string Type, string Path, string Sec
 
     /// <summary>Set per instance: a source file gives it a section of its own, <c>VAR DB_SPECIFIC</c>.</summary>
     public bool IsDbSpecific { get; init; }
+
+    /// <summary>
+    /// The member's local id among its siblings, the interface's <c>LID</c>: what a link from outside the block names it by,
+    /// such as an HMI tag's link to a data block member (format page, section 24).
+    /// </summary>
+    public int? Lid { get; init; }
 
     /// <summary>The member this one overlays: <c>name AT other : type</c>.</summary>
     public string? AtMember { get; init; }
@@ -82,3 +94,6 @@ public sealed record TiaTag(string Name, string? Type, string? Address, string? 
 
 /// <summary>A tag table with its tags in table order.</summary>
 public sealed record TiaTagTable(TiaFrame Frame, string Name, IReadOnlyList<TiaTag> Tags);
+
+/// <summary>A text in every language stored, with its place in what holds it, such as <c>network 2 title</c> or <c>member Input.level</c>.</summary>
+public readonly record struct TiaPlacedText(string Place, IReadOnlyList<TiaText> Texts);
