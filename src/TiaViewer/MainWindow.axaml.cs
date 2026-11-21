@@ -256,9 +256,11 @@ public sealed partial class MainWindow : Window {
             }
         }
         Welcome.IsVisible = false;
-        // A PLC's OPC UA configuration has a view of its own; its text stays in the editor for copying.
-        Editor.IsVisible = !item.IsReport;
-        OpcUaPanel.IsVisible = item.IsReport;
+        // A PLC's OPC UA configuration has a view of its own; its text stays in the editor for copying. An HMI entry is
+        // its text (spec 0011).
+        var isOpcUa = item.Kind == TiaItem.OpcUaReportKind;
+        Editor.IsVisible = !isOpcUa;
+        OpcUaPanel.IsVisible = isOpcUa;
         ShowPanels(!item.IsReport);
         ShowHeading(item);
         var clamped = Math.Clamp(line, 0, document.LineCount - 1);
@@ -385,6 +387,7 @@ public sealed partial class MainWindow : Window {
         "UDT" => "PLC data types",
         "Tags" => "tag tables",
         TiaItem.OpcUaReportKind => "the OPC UA entries",
+        TiaItem.HmiKind => "the HMI devices' entries",
         _ => kind + " blocks",
     };
 

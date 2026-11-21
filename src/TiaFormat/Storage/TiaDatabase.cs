@@ -322,6 +322,23 @@ public sealed class TiaDatabase {
     }
 
     /// <summary>
+    /// The bytes of a structure or array value of a dictionary expando interface, by the name of its key, from its u32
+    /// size on (section 7.4 of the format page: refs inside count from its start); empty if the object has none, or the
+    /// value is not of such a type or does not fit in the frame.
+    /// </summary>
+    public ReadOnlySpan<byte> ReadExpandoValueBytes(in TiaFrame frame, string name) {
+        if (!TryFindExpandoValue(frame, name, out var value, out var heap, out var key) || value == uint.MaxValue || key.ValueTypeId >= 0x80000000) {
+            return default;
+        }
+        var start = heap + (int)value;
+        if (start + 4 > frame.Offset + frame.Size) {
+            return default;
+        }
+        var size = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(start));
+        return size < 4 || start + size > frame.Offset + frame.Size ? default : _data.AsSpan(start, size);
+    }
+
+    /// <summary>
     /// The keys of the values an object holds in its dictionary expando interfaces, in stored order, with each value's
     /// type id (section 6 of the format page). For finding where a fact lives; read a value with the typed reads.
     /// </summary>

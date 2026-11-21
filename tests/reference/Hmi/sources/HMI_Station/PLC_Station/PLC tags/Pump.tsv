@@ -1,0 +1,3 @@
+Pump_Speed	Int	%MW10	Speed of the pump
+Pump_On	Bool	%M0.0	The pump runs
+Flow	Real	%MD20	Flow through the pump

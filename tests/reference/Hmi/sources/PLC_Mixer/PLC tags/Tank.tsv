@@ -1,0 +1,4 @@
+Tank_Level	Int	%IW64	Level of the tank in percent
+Tank_Temp	Real	%MD20	Temperature of the tank
+Agitator_On	Bool	%Q0.0	The agitator runs
+Alarm_Word	Word	%MW30	Alarm bits of the mixer

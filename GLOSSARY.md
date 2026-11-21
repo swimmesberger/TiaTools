@@ -91,6 +91,44 @@ _Avoid_: rung, segment, compile unit (outside the format page)
 What a know-how protected block or an encrypted value is to TiaTools: the archive holds only its ciphertext, so TiaTools reports it as encrypted and renders nothing more. Decryption is a separate capability it does not have (ADR 0011).
 _Avoid_: locked, hidden, unreadable
 
+## HMI
+
+**HMI device**:
+An operator panel or PC runtime in a project, with its own HMI tags, connections, alarms and screens; TIA calls its software an HMI application.
+_Avoid_: panel (for all of them), HMI station, visualization
+
+**WinCC family**:
+Which WinCC an HMI device belongs to: Comfort/Advanced (panels and WinCC RT Advanced) or Unified. They share how tags, connections and alarms are stored, not how screens are.
+_Avoid_: HMI type, runtime (for the family)
+
+**HMI connection**:
+What an HMI device reads a PLC through: a name, the PLC and a communication driver.
+_Avoid_: link, channel, PLC connection
+
+**HMI tag**:
+A tag of an HMI device: internal, or read over an HMI connection from a PLC tag, a data block member or an absolute address.
+_Avoid_: HMI variable, PLC tag (which is the PLC's own)
+
+**HMI alarm**:
+An alarm an HMI device raises itself from an HMI tag: discrete, from a bit, or analog, from a limit. Not a controller alarm, which the PLC program raises.
+_Avoid_: message, HMI message, event
+
+**Alarm class**:
+The class an HMI alarm belongs to, such as Alarm or Warning, which sets how it is shown and acknowledged.
+_Avoid_: alarm type, priority
+
+**Screen**:
+One page of an HMI device's user interface, with its screen items.
+_Avoid_: picture, view, page
+
+**Screen item**:
+One element on a screen, such as an I/O field or a text, with its position and size and the HMI tags it is bound to.
+_Avoid_: object, widget, control (for all of them)
+
+**HMI report**:
+What `tiadump hmi` writes: each HMI device with its HMI connections, HMI tags, HMI alarms and screens (spec 0011).
+_Avoid_: HMI export, HMI dump
+
 ## What TiaTools makes
 
 **Dump**:

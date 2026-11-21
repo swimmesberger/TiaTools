@@ -1,0 +1,6 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Mixer	GlobalDB	1	DB	ok	PLC_Mixer/GlobalDB.Mixer.db		Mixer	
+PLC_Mixer	TAGS			ok		PLC_Mixer/TAGS.Default tag table.xml	Default tag table	
+PLC_Mixer	TAGS			ok		PLC_Mixer/TAGS.Tank.xml	Tank	
+PLC_Station	TAGS			ok		PLC_Station/TAGS.Default tag table.2.xml	Default tag table	
+PLC_Station	TAGS			ok		PLC_Station/TAGS.Pump.xml	Pump	

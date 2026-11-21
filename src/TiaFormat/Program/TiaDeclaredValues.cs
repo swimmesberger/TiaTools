@@ -23,6 +23,7 @@ internal sealed class TiaMemberNode(string name, string type, string path, strin
     public bool IsDbSpecific { get; init; }
     public int? Flags { get; init; }
     public string Id { get; init; } = "";
+    public int? Lid { get; init; }
     public string? AtMemberId { get; init; }
     public string? InstructionVersion { get; init; }
     public IReadOnlyDictionary<string, int> Constants { get; init; } = new Dictionary<string, int>();

@@ -7,7 +7,10 @@ using Microsoft.Win32.SafeHandles;
 namespace TiaFormat.Program;
 
 /// <summary>What an export wrote. A block that failed is named in <see cref="Failures"/>; the rest were still written.</summary>
-public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures);
+public sealed record TiaExportResult(int BlockFiles, int TagFiles, int Protected, int Stubs, int Empty, long Bytes, int UnknownTags, IReadOnlyList<string> Failures) {
+    /// <summary>The files written for HMI devices (spec 0011).</summary>
+    public int HmiFiles { get; init; }
+}
 
 /// <summary>Writes a program as readable files in a tree, environment / PLC / folder path / block, with an index.tsv of every block. Used by the command line and the viewer alike, so both write the same files.</summary>
 public sealed class TiaSourceExport(TiaProgram program, string root) {
@@ -23,6 +26,9 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
 
     /// <summary>Which tag tables to write, all if null.</summary>
     public Func<TiaTagTable, bool>? TagTables { get; init; }
+
+    /// <summary>Also write each HMI device's connections, tag tables, alarms and screens, in a folder of the device beside the PLCs.</summary>
+    public bool HmiDevices { get; init; } = true;
 
     /// <summary>Also write each network as stored, next to its block. Never an encrypted part.</summary>
     public bool Raw { get; init; }
@@ -66,8 +72,9 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             output => output.Dispose());
 
         var tagFiles = WriteTagTables();
+        var hmiFiles = HmiDevices ? WriteHmiDevices() : 0;
         File.WriteAllText(Path.Combine(root, "index.tsv"), index.ToString(), new UTF8Encoding(false));
-        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]);
+        return new TiaExportResult(work.Count, tagFiles, protectedCount, stubs, empty, Interlocked.Read(ref _bytes), _unknown, [.. _failures]) { HmiFiles = hmiFiles };
     }
 
     private void WriteBlock(TiaBlock block, string path, PooledByteWriter output) {
@@ -107,6 +114,26 @@ public sealed class TiaSourceExport(TiaProgram program, string root) {
             var folder = ProgramFolder(table.Frame);
             WriteFile(_paths.Reserve(Path.Combine(folder, Safe(table.Name) + ".tags"), table.Frame.ObjectId), output.WrittenSpan);
             count++;
+        }
+        return count;
+    }
+
+    /// <summary>Each HMI device of the project in <c>Project/&lt;HMI device&gt;/</c>, its files as <see cref="TiaHmiWriter.DumpFiles"/> names them.</summary>
+    private int WriteHmiDevices() {
+        var count = 0;
+        TiaHmiReport report;
+        try {
+            report = TiaHmi.Read(program);
+        } catch (Exception e) when (e is TiaFormatException or ArgumentOutOfRangeException or IndexOutOfRangeException or InvalidDataException) {
+            _failures.Enqueue($"HMI devices: {e.Message}");
+            return 0;
+        }
+        foreach (var device in report.Devices) {
+            var folder = Path.Combine(root, "Project", Safe(device.Name));
+            foreach (var (path, text) in TiaHmiWriter.DumpFiles(device)) {
+                WriteFile(_paths.Reserve(Path.Combine(folder, path), 0), Encoding.UTF8.GetBytes(text));
+                count++;
+            }
         }
         return count;
     }

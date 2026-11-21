@@ -133,6 +133,27 @@ internal sealed class TiaDumpCommands {
         return 0;
     }
 
+    /// <summary>Reports each HMI device: its connections, HMI tags with the PLC tags they read, HMI alarms and screens.</summary>
+    /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
+    /// <param name="json">Write JSON instead of the Markdown report.</param>
+    /// <param name="device">Only this HMI device.</param>
+    [Command("hmi")]
+    public int Hmi([Argument] string archive, bool json = false, string? device = null) {
+        var report = TiaHmi.Read(new TiaProgram(TiaDatabase.Open(archive)), device);
+        if (device is not null && report.Devices.Count == 0) {
+            Console.Error.WriteLine($"No HMI device named {device}.");
+            return 1;
+        }
+        if (json) {
+            using var stdout = Console.OpenStandardOutput();
+            TiaHmiWriter.WriteJson(report, stdout);
+            stdout.Write("\n"u8);
+        } else {
+            TiaHmiWriter.WriteMarkdown(report, TiaOpcUaWriter.Title(archive), Console.Out);
+        }
+        return 0;
+    }
+
     /// <summary>Compares a dump with what TIA generated, block by block, and exits with 1 if any text differs.</summary>
     /// <param name="dump">A folder written by the dump command.</param>
     /// <param name="export">A folder written by tools/TiaOpennessExport.</param>
@@ -142,7 +163,7 @@ internal sealed class TiaDumpCommands {
     /// <summary>Dumps every block and tag table of an archive as source files, in its folder tree.</summary>
     /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
     /// <param name="output">The folder to write to; created if missing.</param>
-    /// <param name="grep">Only blocks whose name matches this regular expression.</param>
+    /// <param name="grep">Only blocks whose name matches this regular expression; leaves out tag tables and HMI devices.</param>
     /// <param name="raw">Also write each network as stored, next to the block (never encrypted parts).</param>
     /// <param name="verify">Check every frame's hash on opening.</param>
     [Command("dump")]
@@ -157,11 +178,12 @@ internal sealed class TiaDumpCommands {
         var result = new TiaSourceExport(program, output) {
             Blocks = filter is null ? null : block => filter.IsMatch(block.Name),
             TagTables = filter is null ? null : _ => false,
+            HmiDevices = filter is null,
             Raw = raw,
         }.Run();
         clock.Stop();
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
-            $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
+            $"{database.AllFrameCount} frames, {database.Frames.Length} current; {result.BlockFiles} block files, {result.TagFiles} tag files, {result.HmiFiles} HMI files, {result.Protected} protected, {result.Stubs} stubs, {result.Empty} with nothing stored"));
         Console.Out.WriteLine(string.Create(CultureInfo.InvariantCulture,
             $"{result.Bytes / 1024.0 / 1024.0:F1} MB written; opened in {opened.TotalMilliseconds:F0} ms, total {clock.Elapsed.TotalMilliseconds:F0} ms, {(GC.GetTotalAllocatedBytes(precise: true) - allocatedBefore) / 1024.0 / 1024.0:F0} MB allocated"));
         if (result.UnknownTags != 0) {

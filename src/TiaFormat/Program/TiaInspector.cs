@@ -21,7 +21,7 @@ public static class TiaInspector {
             return;
         }
         if (TiaSecrets.IsSecretType(type.FullName)) {
-            output.WriteLine("  [user management or certificates: not shown]");
+            output.WriteLine("  [user management, runtime users or certificates: not shown]");
             return;
         }
         foreach (var layout in type.Interfaces) {

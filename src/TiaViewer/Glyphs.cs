@@ -41,6 +41,7 @@ public static class Glyphs {
         "UDT" => Udt,
         "Tags" => Tags,
         TiaFormat.Program.TiaItem.OpcUaReportKind => OpcUa,
+        TiaFormat.Program.TiaItem.HmiKind => Hmi,
         _ when kind?.StartsWith("DB", StringComparison.Ordinal) == true => Db,
         _ => Other,
     };
@@ -52,5 +53,6 @@ public static class Glyphs {
     private static readonly IBrush Udt = Brush.Parse("#C2307A");
     private static readonly IBrush Tags = Brush.Parse("#3F8B2E");
     private static readonly IBrush OpcUa = Brush.Parse("#0E7490");
+    private static readonly IBrush Hmi = Brush.Parse("#9A3412");
     private static readonly IBrush Other = Brush.Parse("#6B7280");
 }

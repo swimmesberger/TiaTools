@@ -13,11 +13,12 @@ description: Answer questions about a Siemens PLC program from its TIA Portal ar
 - SCL and STL source, as written, and LAD, FBD and GRAPH logic as statements
 - tag tables
 - each PLC's OPC UA server: whether it is on, its settings and roles, and which data blocks, members and tags an OPC UA client could read or write (`tiadump opcua <archive>`, `--json` for every detail)
+- each HMI device: its connections, which PLC tags and data block members its HMI tags read, its HMI alarms and their triggers, and its screens with their bound tags (`tiadump hmi <archive>`, `--json` for every detail)
 
 It does not help with:
 
 - **Know-how protected source.** It stays closed; see the rules below.
-- **HMI and hardware configuration.** These are not read, except a PLC's OPC UA server settings. `tiadump opcua` marks what it infers without confirmation, the security policy names and a tag's access above all; say so when you rely on them.
+- **Hardware configuration, and HMI recipes, scripts and text lists.** These are not read, except a PLC's OPC UA server settings. `tiadump opcua` marks what it infers without confirmation, the security policy names and a tag's access above all; say so when you rely on them.
 - **Cross references.** Only the TiaTools viewer lists them; with a dump, search for the name.
 - **Changing anything.** It never writes to an archive.
 

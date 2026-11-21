@@ -251,10 +251,15 @@ internal static class Program {
         var project = portal.Projects.Create(new DirectoryInfo(work), name);
         try {
             var refused = 0;
-            foreach (var plcFolder in Directory.GetDirectories(Path.Combine(folder, "sources")).OrderBy(path => path, StringComparer.Ordinal)) {
+            var sourceFolders = Directory.GetDirectories(Path.Combine(folder, "sources")).OrderBy(path => path, StringComparer.Ordinal).ToList();
+            foreach (var plcFolder in sourceFolders.Where(path => !Hmi.IsHmiFolder(path))) {
                 var plcName = Path.GetFileName(plcFolder);
                 var device = project.Devices.CreateWithItem(cpu, plcName, plcName);
                 refused += BuildPlc(device.DeviceItems.SelectMany(Software).Single(), plcFolder);
+            }
+            // HMI devices come after the PLCs their tags read (spec 0011).
+            foreach (var hmiFolder in sourceFolders.Where(Hmi.IsHmiFolder)) {
+                refused += Hmi.Build(project, hmiFolder, BuildPlc);
             }
             if (refused != 0) {
                 Console.Error.WriteLine($"{name}: {refused} sources refused; its files stay as they were.");
@@ -265,6 +270,7 @@ internal static class Program {
             project.Archive(new DirectoryInfo(archived), name + ".zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
             var generated = Path.Combine(work, "generated");
             Export(project, generated, blockXml: false);
+            Hmi.Export(project, generated);
 
             File.Copy(Path.Combine(archived, name + ".zap21"), Path.Combine(folder, name + ".zap21"), overwrite: true);
             var target = Path.Combine(folder, "generated");

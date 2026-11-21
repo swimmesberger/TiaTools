@@ -8,7 +8,7 @@ status: stable
 
 Enough to write a read-only reader in any language: container, frames, schema, values, relations, then the PLC block layer (interface, SCL, FBD/LAD networks, identifiers). `src/TiaFormat` implements it, and `src/TiaDump` dumps an archive's program as source files with it.
 
-Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Six reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run. Siemens publishes no description of this format, so it can change with a TIA version.
+Checked on four files: two V20 archives (`.zap20`, called A and B here, 58 and 89 MB), A upgraded by TIA V21 (`.zap21`, 59 MB) and one V15.1 global library (`.al15_1`, 4 MB). The OPC UA configuration (section 18) was checked on three more: two V20 archives, C and D, and one V18 archive, E. Seven reference projects, small archives TIA V21 built from invented sources (section 17), are checked against TIA in every test run. The HMI layer (section 19) was found on projects TIA V21 built and checked on the reference project `Hmi`. Siemens publishes no description of this format, so it can change with a TIA version.
 
 ## How to read the claims
 
@@ -597,6 +597,8 @@ Tag tables, from TIA's export of them: all 208 tags and constants in them agree 
 
 The sixth, `Languages` ([spec 0009](../specs/0009-logic-languages.md)), holds blocks TIA takes no text source for, imported as SimaticML written for it and compiled by TIA: LAD and FBD with contacts in series and in parallel, negated contacts, inputs and outputs, set and reset coils and boxes, edges, a jump to a label, a move, a comparison, an addition, a timer as a multi-instance and with a data block of its own, a counter, a call of an FC and of an FB; a LAD block with an SCL and an STL network; an STL block with bit logic in brackets, load and transfer, arithmetic, a jump and a call; and a GRAPH block with a simultaneous and an alternative branch, a jump, actions with the qualifiers N, S, R and D, an event, an interlocked action, an assignment and a call, a supervision, an interlock and permanent instructions before and after. Its STL block and the timer's data block are identical to TIA's generated source; its 27 LAD and FBD networks and its GRAPH sequence give the same statement form from the archive as from TIA's SimaticML export (section 13). Invented blocks test the rules on the forms TIA writes, not on the habits of a real program.
 
+The seventh, `Hmi` ([spec 0011](../specs/0011-hmi.md)), holds a Unified MTP700 panel on an S7-1500 and the WinCC RT Advanced runtime of an ET 200SP Open Controller on its software PLC: two HMI connections, 13 HMI tags (internal, linked to a PLC tag, to a data block member in a struct and to an array element, and by absolute address), two discrete and two analog alarms, and three screens with I/O fields, texts and a button. Every one of them, with each attribute section 19 marks **[S]**, agrees with what TIA's Openness gave for it when it built the project. On the two local samples with a Comfort/Advanced device the report reads every tag and resolves every link to a data block member, and finds the bound tags of 708 of 1,455 screen items, in half a second.
+
 The text is the same after compiling. TIA exports SimaticML only for a compiled block, so a retrieved copy was compiled block by block, with every block that is not fail-safe, and closed unsaved. It refuses to compile the whole PLC without permission for the safety program. That gave SimaticML for all 319 UDTs, 85 of 92 open DBs, 194 of 379 open SCL blocks, and the same table as above.
 
 **What this does not cover.** FBD networks: all 48 in the project are `F_FBD`, so they stay uncompiled and TIA exports none of them. Protected blocks, by choice. LAD, plain FBD, STL and GRAPH: none in the project are open.
@@ -673,6 +675,51 @@ The schema also has `OpcUaInterfaceData`, `OpcUaNodeData`, `OpcUaListData` and `
 
 Four tags of the demo, set through Openness to not accessible, not writable, not visible, and visible again after not accessible, stored what this table says, and `tiadump opcua` reported each as TIA showed it. TIA ties the columns together: clearing Accessible clears Writable and Visible, and setting Visible sets Accessible again. So the tags of the samples with `HmiStructureTypeRelevant` clear and `HmiVisible` set hold a combination TIA V21 does not make; the reader reports them not accessible, and what TIA shows for them is **[?]**. A tag without an `IStructureItem` segment stores none of the three.
 
+## 19. HMI
+
+Where an HMI device's connections, tags, alarms and screens live, for both WinCC families: Comfort/Advanced (panels and WinCC RT Advanced, objects in `Siemens.Simatic.Hmi.Utah`) and Unified. Found with `tiadump inspect` on projects TIA Portal V21 built through Openness, then checked against the reference project `Hmi` ([spec 0011](../specs/0011-hmi.md)): a Unified MTP700 on an S7-1500, and the WinCC RT Advanced runtime of an ET 200SP Open Controller on its own software PLC. A claim marked **[S]** agrees with what TIA's Openness gave for every object of that project in every test run. TIA V21's Openness cannot create Comfort/Advanced alarms, a Comfort/Advanced HMI tag's link to a PLC tag, or a Comfort/Advanced screen item's tag binding, so those rest on the shared types below and on the two local samples (a V20 and a V21 archive of one project with a Comfort/Advanced device): **[I]**. `tiadump hmi` reports it all. This section names types and keys only.
+
+**Families share their types.** Tags, tag tables, connections and alarms of both families are the same `Utah` types; only screens differ. The HMI application, `Siemens.Simatic.HwConfiguration.Hmi.Model.HmiApplicationData`, is every HMI object's `Target`; its `ICoreAttributes.Subtype` is `HMI.Application.RT.IL` for Unified and `HMI.Application.RT` for Comfort/Advanced, and `IHmiApplicationAttributes.DeviceApplicationType` names the device type (`MTP700 Unified Comfort`, `CPU 1515SP PC - WinCC RT Advanced`). **[S]** Its name is the runtime's name in TIA, not the device's.
+
+| Object | Type (`Siemens.Simatic.Hmi.Utah.` unless named) | Read |
+|---|---|---|
+| Connection | `Communication.HmiConnectionData` | Name; `Subtype` `Integrated`; `IHmiConnectionAttributes.PlcId`, the driver. `ConnectionPoint` leads to a `HwConfiguration.Hmi.Model.HmiConnectionPointData`, whose `Conn2RemoteTargets` is the PLC's `S7ControllerTargetData`. **[S]** |
+| Tag table | `Tag.HmiTagTableData` | Name; folder by `AggregatingFolder`, below the device's own root folder `HmiTagFolder`; `Content` lists its tags. **[S]** |
+| HMI tag | `Tag.HmiTagData` | Name; `IStructureItem.DisplayTypeName`, the type, with a string's length (`WString[254]`) where TIA's API gives the length apart; `IHmiTagAttributes_Connection` to its connection, none for an internal tag; `IHmiTagAttributes_AcquisitionCycle` to an `Cycles.HmiCycleData`, whose name is the cycle (`T1s` on Unified, `1 s` on Comfort/Advanced). An absolute address is `ITagAddress.LogicalAddress` with `IHmiTagBaseAttributes.AddressAccessMode` `Absolute`. **[S]** |
+| Member tag | `Tag.HmiStructureMemberTagData`, `Tag.HmiArrayMemberTagData` | The members of a tag of a structured type, under it by `Members` and `ArrayElements`, back by `MembersInverse` and `ArrayElementsInverse`; an array element is named `[n]`. The report lists the tag, not its members. **[I]** |
+| Discrete alarm | `Alarm.HmiDiscreteAlarmData` | Name; `IHmiDiscreteAlarmAttributes.TriggerBitNumber`, absent for bit 0; `IHmiDiscreteAlarmAttributes_TriggerTag`; `HmiAlarmClassDataRelation` to an `Alarm.HmiAlarmClassData`; the event text in `ExpandoChildren`, an `Globalization.HmiTextData`, a core text whose text is TIA's rich text, `<body><p>...</p></body>`. **[S]** on Unified, **[I]** on Comfort/Advanced |
+| Analog alarm | `Alarm.HmiAnalogAlarmData` | As above, with `IHmiAnalogAlarmLimitAttributes.LimitMode` (`UpperLimit`, `LowerLimit`, ...), `LimitValueConstant` as text, and `IHmiAnalogAlarmAttributes_TriggerTag`. **[S]** on Unified, **[I]** on Comfort/Advanced |
+| Screen, Comfort/Advanced | `GraphX.HmiScreenData` | Name, `Subtype` `ScreenView` (templates, pop-ups and slide-ins have others), `IHmiScreenAttributes.Number`, `Width`, `Height`; `Children` lists its items. **[S]** |
+| Screen item, Comfort/Advanced | `GraphX.HmiScreenItemData` | Name, `Subtype` (`TextField`, `IOField`, ...), `IHmiScreenItemAttributes.Left`, `Top`, `Width`, `Height`; an item of a group is in the group's `Children`. **[S]**. Its tags are `ExpandoReferences` to HMI and member tags. **[I]** |
+| Screen, Unified | `Siemens.Simatic.Hmi.DL.ModernUI.ILScreenData` | Name; `ILScreenItems` lists its items. **[S]** |
+| Screen item, Unified | `Siemens.Simatic.Hmi.DL.ModernUI.ILScreenItemData` | Name, `Subtype` (`HmiIOField`, `HmiText`, `HmiButton`); a bound tag is an `ExpandoReferences` to its HMI tag. **[S]** |
+
+**Unified screens keep their properties as dictionary expando values under short keys**, a property's number written as characters: **[S]**
+
+| Key | Type | On |
+|---|---|---|
+| `\u0005` | uint | Width of a screen or item |
+| `\u0006` | uint | Height of a screen or item |
+| `c` | int | Left of an item |
+| `d` | int | Top of an item |
+| `\u0007\u0005` | ushort | Number of a screen |
+
+Other keys hold texts, layers and the bindings (`_#Dynamics`, a map); they are not decoded. **[?]**
+
+**Alarm numbers.** Unified numbers its alarms across both kinds: `IHmiScadaAlarmAttributes.UniqueId`, which is what Openness calls the alarm's `Id`. `IAlarmData.AlarmId` counts per kind; Comfort/Advanced numbers by it. **[S]** for Unified, **[I]** for Comfort/Advanced.
+
+**Drivers.** `PlcId` is an id from TIA's communication channel descriptions (`Data/Hwcn/Custom/CommunicationChannels` in TIA's installation), which also give the name TIA shows: `S7_1500_OMS` is `SIMATIC S7 1500`, `ILRT_S7_1500_OMS` `SIMATIC S7 1200/1500`. The reference project checks the second **[S]**; the reader's other names come from those files **[I]**.
+
+**What an HMI tag reads in its PLC.** Each tag table that links tags to a PLC has a `Siemens.Automation.DomainModel.LinkMaintainer.ScopedLinkMaintainerData` (`Target` its HMI application, `InverseScopedLinkMaintainer` its table): `Consumer` lists the HMI tags, `Provider` the PLC tags (`EAMTZTagData`) and data blocks (`DataBlockData`) they read, each provider once however many tags read it. So the lists are not in step. **[S]** Which provider a tag reads comes from the tag itself:
+
+- A tag linked to a PLC tag holds the PLC tag's address as its own `ITagAddress.LogicalAddress`, with `AddressMode` `Fixed`; it reads the provider with that address. **[S]** The reader takes the lists in step only where no address matches and both have the same length. **[I]**
+- A tag linked to a data block member has the dictionary expando `TypeSafeAddress`, a structure (`0xE56001`) of `CRC` (uint), `LidPath` (an array of uint) and `Rid` (uint), stored as section 7.4 says: u32 size, `CRC`, a ref to the array, `Rid`. `Rid` is `0x8A0E` and the data block's number in its low 16 bits. **[S]** Each step of `LidPath` is a flag byte and 24 bits: `0x20` a struct, `0x40` a member that is not one, and the value its `LID` in the block's interface (section 11). **[S]** `0x10` with them marks an array index, whose value is the index as the source writes it. It counts from the array's lower bound as its declared type states it: element 3 of an `Array[1..5]` is stored as 2. **[S]** Index steps in a row are the dimensions of one array **[I]**; an empty path is the whole block, which the samples have **[I]**.
+- Tags linked to PLC tags have a `TypeSafeAddress` too, with another `Rid` (`0x50` to `0x52` in the reference project, by memory area); it is not needed to find the tag. **[I]** `LinkHandle`, a structure of one `Index`, does not give the provider's position. **[I]**
+
+**Runtime users** (`RTSecurity.HmiRTUserData`, `HmiRTGroupData`, `HmiRTAuthorizationData`) and the application's `Password` are not read; `tiadump inspect` withholds their values (spec 0004's rule). **[S]**
+
+**Not read.** Recipes, text and graphic lists, scripts, logging and the HMI's runtime settings; a screen item's other properties, events and animations. TIA V21's Openness cannot create recipes for either family, so no reference project holds one. **[?]**
+
 ## Open questions
 
 What is left of the comparison with TIA Portal, most important first. [Comparing with TIA Portal](comparing-with-tia.md) says how to run it.
@@ -682,16 +729,17 @@ What is left of the comparison with TIA Portal, most important first. [Comparing
 3. **`S7_SetPoint` on a fail-safe UDT.** Two global DBs of A have `MFlags="527"` on members of a fail-safe UDT, and TIA writes nothing where we write `'False'`. The rule may be wider than fail-safe types.
 4. **LAD, FBD, STL and GRAPH in a real program.** The reference project `Languages` checks each on invented blocks (section 13), but no sample has any unprotected, so a real program's habits are untried: other instructions, nested branches, GRAPH with several sequences or step times, STL with indirect addressing.
 5. **Hardware, optional.** The reader lists no devices. A `tiadump devices` command (name, type, address, network) could be checked against TIA's Network overview.
-6. **OPC UA.** The server's settings, all security policies, the tags' access columns and the members' access are checked (sections 11 and 18), and the node ids of TIA's node set export are in the [research note](research/2026-11-20-tia-opc-ua-server-settings.md). Left: what TIA shows for a sample's tag stored as not accessible but visible, a combination TIA does not let a person make; and a project with a user-defined server interface, for what the journals and `OpcUaInterfaceData` hold.
+6. **HMI, Comfort/Advanced.** TIA V21's Openness builds no Comfort/Advanced alarm, link from an HMI tag to a PLC tag, or screen item bound to a tag, so these are read by the shared types alone (section 19). Someone with a WinCC Comfort licence could add them by hand to a copy of the reference project, archive it, and compare `tiadump hmi` with what TIA shows. Recipes, of either family, are not read at all.
+7. **OPC UA.** The server's settings, all security policies, the tags' access columns and the members' access are checked (sections 11 and 18), and the node ids of TIA's node set export are in the [research note](research/2026-11-20-tia-opc-ua-server-settings.md). Left: what TIA shows for a sample's tag stored as not accessible but visible, a combination TIA does not let a person make; and a project with a user-defined server interface, for what the journals and `OpcUaInterfaceData` hold.
 
 ## This repository's reader
 
-`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and the booleans, integers, strings, dates and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them. For the OPC UA roles (section 18) it has a reader of the .NET binary serialization format that only reads values and creates no type the stream names.
+`src/TiaFormat` is built for reading a whole archive quickly: the file is one array, frames are value types, values are decoded on demand, blobs go into pooled memory, and SCL goes from UTF-8 tokens to UTF-8 text without strings. It reads frames, schemas, declared attributes, relations, simple expandos, and the booleans, integers, strings, dates and blobs of dictionary expandos. It does not decode structures, arrays or maps in general, because no block read needs them; it reads the bytes of one structure value of a dictionary expando, an HMI tag's `TypeSafeAddress` (section 19). For the OPC UA roles (section 18) it has a reader of the .NET binary serialization format that only reads values and creates no type the stream names.
 
 ```bash
 dotnet run --project src/TiaDump -c Release -- dump <archive> <output folder>
 ```
 
-`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
+`list` and `show` print blocks, `dump --raw` adds each network as stored, `opcua` reports section 18, `hmi` section 19, and `inspect` prints what an object stores, its dictionary expando values marked `~`. A dump holds `<project or master copy>/<PLC>/<folder path>/<block>` with `.scl`, `.f_fbd`, `.udt`, `.db` and `.tags` files, `Project/<HMI device>/` with its connections, alarms, tag tables and screens as tab-separated files, and an `index.tsv` of every block with what stayed closed. The header and declarations are as a TIA source file has them, for reading and not for import. DB start values in our trailing comment come from the compiled image where the XML has none (section 11).
 
 On the V20 samples the dump takes under a second. An independent implementation of this page, since retired, agreed with its text on every network body and interface member: 1,100 networks and 46,514 members. That checks the implementation against this page, not against TIA.

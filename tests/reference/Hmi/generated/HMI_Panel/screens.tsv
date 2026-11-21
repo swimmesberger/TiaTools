@@ -1,0 +1,6 @@
+screen	number	width	height	item	type	left	top	item width	item height	tag
+Overview	1	800	480	LevelLabel	HmiText	20	40	160	30	
+Overview	1	800	480	LevelValue	HmiIOField	200	40	120	30	TankLevel
+Overview	1	800	480	TempValue	HmiIOField	200	90	120	30	TankTemp
+Recipe	2	800	480	SpeedValue	HmiIOField	200	40	120	30	RecipeSpeed
+Recipe	2	800	480	StartButton	HmiButton	20	120	120	40	

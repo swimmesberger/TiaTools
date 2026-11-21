@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V21" />
+  <Hmi.Tag.TagTable ID="0">
+    <AttributeList>
+      <Name>Pump</Name>
+    </AttributeList>
+    <ObjectList>
+      <Hmi.Tag.Tag ID="1" CompositionName="Tags">
+        <AttributeList>
+          <AddressAccessMode>Absolute</AddressAccessMode>
+          <LogicalAddress>%MW10</LogicalAddress>
+          <Name>PumpSpeed</Name>
+        </AttributeList>
+        <LinkList>
+          <AcquisitionCycle TargetID="@OpenLink">
+            <Name>1 s</Name>
+          </AcquisitionCycle>
+          <Connection TargetID="@OpenLink">
+            <Name>@Connection@</Name>
+          </Connection>
+          <DataType TargetID="@OpenLink">
+            <Name>Int</Name>
+          </DataType>
+        </LinkList>
+      </Hmi.Tag.Tag>
+      <Hmi.Tag.Tag ID="2" CompositionName="Tags">
+        <AttributeList>
+          <AddressAccessMode>Absolute</AddressAccessMode>
+          <LogicalAddress>%M0.0</LogicalAddress>
+          <Name>PumpOn</Name>
+        </AttributeList>
+        <LinkList>
+          <AcquisitionCycle TargetID="@OpenLink">
+            <Name>100 ms</Name>
+          </AcquisitionCycle>
+          <Connection TargetID="@OpenLink">
+            <Name>@Connection@</Name>
+          </Connection>
+          <DataType TargetID="@OpenLink">
+            <Name>Bool</Name>
+          </DataType>
+        </LinkList>
+      </Hmi.Tag.Tag>
+      <Hmi.Tag.Tag ID="3" CompositionName="Tags">
+        <AttributeList>
+          <AddressAccessMode>Absolute</AddressAccessMode>
+          <LogicalAddress>%MD20</LogicalAddress>
+          <Name>Flow</Name>
+        </AttributeList>
+        <LinkList>
+          <AcquisitionCycle TargetID="@OpenLink">
+            <Name>500 ms</Name>
+          </AcquisitionCycle>
+          <Connection TargetID="@OpenLink">
+            <Name>@Connection@</Name>
+          </Connection>
+          <DataType TargetID="@OpenLink">
+            <Name>Real</Name>
+          </DataType>
+        </LinkList>
+      </Hmi.Tag.Tag>
+      <Hmi.Tag.Tag ID="4" CompositionName="Tags">
+        <AttributeList>
+          <Name>SpeedSetpoint</Name>
+        </AttributeList>
+        <LinkList>
+          <DataType TargetID="@OpenLink">
+            <Name>Int</Name>
+          </DataType>
+        </LinkList>
+      </Hmi.Tag.Tag>
+    </ObjectList>
+  </Hmi.Tag.TagTable>
+</Document>
