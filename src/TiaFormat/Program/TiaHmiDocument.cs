@@ -9,7 +9,17 @@ namespace TiaFormat.Program;
 /// </summary>
 internal static class TiaHmiDocument {
     /// <param name="scopes">The scope of each PLC of the project by its name, for the names that lead into it.</param>
-    public static TiaDocument Build(TiaHmiDevice device, TiaHmiPart part, string name, IReadOnlyDictionary<string, string> scopes) {
+    /// <param name="index">For an entry of the device's code, its position in its list.</param>
+    public static TiaDocument Build(TiaHmiDevice device, TiaHmiPart part, string name, IReadOnlyDictionary<string, string> scopes, int index = 0) {
+        var code = device.Code ?? TiaHmiCode.Empty;
+        switch (part) {
+            case TiaHmiPart.Script when index < code.Scripts.Count:
+                return TiaScriptTokenizer.JavaScript(code.Scripts[index].Code);
+            case TiaHmiPart.ScriptModule when index < code.Modules.Count:
+                return TiaScriptTokenizer.JavaScript(code.Modules[index].Code);
+            case TiaHmiPart.VbScript when index < code.VbScripts.Count:
+                return TiaScriptTokenizer.VbScript(TiaHmiWriter.VbSource(code.VbScripts[index]));
+        }
         var writer = new Writer();
         switch (part) {
             case TiaHmiPart.Connections:
@@ -35,6 +45,11 @@ internal static class TiaHmiDocument {
                 writer.Table(["Item", "Type", "Left", "Top", "Width", "Height", "HMI tags"], screen.Items.Select(item => new Cell[] {
                     item.Name, item.Type, Number(item.Left), Number(item.Top), Number(item.Width), Number(item.Height), string.Join(", ", item.Tags),
                 }));
+                break;
+            case TiaHmiPart.CustomWebControl when index < code.CustomWebControls.Count:
+                var control = code.CustomWebControls[index];
+                writer.Comment($"Custom web control {control.DisplayName ?? control.Guid} of {device.Name}, {control.Guid}");
+                writer.Table(["File", "Bytes"], control.Files.Select(file => new Cell[] { file.Path, file.Content.Length.ToString(CultureInfo.InvariantCulture) }));
                 break;
         }
         return writer.Done();

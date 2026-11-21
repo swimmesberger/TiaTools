@@ -1,0 +1,6 @@
+table	name	connection	plc tag	data type	acquisition cycle
+Dosing	Level	HMI_Connection_1	Dose_Level	Int	T1s
+Dosing	Speed	HMI_Connection_1	Dose_Speed	Int	T1s
+Dosing	Target	HMI_Connection_1	Dose_Target	Int	T1s
+Dosing	Valve	HMI_Connection_1	Dose_Valve	Bool	T1s
+Local	StartCount	<Internal tag>		Int	T1s

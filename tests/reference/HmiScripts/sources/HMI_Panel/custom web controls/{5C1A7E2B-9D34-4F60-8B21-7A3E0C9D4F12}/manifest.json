@@ -1,0 +1,22 @@
+{
+  "mver": "1.2.0",
+  "control": {
+    "identity": {
+      "name": "DosingGauge",
+      "version": "1.0",
+      "displayname": "Dosing gauge",
+      "icon": "./assets/logo.ico",
+      "type": "guid://5C1A7E2B-9D34-4F60-8B21-7A3E0C9D4F12",
+      "start": "./control/index.html"
+    },
+    "metadata": { "author": "TiaTools reference", "keywords": ["dosing"] },
+    "contracts": {
+      "api": {
+        "methods": {},
+        "events": {},
+        "properties": { "Level": { "type": "number", "default": 0 } }
+      }
+    },
+    "types": {}
+  }
+}

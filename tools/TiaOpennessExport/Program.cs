@@ -64,6 +64,8 @@ internal static class Program {
                 return References(args[1], args.Skip(2).ToList());
             case "catalog" when args.Length >= 2:
                 return Catalog(args.Skip(1));
+            case "reference-finish" when args.Length == 3:
+                return FinishReference(args[1], args[2]);
             default:
                 Console.Error.WriteLine("""
                     usage:
@@ -73,6 +75,7 @@ internal static class Program {
                       TiaOpennessExport compiled-copy <.ap21> <out>      compile a retrieved copy, export it, close it unsaved
                       TiaOpennessExport reference <empty dir> <folder>... build reference projects again from their sources
                       TiaOpennessExport catalog <text>...                list hardware catalog entries that match, for hardware.tsv
+                      TiaOpennessExport reference-finish <dir> <folder>  archive and export a reference project after its hand steps
 
                     Keep <empty dir> short, such as C:\\Users\\me\\tc: TIA refuses to retrieve into a long path, and only says
                     "Unable to retrieve the project". An export refuses blocks that are not compiled; source generation does not.
@@ -350,12 +353,24 @@ internal static class Program {
         }
         var clock = Stopwatch.StartNew();
         var failed = 0;
+        var waiting = 0;
         using (var portal = new TiaPortal(TiaPortalMode.WithoutUserInterface)) {
             Console.WriteLine($"TIA Portal started in {clock.Elapsed.TotalSeconds:F0} s");
             foreach (var folder in folders.Select(Path.GetFullPath)) {
-                failed += Reference(portal, folder, Path.Combine(work.FullName, Path.GetFileName(folder))) ? 0 : 1;
+                switch (Reference(portal, folder, Path.Combine(work.FullName, Path.GetFileName(folder)))) {
+                    case Built.Failed:
+                        failed++;
+                        break;
+                    case Built.WaitsForHand:
+                        waiting++;
+                        break;
+                }
                 Console.WriteLine($"after {clock.Elapsed.TotalSeconds:F0} s");
             }
+        }
+        if (waiting != 0) {
+            // A project that waits for its hand steps stays in the work folder until reference-finish.
+            return failed == 0 ? 0 : 1;
         }
         try {
             work.Delete(recursive: true);
@@ -365,7 +380,13 @@ internal static class Program {
         return failed == 0 ? 0 : 1;
     }
 
-    private static bool Reference(TiaPortal portal, string folder, string work) {
+    private enum Built {
+        Done,
+        Failed,
+        WaitsForHand,
+    }
+
+    private static Built Reference(TiaPortal portal, string folder, string work) {
         var name = Path.GetFileName(folder);
         Console.WriteLine($"== {name}");
         var project = portal.Projects.Create(new DirectoryInfo(work), name);
@@ -404,29 +425,77 @@ internal static class Program {
             }
             if (refused != 0) {
                 Console.Error.WriteLine($"{name}: {refused} sources refused; its files stay as they were.");
-                return false;
+                return Built.Failed;
             }
             project.Save();
-            var archived = Path.Combine(work, "out");
-            project.Archive(new DirectoryInfo(archived), name + ".zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
-            var generated = Path.Combine(work, "generated");
-            // Only SimaticML lists every language's text, so a project with several languages exports it for every block.
-            Export(project, generated, blockXml: texts, crossReferences: true, texts: texts);
-            HardwareReport.Write(project, Path.Combine(generated, "hardware.tsv"));
-            SafetyReport.Write(project, Path.Combine(generated, "safety"));
-            Hmi.Export(project, generated);
-
-            File.Copy(Path.Combine(archived, name + ".zap21"), Path.Combine(folder, name + ".zap21"), overwrite: true);
-            var target = Path.Combine(folder, "generated");
-            if (Directory.Exists(target)) {
-                Directory.Delete(target, recursive: true);
+            var steps = Hmi.HandSteps(folder);
+            if (steps.Count != 0) {
+                // What TIA's Openness cannot build is done in TIA's window, then reference-finish archives and exports.
+                Console.WriteLine($"{name}: built; now in TIA Portal open {project.Path.FullName} and:");
+                foreach (var step in steps) {
+                    Console.WriteLine("  " + step);
+                }
+                Console.WriteLine($"then save, close TIA Portal, and run: TiaOpennessExport reference-finish {Path.GetDirectoryName(work)} {folder}");
+                return Built.WaitsForHand;
             }
-            Directory.Move(generated, target);
-            Console.WriteLine($"{name}: archive and generated source replaced");
+            Publish(project, folder, work, texts);
             StaleExperiment(project, name, work);
-            return true;
+            return Built.Done;
         } finally {
             project.Close();
+        }
+    }
+
+    /// <summary>Archives and exports a reference project whose hand steps are done, then removes the work folder.</summary>
+    private static int FinishReference(string workFolder, string folder) {
+        folder = Path.GetFullPath(folder);
+        var name = Path.GetFileName(folder);
+        var work = Path.Combine(Path.GetFullPath(workFolder), name);
+        using (var portal = new TiaPortal(TiaPortalMode.WithoutUserInterface)) {
+            var project = portal.Projects.Open(new FileInfo(Path.Combine(work, name, name + ".ap21")));
+            try {
+                Publish(project, folder, work, File.Exists(Path.Combine(folder, "sources", ReferenceTexts.LanguagesFile)));
+            } finally {
+                project.Close();
+            }
+        }
+        try {
+            Directory.Delete(Path.GetFullPath(workFolder), recursive: true);
+        } catch (IOException e) {
+            Console.Error.WriteLine($"could not delete {workFolder}: {e.Message}");
+        }
+        return 0;
+    }
+
+    /// <summary>Archives a built reference project and writes what TIA says about it, then replaces the committed files.</summary>
+    private static void Publish(Project project, string folder, string work, bool texts) {
+        var name = Path.GetFileName(folder);
+        var archived = Path.Combine(work, "out");
+        project.Archive(new DirectoryInfo(archived), name + ".zap21", ProjectArchivationMode.DiscardRestorableDataAndCompressed);
+        var generated = Path.Combine(work, "generated");
+        // Only SimaticML lists every language's text, so a project with several languages exports it for every block.
+        Export(project, generated, blockXml: texts, crossReferences: true, texts: texts);
+        HardwareReport.Write(project, Path.Combine(generated, "hardware.tsv"));
+        SafetyReport.Write(project, Path.Combine(generated, "safety"));
+        Hmi.Export(project, generated);
+
+        File.Copy(Path.Combine(archived, name + ".zap21"), Path.Combine(folder, name + ".zap21"), overwrite: true);
+        var target = Path.Combine(folder, "generated");
+        if (Directory.Exists(target)) {
+            Directory.Delete(target, recursive: true);
+        }
+        // A move can be refused while a file TIA wrote is still held; a copy is not.
+        CopyFolder(generated, target);
+        Console.WriteLine($"{name}: archive and generated source replaced");
+    }
+
+    private static void CopyFolder(string from, string to) {
+        Directory.CreateDirectory(to);
+        foreach (var file in Directory.GetFiles(from)) {
+            File.Copy(file, Path.Combine(to, Path.GetFileName(file)));
+        }
+        foreach (var child in Directory.GetDirectories(from)) {
+            CopyFolder(child, Path.Combine(to, Path.GetFileName(child)));
         }
     }
 

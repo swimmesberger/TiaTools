@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Text;
 using System.Text.RegularExpressions;
 using TiaFormat.Schema;
 using TiaFormat.Storage;
@@ -22,8 +23,8 @@ public static partial class TiaHmi {
     private const string UnifiedTop = "d";
     private const string UnifiedNumber = "\u0007\u0005";
 
-    /// <summary>The report of every HMI device of the project, or of the one named <paramref name="device"/> only.</summary>
-    public static TiaHmiReport Read(TiaProgram program, string? device = null) => new Reader(program).Read(device);
+    /// <summary>The report of every HMI device of the project, or of the one named <paramref name="device"/> only; with each device's code if <paramref name="code"/>.</summary>
+    public static TiaHmiReport Read(TiaProgram program, string? device = null, bool code = false) => new Reader(program).Read(device, code);
 
     /// <summary>One pass over the database: every HMI object, grouped by the HMI application it belongs to.</summary>
     private sealed class Reader {
@@ -34,7 +35,7 @@ public static partial class TiaHmi {
             _limitMode, _limitValue, _screenNumber, _screenWidth, _screenHeight, _itemLeft, _itemTop, _itemWidth, _itemHeight, _bit;
         private readonly TiaRelationHandle _target, _environment, _connection, _cycle, _content, _consumer, _provider, _connectionPoint, _remoteTargets,
             _alarmClass, _discreteTrigger, _analogTrigger, _textChildren, _children, _ilItems, _expandoReferences;
-        private readonly uint? _application, _connectionType, _tableType, _tagType, _linkType, _discreteType, _analogType, _screenType, _itemType, _ilScreenType, _ilItemType,
+        private readonly uint? _embeddedScript, _application, _connectionType, _tableType, _tagType, _linkType, _discreteType, _analogType, _screenType, _itemType, _ilScreenType, _ilItemType,
             _plcTagType, _dataBlockType, _cycleType, _classType, _textType, _structureMemberType, _arrayMemberType;
         private readonly TiaRelationHandle _membersInverse, _elementsInverse;
 
@@ -79,6 +80,7 @@ public static partial class TiaHmi {
             _children = s.Relation("Children");
             _ilItems = s.Relation("ILScreenItems");
             _expandoReferences = s.Relation("ExpandoReferences");
+            _embeddedScript = s.FindObjectType("Siemens.Simatic.Hmi.DL.Scripting.HmiScriptEmbeddedData")?.Id;
             _application = s.FindObjectType("Siemens.Simatic.HwConfiguration.Hmi.Model.HmiApplicationData")?.Id;
             _connectionType = s.FindObjectType(Utah + "Communication.HmiConnectionData")?.Id;
             _tableType = s.FindObjectType(Utah + "Tag.HmiTagTableData")?.Id;
@@ -101,7 +103,7 @@ public static partial class TiaHmi {
             _elementsInverse = s.Relation("ArrayElementsInverse");
         }
 
-        public TiaHmiReport Read(string? only) {
+        public TiaHmiReport Read(string? only, bool withCode) {
             var applications = new List<TiaFrame>();
             var byApplication = new Dictionary<ulong, Objects>();
             Objects Of(in TiaFrame frame) =>
@@ -129,6 +131,7 @@ public static partial class TiaHmi {
                 }
             }
 
+            var code = withCode ? new TiaHmiCodeReader(_program).Read(byApplication.Keys) : null;
             var devices = new List<TiaHmiDevice>();
             foreach (var application in applications) {
                 var objects = byApplication[application.ObjectId];
@@ -140,7 +143,8 @@ public static partial class TiaHmi {
                     [.. objects.Connections.Select(ReadConnection).OrderBy(connection => connection.Name, StringComparer.Ordinal)],
                     [.. objects.Tables.Select(table => ReadTable(table, links)).OrderBy(table => table.Folder, StringComparer.Ordinal).ThenBy(table => table.Name, StringComparer.Ordinal)],
                     [.. objects.Alarms.Select(ReadAlarm).OrderBy(alarm => alarm.Kind).ThenBy(alarm => alarm.Number ?? long.MaxValue).ThenBy(alarm => alarm.Name, StringComparer.Ordinal)],
-                    [.. objects.Screens.Select(ReadScreen).OrderBy(screen => screen.Number ?? long.MaxValue).ThenBy(screen => screen.Name, StringComparer.Ordinal)]));
+                    [.. objects.Screens.Select(ReadScreen).OrderBy(screen => screen.Number ?? long.MaxValue).ThenBy(screen => screen.Name, StringComparer.Ordinal)],
+                    code?.GetValueOrDefault(application.ObjectId)));
             }
             return new TiaHmiReport([.. devices.OrderBy(device => device.Name, StringComparer.Ordinal)]);
         }
@@ -421,10 +425,57 @@ public static partial class TiaHmi {
             }
         }
 
+        private string? ReadUnifiedText(in TiaFrame item) => TiaHmi.ReadUnifiedText(_db, item);
+
+        /// <summary>
+        /// The positions in a Unified item's <c>ExpandoReferences</c> of tags it is not bound to, only triggered by: a
+        /// property script of the item adds each tag it names to the item's references, and the item's simple expando
+        /// counts each use (u32 size 6, u16 position). A tag counted no more often than the item's property scripts name
+        /// it is only a trigger.
+        /// </summary>
+        private HashSet<int> TriggerOnly(in TiaFrame item) {
+            var uses = new Dictionary<int, int>();
+            foreach (var (_, _, value) in _db.ReadSimpleExpandoValues(item)) {
+                if (value.Length >= 6 && BinaryPrimitives.ReadInt32LittleEndian(value) == 6) {
+                    var index = BinaryPrimitives.ReadUInt16LittleEndian(value.AsSpan(4));
+                    uses[index] = uses.GetValueOrDefault(index) + 1;
+                }
+            }
+            var targets = new List<TiaObjectKey>();
+            var triggers = new Dictionary<ulong, int>();
+            foreach (var relation in _db.EnumerateRelations(item)) {
+                if (!_expandoReferences.Matches(relation.RelationId)) {
+                    continue;
+                }
+                targets.Add(relation.Target);
+                if (relation.Target.TypeId == _embeddedScript && _db.TryGetFrame(relation.Target, out var script)
+                    && _db.ReadString(script, _name)?.EndsWith("Trigger", StringComparison.Ordinal) == true) {
+                    foreach (var named in _db.EnumerateRelations(script)) {
+                        if (_expandoReferences.Matches(named.RelationId) && IsTag(named.Target.TypeId)) {
+                            triggers[named.Target.ObjectId] = triggers.GetValueOrDefault(named.Target.ObjectId) + 1;
+                        }
+                    }
+                }
+            }
+            var result = new HashSet<int>();
+            for (var i = 0; i < targets.Count; i++) {
+                if (triggers.TryGetValue(targets[i].ObjectId, out var named) && uses.GetValueOrDefault(i) <= named) {
+                    result.Add(i);
+                }
+            }
+            return result;
+        }
+
         private TiaHmiScreenItem ReadItem(in TiaFrame item, bool unified) {
             var tags = new List<string>();
+            var unbound = unified ? TriggerOnly(item) : [];
+            var position = -1;
             foreach (var relation in _db.EnumerateRelations(item)) {
-                if (_expandoReferences.Matches(relation.RelationId) && IsTag(relation.Target.TypeId) && _db.TryGetFrame(relation.Target, out var tag)
+                if (!_expandoReferences.Matches(relation.RelationId)) {
+                    continue;
+                }
+                position++;
+                if (IsTag(relation.Target.TypeId) && !unbound.Contains(position) && _db.TryGetFrame(relation.Target, out var tag)
                     && TagPath(tag) is { } tagName && !tags.Contains(tagName)) {
                     tags.Add(tagName);
                 }
@@ -433,12 +484,33 @@ public static partial class TiaHmi {
             var type = _db.ReadString(item, _subtype) ?? "";
             return unified
                 ? new TiaHmiScreenItem(name, type, _db.ReadExpandoInteger(item, UnifiedLeft), _db.ReadExpandoInteger(item, UnifiedTop),
-                    _db.ReadExpandoInteger(item, UnifiedWidth), _db.ReadExpandoInteger(item, UnifiedHeight), tags)
+                    _db.ReadExpandoInteger(item, UnifiedWidth), _db.ReadExpandoInteger(item, UnifiedHeight), tags) { Text = ReadUnifiedText(item) }
                 : new TiaHmiScreenItem(name, type, _db.ReadInteger(item, _itemLeft), _db.ReadInteger(item, _itemTop), _db.ReadInteger(item, _itemWidth), _db.ReadInteger(item, _itemHeight), tags);
         }
     }
 
     /// <summary>What belongs to one HMI application.</summary>
+    /// <summary>
+    /// A Unified item's text: a multilingual text (type <c>0x8000001f</c>) in its simple expando, whose first text is a
+    /// u32 length and UTF-8 text followed by the property's name, <c>Text</c>, the same way.
+    /// </summary>
+    private static string? ReadUnifiedText(TiaDatabase db, in TiaFrame item) {
+        foreach (var (_, type, value) in db.ReadSimpleExpandoValues(item)) {
+            if (type != MultilingualText) {
+                continue;
+            }
+            var property = value.AsSpan().IndexOf("\u0004\0\0\0Text"u8);
+            for (var length = 0; property >= 0 && length <= property - 4; length++) {
+                if (BinaryPrimitives.ReadInt32LittleEndian(value.AsSpan(property - length - 4)) == length) {
+                    return Encoding.UTF8.GetString(value, property - length, length);
+                }
+            }
+        }
+        return null;
+    }
+
+    private const uint MultilingualText = 0x8000001f;
+
     private sealed class Objects {
         public static readonly Objects None = new();
         public List<TiaFrame> Connections { get; } = [];

@@ -1,0 +1,5 @@
+screen	item	kind	name	file
+Overview		event	Loaded	scripts/Overview/_screen.Loaded.js
+Overview	LevelValue	property	BackColor	scripts/Overview/LevelValue.BackColor.js
+Overview	SpeedValue	event	Activated	scripts/Overview/SpeedValue.Activated.js
+Overview	StartButton	event	Tapped	scripts/Overview/StartButton.Tapped.js

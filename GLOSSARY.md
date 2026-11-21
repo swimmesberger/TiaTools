@@ -255,6 +255,22 @@ _Avoid_: picture, view, page
 One element on a screen, such as an I/O field or a text, with its position and size and the HMI tags it is bound to.
 _Avoid_: object, widget, control (for all of them)
 
+**HMI script**:
+Code an HMI device runs itself: on Unified, JavaScript on an event or property of a screen or screen item; on Comfort/Advanced, a VB script. Not PLC code.
+_Avoid_: HMI program, macro, action
+
+**Global script module**:
+A Unified HMI device's JavaScript shared by its HMI scripts, kept apart from any screen.
+_Avoid_: library script, global script (alone)
+
+**Custom web control**:
+A screen item of a Unified device whose look and behaviour are a package of HTML, CSS and JavaScript its maker wrote; the only HMI code the person who made the project may have written as web files.
+_Avoid_: web widget, HTML control, CWC (in text)
+
+**Screen preview**:
+The viewer's schematic drawing of a screen: each screen item as a box at its stored position and size, with its type, text and bound HMI tag. Not how the runtime draws it.
+_Avoid_: screen rendering, screenshot
+
 **HMI report**:
 What `tiadump hmi` writes: each HMI device with its HMI connections, HMI tags, HMI alarms and screens (spec 0011).
 _Avoid_: HMI export, HMI dump

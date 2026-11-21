@@ -221,9 +221,10 @@ internal sealed class TiaDumpCommands {
     /// <param name="archive">A .zap* archive, a project or library folder, or a PEData.plf.</param>
     /// <param name="json">Write JSON instead of the Markdown report.</param>
     /// <param name="device">Only this HMI device.</param>
+    /// <param name="scripts">Add each device's code: HMI scripts, global script modules, VB scripts and custom web controls.</param>
     [Command("hmi")]
-    public int Hmi([Argument] string archive, bool json = false, string? device = null) {
-        var report = TiaHmi.Read(new TiaProgram(TiaDatabase.Open(archive)), device);
+    public int Hmi([Argument] string archive, bool json = false, string? device = null, bool scripts = false) {
+        var report = TiaHmi.Read(new TiaProgram(TiaDatabase.Open(archive)), device, scripts);
         if (device is not null && report.Devices.Count == 0) {
             Console.Error.WriteLine($"No HMI device named {device}.");
             return 1;

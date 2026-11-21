@@ -1,0 +1,5 @@
+plc	object	number	language	status	source	xml	name	note
+PLC_Dosing	TAGS			ok		PLC_Dosing/TAGS.Default tag table.xml	Default tag table	
+PLC_Dosing	TAGS			ok		PLC_Dosing/TAGS.Dosing.xml	Dosing	
+PLC_Station	TAGS			ok		PLC_Station/TAGS.Default tag table.2.xml	Default tag table	
+PLC_Station	TAGS			ok		PLC_Station/TAGS.Pump.xml	Pump	

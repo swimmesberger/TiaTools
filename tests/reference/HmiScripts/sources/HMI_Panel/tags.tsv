@@ -1,0 +1,6 @@
+table	name	plc tag	data type
+Dosing	Level	Dose_Level	
+Dosing	Speed	Dose_Speed	
+Dosing	Target	Dose_Target	
+Dosing	Valve	Dose_Valve	
+Local	StartCount		Int

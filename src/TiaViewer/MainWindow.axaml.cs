@@ -117,6 +117,11 @@ public sealed partial class MainWindow : Window {
         DevicesPanel.Open += OpenConstant;
         SafetyPanel.Open += OpenFromOpcUa;
         HmiPanel.Open += OpenFromHmi;
+        HmiPanel.OpenScript += OpenHmiScript;
+        HmiPanel.Said += text => {
+            Status.Text = text;
+            ShowFolderButton.IsVisible = false;
+        };
         OpcUaPanel.Said += text => {
             Status.Text = text;
             ShowFolderButton.IsVisible = false;
@@ -253,6 +258,14 @@ public sealed partial class MainWindow : Window {
         }
     }
 
+    /// <summary>Opens a script of the HMI device shown, by its position in the device's scripts.</summary>
+    private void OpenHmiScript(int index) {
+        if (_project is { } project && _current is { HmiDevice: { } device }
+            && project.Hmi.FirstOrDefault(item => item.HmiDevice == device && item.HmiPart == TiaHmiPart.Script && item.HmiIndex == index) is { } script) {
+            Navigate(script, 0);
+        }
+    }
+
     /// <summary>Follows the name at a position in the text, if it leads somewhere.</summary>
     public bool FollowAt(int offset) {
         if (_project is not { } project || _current is not { } current) {
@@ -290,7 +303,7 @@ public sealed partial class MainWindow : Window {
                 SafetyPanel.Show(safety);
             }
             if (project.HmiDevice(item) is { } device) {
-                HmiPanel.Show(device, item.HmiPart, item.Name);
+                HmiPanel.Show(device, item.HmiPart, item.Name, item.HmiIndex);
             }
             if (!keepLists) {
                 ShowPlaces(item);
@@ -299,11 +312,12 @@ public sealed partial class MainWindow : Window {
         Welcome.IsVisible = false;
         // A PLC's OPC UA configuration and safety program, the project's hardware and an HMI entry have views of their own;
         // their text stays in the editor for copying.
-        Editor.IsVisible = !item.IsReport;
+        // An HMI script is source, shown as source.
+        Editor.IsVisible = !item.IsReport || item.IsHmiSource;
         OpcUaPanel.IsVisible = item.Kind == TiaItem.OpcUaReportKind;
         SafetyPanel.IsVisible = item.Kind == TiaItem.SafetyReportKind;
         DevicesPanel.IsVisible = item.IsHardware;
-        HmiPanel.IsVisible = item.IsHmi;
+        HmiPanel.IsVisible = item.IsHmi && !item.IsHmiSource;
         ShowPanels(!item.IsReport);
         ShowHeading(item);
         var clamped = Math.Clamp(line, 0, document.LineCount - 1);

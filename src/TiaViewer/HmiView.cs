@@ -13,8 +13,9 @@ namespace TiaViewer;
 
 /// <summary>
 /// An HMI device's entry as a table (spec 0011): its connections, the HMI tags of a tag table, its HMI alarms, or the
-/// items of a screen. A row whose HMI tag reads a PLC tag or data block member opens it. Read-only; built in code,
-/// without bindings, so it needs no reflection. The text <c>tiadump hmi</c> writes stays behind Copy.
+/// items of a screen, which a schematic preview draws above them; or a custom web control's files (spec 0017). A row
+/// whose HMI tag reads a PLC tag or data block member opens it. Read-only; built in code, without bindings, so it needs
+/// no reflection. The text <c>tiadump hmi</c> writes stays behind Copy.
 /// </summary>
 public sealed class HmiView : UserControl {
     private const double RowInset = 20;
@@ -22,8 +23,18 @@ public sealed class HmiView : UserControl {
     /// <summary>An HMI tag's PLC link the person asked to open.</summary>
     public event Action<TiaHmiPlcLink>? Open;
 
-    /// <summary>Shows one entry of <paramref name="device"/>: what <paramref name="part"/> names, a tag table or screen by <paramref name="name"/>.</summary>
-    public void Show(TiaHmiDevice device, TiaHmiPart part, string name) {
+    /// <summary>A script of the device the person asked to open, by its position in <see cref="TiaHmiCode.Scripts"/>.</summary>
+    public event Action<int>? OpenScript;
+
+    /// <summary>Something to say in the status line.</summary>
+    public event Action<string>? Said;
+
+    /// <summary>
+    /// Shows one entry of <paramref name="device"/>: what <paramref name="part"/> names, a tag table or screen by
+    /// <paramref name="name"/>, a custom web control by <paramref name="index"/>.
+    /// </summary>
+    public void Show(TiaHmiDevice device, TiaHmiPart part, string name, int index = 0) {
+        var code = device.Code ?? TiaHmiCode.Empty;
         var links = device.TagTables.SelectMany(table => table.Tags).Where(tag => tag.PlcLink is not null)
             .GroupBy(tag => tag.Name, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.First().PlcLink!, StringComparer.Ordinal);
         Content = part switch {
@@ -31,6 +42,7 @@ public sealed class HmiView : UserControl {
             TiaHmiPart.Alarms => Alarms(device, links),
             TiaHmiPart.TagTable when device.TagTables.FirstOrDefault(table => table.Name == name) is { } table => Tags(device, table),
             TiaHmiPart.Screen when device.Screens.FirstOrDefault(screen => screen.Name == name) is { } screen => Screen(device, screen, links),
+            TiaHmiPart.CustomWebControl when index < code.CustomWebControls.Count => Control(device, code.CustomWebControls[index]),
             _ => new Panel(),
         };
     }
@@ -61,11 +73,85 @@ public sealed class HmiView : UserControl {
         var about = Device(device)
             + (screen.Number is { } number ? Invariant($"  ·  number {number}") : "")
             + (screen.Width is { } width && screen.Height is { } height ? Invariant($"  ·  {width} × {height}") : "");
-        return Page(screen.Name, about,
-            Table("170,120,60,60,60,60,*", ["Item", "Type", "Left", "Top", "Width", "Height", "HMI tags"], screen.Items,
-                item => [Text(item.Name), Text(item.Type), Number(item.Left), Number(item.Top), Number(item.Width), Number(item.Height), Text(string.Join(", ", item.Tags))],
-                item => item.Tags.Select(tag => links.GetValueOrDefault(tag)).FirstOrDefault(link => link is not null),
-                "Each item with its position and size, and the HMI tags it shows. Double-click a row, or press Enter, to open what its first tag reads in the PLC."));
+        var scripts = (device.Code ?? TiaHmiCode.Empty).Scripts.Select((script, index) => (script, index)).Where(entry => entry.script.Screen == screen.Name).ToList();
+        ListBox? list = null;
+        var table = Table("150,110,140,50,50,50,50,110,*", ["Item", "Type", "Text", "Left", "Top", "Width", "Height", "HMI tags", "Scripts"], screen.Items,
+            item => [
+                Text(item.Name), Text(item.Type), Text(item.Text), Number(item.Left), Number(item.Top), Number(item.Width), Number(item.Height), Text(string.Join(", ", item.Tags)),
+                Scripts(scripts.Where(entry => entry.script.Item == item.Name)),
+            ],
+            item => item.Tags.Select(tag => links.GetValueOrDefault(tag)).FirstOrDefault(link => link is not null),
+            "Each item with its position and size, and the HMI tags it shows. Click an item in the preview to find its row; click a script to open it. Double-click a row, or press Enter, to open what its first tag reads in the PLC.",
+            created => list = created);
+        var page = Page(screen.Name, about, table);
+        var own = scripts.Where(entry => entry.script.Item is null).ToList();
+        var preview = new HmiScreenPreview(screen, item => {
+            if (list is not null) {
+                list.SelectedItem = item;
+                list.ScrollIntoView(item);
+            }
+        }) { Margin = new Thickness(RowInset, 10, 16, 0), MaxHeight = 320, HorizontalAlignment = HorizontalAlignment.Left };
+        var top = new StackPanel { Spacing = 4 };
+        top.Children.Add(preview);
+        if (own.Count != 0) {
+            var line = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(RowInset, 2, 16, 0), Spacing = 6 };
+            line.Children.Add(Muted("Screen scripts:"));
+            line.Children.Add(Scripts(own));
+            top.Children.Add(line);
+        }
+        DockPanel.SetDock(top, Dock.Top);
+        page.Children.Insert(1, top);
+        return page;
+    }
+
+    /// <summary>A screen item's scripts, each a name that opens it.</summary>
+    private Control Scripts(IEnumerable<(TiaHmiScript Script, int Index)> scripts) {
+        var panel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
+        foreach (var (script, index) in scripts) {
+            var link = Text(script.Name);
+            link.Foreground = Brush.Parse("#2563EB");
+            link.TextDecorations = TextDecorations.Underline;
+            link.Cursor = new Cursor(StandardCursorType.Hand);
+            ToolTip.SetTip(link, (script.Kind == TiaHmiScriptKind.Event ? "The script of event " : "The script of property ") + script.Name);
+            link.PointerPressed += (_, e) => {
+                OpenScript?.Invoke(index);
+                e.Handled = true;
+            };
+            panel.Children.Add(link);
+        }
+        return panel;
+    }
+
+    /// <summary>
+    /// A custom web control: where it is used, its package's files, a text file's content beside the list, and its
+    /// preview behind a notice (spec 0017).
+    /// </summary>
+    private Control Control(TiaHmiDevice device, TiaHmiCustomWebControl control) {
+        var about = Device(device) + "  ·  " + control.Guid + "  ·  used by "
+            + (control.UsedBy.Count == 0 ? "no screen item" : string.Join(", ", control.UsedBy.Select(use => use.Screen + "/" + use.Item)));
+        var content = new TextBox {
+            IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap, FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace"),
+            FontSize = 12, Margin = new Thickness(0, 10, 16, 6), Text = control.HasPackage ? "" : "The archive does not hold this control's package, " + control.PackagePath + ".",
+        };
+        ScrollViewer.SetHorizontalScrollBarVisibility(content, ScrollBarVisibility.Auto);
+        var table = Table("*,70", ["File", "Bytes"], control.Files,
+            file => [Text(file.Path), Number(file.Content.Length)], _ => null,
+            "The files of the control's package as the project keeps them. Select a text file to read it.",
+            list => list.SelectionChanged += (_, _) => {
+                if (list.SelectedItem is TiaHmiPackageFile file) {
+                    content.Text = file.Text ?? Invariant($"{file.Path}: {file.Content.Length} bytes, not text.");
+                }
+            });
+        var body = new Grid { ColumnDefinitions = ColumnDefinitions.Parse("360,*") };
+        Grid.SetColumn(content, 1);
+        body.Children.Add(table);
+        body.Children.Add(content);
+        var page = Page(control.DisplayName ?? control.Guid, about, body);
+        var bar = HmiWebControlPreview.Bar(control, text => Said?.Invoke(text));
+        bar.Margin = new Thickness(RowInset, 8, 16, 0);
+        DockPanel.SetDock(bar, Dock.Top);
+        page.Children.Insert(1, bar);
+        return page;
     }
 
     private static string Device(TiaHmiDevice device) => device.Name + "  ·  " + device.FamilyName + (device.DeviceType is { Length: > 0 } type ? ", " + type : "");
@@ -96,7 +182,7 @@ public sealed class HmiView : UserControl {
     }
 
     /// <summary>A list with a header row and a note below; a row with a PLC link opens it by double-click or Enter.</summary>
-    private Control Table<T>(string columns, string[] header, IReadOnlyList<T> rows, Func<T, Control[]> cells, Func<T, TiaHmiPlcLink?> link, string note) {
+    private Control Table<T>(string columns, string[] header, IReadOnlyList<T> rows, Func<T, Control[]> cells, Func<T, TiaHmiPlcLink?> link, string note, Action<ListBox>? created = null) {
         var head = new Grid { ColumnDefinitions = ColumnDefinitions.Parse(columns), Margin = new Thickness(RowInset, 10, 16, 4) };
         AddRow(head, header.Select(title => (Control)new TextBlock { Text = title, FontSize = 12, FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis }).ToArray());
         Control body;
@@ -133,6 +219,7 @@ public sealed class HmiView : UserControl {
                 }
             };
             body = list;
+            created?.Invoke(list);
         }
         var panel = new DockPanel();
         DockPanel.SetDock(head, Dock.Top);

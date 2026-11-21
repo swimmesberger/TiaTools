@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using Siemens.Engineering;
@@ -9,6 +10,7 @@ using Siemens.Engineering.Hmi;
 using Siemens.Engineering.HmiUnified;
 using Siemens.Engineering.HmiUnified.UI.Base;
 using Siemens.Engineering.HmiUnified.UI.Dynamization;
+using Siemens.Engineering.HmiUnified.UI.Dynamization.Script;
 using Siemens.Engineering.HmiUnified.UI.Shapes;
 using Siemens.Engineering.HmiUnified.UI.Widgets;
 using Siemens.Engineering.HW;
@@ -27,6 +29,18 @@ namespace TiaOpennessExport;
 /// </summary>
 internal static class Hmi {
     public static bool IsHmiFolder(string folder) => File.Exists(Path.Combine(folder, "device.txt"));
+
+    /// <summary>
+    /// What a reference project needs done by hand in TIA's window, because Openness cannot (spec 0017, FR-017): the lines
+    /// of each HMI device's hand.txt, named after the device.
+    /// </summary>
+    public static List<string> HandSteps(string referenceFolder) =>
+        Directory.GetDirectories(Path.Combine(referenceFolder, "sources")).OrderBy(path => path, StringComparer.Ordinal)
+            .Where(folder => File.Exists(Path.Combine(folder, "hand.txt")))
+            .SelectMany(folder => File.ReadAllLines(Path.Combine(folder, "hand.txt"), Encoding.UTF8)
+                .Where(line => line.Length != 0 && !line.StartsWith("#", StringComparison.Ordinal))
+                .Select(line => Path.GetFileName(folder) + ": " + line))
+            .ToList();
 
     /// <summary>Builds the HMI device of one sources folder; returns how many of its parts TIA refused.</summary>
     public static int Build(Project project, string folder, Func<PlcSoftware, string, int> buildPlc) {
@@ -115,6 +129,44 @@ internal static class Hmi {
                 }
             });
         }
+        // scripts.tsv: screen, screen item (empty for the screen itself), event or property, the event type or property
+        // name, and the file in scripts/ that holds the code (spec 0017).
+        foreach (var row in Rows(Path.Combine(folder, "scripts.tsv"))) {
+            refused += Attempt(project, $"{name} script {row[0]} {row[1]} {row[3]}", () => {
+                var screen = hmi.Screens.Find(row[0]) ?? throw new InvalidOperationException($"no screen {row[0]}");
+                var code = File.ReadAllText(Path.Combine(folder, "scripts", row[4]), Encoding.UTF8);
+                if (row[2] == "event") {
+                    object owner = row[1].Length == 0 ? screen : screen.ScreenItems.Find(row[1]) ?? throw new InvalidOperationException($"no screen item {row[1]}");
+                    var handlers = owner.GetType().GetProperty("EventHandlers").GetValue(owner, null);
+                    var create = handlers.GetType().GetMethod("Create");
+                    var handler = create.Invoke(handlers, [Enum.Parse(create.GetParameters()[0].ParameterType, row[3])]);
+                    Set(handler.GetType().GetProperty("Script").GetValue(handler, null), "ScriptCode", code);
+                } else {
+                    var item = screen.ScreenItems.Find(row[1]) ?? throw new InvalidOperationException($"no screen item {row[1]}");
+                    item.Dynamizations.Create<ScriptDynamization>(row[3]).ScriptCode = code;
+                }
+            });
+        }
+        // Global script modules, as TIA exports them: per module a .hmi.yml naming its .hmi.js.
+        var modules = Path.Combine(folder, "modules");
+        if (Directory.Exists(modules)) {
+            refused += Attempt(project, $"{name} global script modules", () => hmi.Scripts.Import(new DirectoryInfo(modules)));
+        }
+        // Custom web controls: each folder is a control's package, named after its GUID, zipped into the project's
+        // UserFiles, where TIA's toolbox finds it. Placing one on a screen is a hand step (hand.txt).
+        var controls = Path.Combine(folder, "custom web controls");
+        if (Directory.Exists(controls)) {
+            var into = Path.Combine(project.Path.Directory.FullName, "UserFiles", "CustomControls");
+            Directory.CreateDirectory(into);
+            foreach (var control in Directory.GetDirectories(controls).OrderBy(path => path, StringComparer.Ordinal)) {
+                var zip = Path.Combine(into, Path.GetFileName(control) + ".zip");
+                if (File.Exists(zip)) {
+                    File.Delete(zip);
+                }
+                ZipFile.CreateFromDirectory(control, zip, CompressionLevel.Optimal, includeBaseDirectory: false);
+                Console.WriteLine($"built {name} custom web control {Path.GetFileName(control)}");
+            }
+        }
         return refused;
     }
 
@@ -143,6 +195,9 @@ internal static class Hmi {
         }
         foreach (var file in Files(Path.Combine(folder, "Screens"))) {
             refused += Attempt(project, $"{name} screen {Path.GetFileName(file)}", () => Target(device).ScreenFolder.Screens.Import(new FileInfo(file), ImportOptions.None));
+        }
+        foreach (var file in Files(Path.Combine(folder, "VB scripts"))) {
+            refused += Attempt(project, $"{name} VB script {Path.GetFileName(file)}", () => Target(device).VBScriptFolder.VBScripts.Import(new FileInfo(file), ImportOptions.None));
         }
         return refused;
     }
@@ -183,6 +238,54 @@ internal static class Hmi {
             }
         }
         Write(folder, "screens.tsv", ["screen", "number", "width", "height", "item", "type", "left", "top", "item width", "item height", "tag"], screens);
+        ExportUnifiedCode(hmi, folder);
+    }
+
+    /// <summary>
+    /// Spec 0017: each HMI script's code as the API gives it, in scripts/, listed in scripts.tsv; the global script modules
+    /// as TIA exports them, in modules/; and each custom web control on a screen, with its type and interface, in controls.tsv.
+    /// </summary>
+    private static void ExportUnifiedCode(HmiSoftware hmi, string folder) {
+        var scripts = new List<string[]>();
+        var controls = new List<string[]>();
+        foreach (var screen in hmi.Screens) {
+            AddEvents(screen.Name, "", screen);
+            foreach (var item in screen.ScreenItems) {
+                AddEvents(screen.Name, item.Name, item);
+                foreach (var dynamization in item.Dynamizations.OfType<ScriptDynamization>()) {
+                    Add(screen.Name, item.Name, "property", dynamization.PropertyName, dynamization.ScriptCode);
+                }
+                if (item is HmiCustomWebControlContainer control) {
+                    controls.Add([screen.Name, item.Name, Text(control, "ContainedType"), string.Join("; ",
+                        control.Interface.Select(entry => Text(entry, "PropertyName") + "=" + Text(entry, "Value")))]);
+                }
+            }
+        }
+        Write(folder, "scripts.tsv", ["screen", "item", "kind", "name", "file"], scripts);
+        Write(folder, "controls.tsv", ["screen", "item", "type", "interface"], controls);
+        if (hmi.Scripts.Count != 0) {
+            // Not the DirectoryInfo CreateDirectory returns: on .NET Framework its ToString() is the bare name, which Openness takes as relative.
+            var modules = Path.GetFullPath(Path.Combine(folder, "modules"));
+            Directory.CreateDirectory(modules);
+            hmi.Scripts.Export(new DirectoryInfo(modules));
+        }
+
+        void AddEvents(string screen, string item, object owner) {
+            if (owner.GetType().GetProperty("EventHandlers")?.GetValue(owner, null) is not System.Collections.IEnumerable handlers) {
+                return;
+            }
+            foreach (var handler in handlers) {
+                var script = handler.GetType().GetProperty("Script").GetValue(handler, null);
+                Add(screen, item, "event", Text(handler, "EventType"), Text(script, "ScriptCode"));
+            }
+        }
+
+        void Add(string screen, string item, string kind, string name, string code) {
+            var file = Path.Combine("scripts", screen, (item.Length == 0 ? "_screen" : item) + "." + name + ".js");
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(folder, file)));
+            File.WriteAllText(Path.Combine(folder, file), code ?? "", new UTF8Encoding(false));
+            scripts.Add([screen, item, kind, name, file.Replace('\\', '/')]);
+        }
     }
 
     private static void ExportAdvanced(DeviceItem runtime, HmiTarget hmi, string folder) {
@@ -196,6 +299,9 @@ internal static class Hmi {
         }
         foreach (var screen in hmi.ScreenFolder.Screens) {
             screen.Export(new FileInfo(Path.Combine(folder, "SCREEN." + screen.Name + ".xml")), ExportOptions.WithDefaults);
+        }
+        foreach (var script in hmi.VBScriptFolder.VBScripts) {
+            script.Export(new FileInfo(Path.Combine(folder, "VBSCRIPT." + script.Name + ".xml")), ExportOptions.WithDefaults);
         }
     }
 

@@ -1,0 +1,5 @@
+# An Open Controller with WinCC RT Advanced and a VB script (spec 0017).
+family	Advanced
+type	OrderNumber:6ES7 677-2DBx2-0xx0/V21.9
+device	PC_Station
+plc	PLC_Station
