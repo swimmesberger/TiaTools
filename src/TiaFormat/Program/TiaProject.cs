@@ -338,6 +338,11 @@ public sealed class TiaProject {
 
     private void AddCrossReferences(TiaCrossReferences list) {
         var items = Items.Where(item => item.Block is not null).ToDictionary(item => item.Block!.Frame.Key);
+        // A technology object is used like a data block, but uses nothing itself (spec 0013).
+        var used = new Dictionary<TiaObjectKey, TiaItem>(items);
+        foreach (var item in Items.Where(item => item.TechnologyObject is not null)) {
+            used.TryAdd(item.TechnologyObject!.Frame.Key, item);
+        }
         var seen = new HashSet<(TiaItem, TiaItem, string?, string?, int?)>();
         foreach (var reference in list.References) {
             if (!items.TryGetValue(reference.User.Frame.Key, out var from) || reference.Used.Key == reference.User.Frame.Key) {
@@ -353,7 +358,7 @@ public sealed class TiaProject {
                 to = tag.Item;
                 target = reference.Used.Name;
                 needle = "\"" + reference.Used.Name + "\"";
-            } else if (items.TryGetValue(reference.Used.Key, out var block)) {
+            } else if (used.TryGetValue(reference.Used.Key, out var block)) {
                 to = block;
                 needle = "\"" + reference.Used.Name + "\"";
             } else {

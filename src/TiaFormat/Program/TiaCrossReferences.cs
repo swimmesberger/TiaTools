@@ -98,6 +98,7 @@ public sealed class TiaCrossReferences {
     private sealed class Reader(TiaProgram program, SqliteFile file) {
         private readonly TiaDatabase _db = program.Database;
         private readonly Dictionary<TiaObjectKey, TiaBlock> _blocks = program.Blocks.Where(block => !block.IsStub).ToDictionary(block => block.Frame.Key);
+        private readonly Dictionary<TiaObjectKey, TiaTechnologyObject> _technologyObjects = program.TechnologyObjects.ToDictionary(technologyObject => technologyObject.Frame.Key);
         private readonly Dictionary<TiaObjectKey, Dictionary<string, string>> _members = [];
         private readonly Dictionary<long, TiaObjectKey?> _parts = [];
         private readonly Dictionary<long, (long Primary, byte[] Sub)> _objects = [];
@@ -141,7 +142,7 @@ public sealed class TiaCrossReferences {
                 string? declaration = null;
                 if (unit == 0 && uid != 0) {
                     // A use in the interface: the second number is the id of the member it declares.
-                    declaration = Members(user).GetValueOrDefault(uid.ToString(CultureInfo.InvariantCulture));
+                    declaration = Members(user.Frame.Key, () => program.MemberNamesById(user)).GetValueOrDefault(uid.ToString(CultureInfo.InvariantCulture));
                 }
                 var reference = new TiaCrossReference(user, used, access, unit == 0 ? null : unit, unit == 0 ? null : uid, declaration);
                 if (user.IsKnowHowProtected) {
@@ -212,12 +213,18 @@ public sealed class TiaCrossReferences {
             if (_blocks.TryGetValue(target.Key, out var block)) {
                 string? member = null;
                 if (target.Sub.Length != 0) {
-                    member = MemberName(block, target.Sub, filter);
+                    member = MemberName(Members(target.Key, () => program.MemberNamesById(block)), target.Sub, filter);
                     if (member is null) {
                         return null;
                     }
                 }
                 return new TiaCrossTarget(target.Key, block.Kind, block.Name, member);
+            }
+            if (_technologyObjects.TryGetValue(target.Key, out var technologyObject)) {
+                // Used like a data block (spec 0013); a member TIA names that the reader cannot is shown as the object.
+                var member = target.Sub.Length == 0 ? null
+                    : MemberName(Members(target.Key, () => program.MemberNamesById(technologyObject)), target.Sub, filter);
+                return new TiaCrossTarget(target.Key, TiaItem.TechnologyObjectKind, technologyObject.Name, member);
             }
             if (target.Sub.Length != 0) {
                 return null;
@@ -230,10 +237,10 @@ public sealed class TiaCrossReferences {
             };
         }
 
-        private Dictionary<string, string> Members(TiaBlock block) {
-            if (!_members.TryGetValue(block.Frame.Key, out var names)) {
-                names = program.MemberNamesById(block);
-                _members[block.Frame.Key] = names;
+        private Dictionary<string, string> Members(TiaObjectKey key, Func<Dictionary<string, string>> read) {
+            if (!_members.TryGetValue(key, out var names)) {
+                names = read();
+                _members[key] = names;
             }
             return names;
         }
@@ -242,8 +249,7 @@ public sealed class TiaCrossReferences {
         /// The dotted name of a member by its id path; an array index from the filter goes after the segment it names:
         /// <c>02</c>, a count, then per index a u16 segment, counted from 1, and an i32 index (FORMAT.md section 21).
         /// </summary>
-        private string? MemberName(TiaBlock block, int[] ids, byte[] filter) {
-            var names = Members(block);
+        private static string? MemberName(Dictionary<string, string> names, int[] ids, byte[] filter) {
             var segments = new List<string>();
             for (var i = 0; i < ids.Length; i++) {
                 var path = string.Join(':', ids.Take(i + 1).Select(id => id.ToString(CultureInfo.InvariantCulture)));

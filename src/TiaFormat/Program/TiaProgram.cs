@@ -437,19 +437,26 @@ public sealed partial class TiaProgram {
     /// <c>"53"</c> for a member, <c>"53:52"</c> for a member of its struct, UDT or FB type; the name is dotted, <c>inner.answer</c>.
     /// A function's return value has the function's name.
     /// </summary>
-    public Dictionary<string, string> MemberNamesById(TiaBlock block) {
+    public Dictionary<string, string> MemberNamesById(TiaBlock block) =>
+        MemberNamesById(block.Frame, block.Name, block.Kind.StartsWith("DB", StringComparison.Ordinal));
+
+    /// <summary>A technology object's members by the path of their ids, as for a data block (spec 0013, spec 0015).</summary>
+    public Dictionary<string, string> MemberNamesById(TiaTechnologyObject technologyObject) =>
+        MemberNamesById(technologyObject.Frame, technologyObject.Name, isDataBlock: true);
+
+    private Dictionary<string, string> MemberNamesById(TiaFrame frame, string blockName, bool isDataBlock) {
         var names = new Dictionary<string, string>(StringComparer.Ordinal);
-        if (!_db.TryGetTarget(block.Frame, _currentInterface, out var root)) {
+        if (!_db.TryGetTarget(frame, _currentInterface, out var root)) {
             return names;
         }
-        var context = new InterfaceContext { Parts = PositionalParts(root), IsDataBlock = block.Kind.StartsWith("DB", StringComparison.Ordinal) };
+        var context = new InterfaceContext { Parts = PositionalParts(root), IsDataBlock = isDataBlock };
         Add(ParseRoot(root, context), "");
         return names;
 
         void Add(List<TiaMemberNode> members, string prefix) {
             foreach (var member in members) {
                 // A function's return value is named after the function, as in its code.
-                var name = prefix.Length == 0 && member.Section == "Return" ? block.Name : prefix + member.Name;
+                var name = prefix.Length == 0 && member.Section == "Return" ? blockName : prefix + member.Name;
                 names.TryAdd(member.Path, name);
                 Add(member.Children, name + ".");
                 Add(member.TypeMembers, name + ".");
